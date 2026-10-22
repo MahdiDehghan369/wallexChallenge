@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}سیستم · سیاوش{% endblock %}
+{% block body %}
+{% set hb = s.heartbeat_age_s %}
+<div class="kpis">
+  <div class="card kpi"><div class="l">سن آخرین heartbeat</div>
+    <div class="v {{ 'neg' if hb is none or hb > s.watchdog_timeout_s else 'pos' }}">{{ hb | fmt(0) }} s</div>
+    <div class="s">حد watchdog {{ s.watchdog_timeout_s | fmt }} s</div></div>
+  <div class="card kpi"><div class="l">نرخ خطای API</div><div class="v">{{ s.api.error_rate_pct | fmt(2) }} %</div>
+    <div class="s">{{ s.api.errors }} از {{ s.api.requests }} درخواست</div></div>
+  <div class="card kpi"><div class="l">تأخیر HTTP p50 / p95</div>
+    <div class="v">{{ s.api.http_p50_ms | fmt(0) }} / {{ s.api.http_p95_ms | fmt(0) }}</div><div class="s">میلی‌ثانیه</div></div>
+  <div class="card kpi"><div class="l">آخرین تصمیم</div><div class="v" style="font-size:14px">{{ s.last_decision_ts or '—' }}</div></div>
+</div>
+
+<h2>نسخه و پیکربندی</h2>
+<div class="tw"><table>
+<tr><th>mode</th><td class="ltr">{{ s.identity.mode or '—' }}</td></tr>
+<tr><th>git_sha</th><td class="ltr">{{ s.identity.git_sha or '—' }}</td></tr>
+<tr><th>version_tag</th><td class="ltr">{{ s.identity.version_tag or '—' }}</td></tr>
+<tr><th>config_hash</th><td class="ltr">{{ s.identity.config_hash or '—' }}</td></tr>
+</table></div>
+<p class="muted">منبع: {{ s.identity_source }}</p>
+
+<h2>تأخیر تصمیم‌گیری (latency.jsonl)</h2>
+<div class="tw"><table>
+<tr><th>مرحله</th><th class="n">n</th><th class="n">p50 ms</th><th class="n">p95 ms</th><th class="n">max ms</th></tr>
+{% for k, v in s.latency.items() %}
+<tr><td class="ltr">{{ k }}</td><td class="n">{{ v.n }}</td><td class="n">{{ v.p50 | fmt(1) }}</td><td class="n">{{ v.p95 | fmt(1) }}</td><td class="n">{{ v.max | fmt(1) }}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">داده‌ای نیست.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

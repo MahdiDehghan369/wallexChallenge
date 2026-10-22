@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}گزارش‌ها · سیاوش{% endblock %}
+{% block body %}
+{% for group, items in groups.items() %}
+<h2 class="ltr" dir="ltr">{{ group }}</h2>
+<div class="tw"><table>
+{% for r in items %}<tr><td class="ltr"><a href="/reports/view/{{ r.path }}">{{ r.path }}</a></td><td class="n muted">{{ r.mtime }}</td></tr>{% endfor %}
+</table></div>
+{% else %}<p class="muted">گزارشی در reports/ نیست.</p>{% endfor %}
+{% endblock %}

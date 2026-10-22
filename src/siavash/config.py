@@ -120,6 +120,18 @@ class AlertsConfig(_C):
     min_interval_s: float = Field(3, ge=0)
 
 
+class DashboardConfig(_C):
+    """Read-only monitoring dashboard (``siavash dashboard`` / ``siavash run`` with env ``PORT``)."""
+
+    host: str = "127.0.0.1"
+    port: int = Field(8080, ge=1, le=65535)
+    refresh_s: int = Field(30, ge=5)
+    max_decisions: int = Field(500, ge=10)
+    max_chart_points: int = Field(1500, ge=50)
+    regime_history: int = Field(100, ge=1)
+    tail_bytes: int = Field(20_000_000, ge=100_000)
+
+
 class BaseConfig(_C):
     mode: ModeName = "paper"
     timezone: str = "Asia/Tehran"
@@ -131,6 +143,7 @@ class BaseConfig(_C):
     bt: BacktestConfig = BacktestConfig()
     data: DataConfig = DataConfig()
     alerts: AlertsConfig = AlertsConfig()
+    dashboard: DashboardConfig = DashboardConfig()
 
 
 # --------------------------------------------------------------------------- llm (base.yaml > llm)
@@ -406,6 +419,12 @@ class EnvSettings(BaseSettings):
     https_proxy: str | None = None
     alert_webhook_url: SecretStr | None = None
     version_tag: str | None = None
+    # read-only dashboard: disabled while DASHBOARD_PASSWORD is unset; PORT / DASHBOARD_HOST override
+    # base.yaml > dashboard (DASHBOARD_HOST=0.0.0.0 only on Liara)
+    dashboard_user: str | None = None
+    dashboard_password: SecretStr | None = None
+    dashboard_host: str | None = None
+    port: int | None = None
 
     @field_validator("*", mode="before")
     @classmethod

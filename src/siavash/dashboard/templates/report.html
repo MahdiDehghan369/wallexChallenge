@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block title %}{{ rel }} · سیاوش{% endblock %}
+{% block body %}
+<p><a href="/reports">→ همه گزارش‌ها</a> · <span class="muted ltr">reports/{{ rel }}</span></p>
+<article class="md" dir="ltr">{{ body }}</article>
+{% endblock %}

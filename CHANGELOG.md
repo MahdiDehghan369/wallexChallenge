@@ -6,6 +6,16 @@ and an entry under "Versions".
 ## Unreleased
 
 - Project skeleton (T-001).
+- Read-only monitoring dashboard (`siavash dashboard`, `make dashboard-serve`, `src/siavash/dashboard/`).
+  - **Server:** one Starlette server serves `/health` and the dashboard on one port. `siavash run`
+    starts it in a thread when env `PORT` is set.
+  - **Access:** `/health` is public. Every other path needs HTTP Basic auth; the dashboard is disabled
+    while `DASHBOARD_PASSWORD` is unset. All routes are GET-only, and SQLite is opened with `mode=ro`.
+  - **UI:** Persian RTL, light and dark mode, Chart.js 4.4.1 from cdnjs, refreshes every 30 s.
+  - **Config:** new `base.yaml > dashboard` block, plus env `DASHBOARD_USER`, `DASHBOARD_PASSWORD`,
+    `DASHBOARD_HOST` and `PORT`.
+  - **Compose:** publishes the port on the host's loopback only.
+  - **Dependencies:** new explicit deps `starlette`, `uvicorn`, `jinja2` and `markdown-it-py`.
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.

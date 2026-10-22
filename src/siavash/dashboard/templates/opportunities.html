@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}فرصت‌ها · سیاوش{% endblock %}
+{% block body %}
+<h2>کاندیدهای ورود (ENTRY_CANDIDATE)</h2>
+<form class="filters" method="get" action="/opportunities">
+  <select name="symbol"><option value="">همه بازارها</option>{% for s in r.options.symbols %}<option {{ 'selected' if f.symbol == s }}>{{ s }}</option>{% endfor %}</select>
+  <select name="strategy"><option value="">همه استراتژی‌ها</option>{% for s in r.options.strategies %}<option {{ 'selected' if f.strategy == s }}>{{ s }}</option>{% endfor %}</select>
+  <select name="outcome"><option value="">همه نتایج</option>{% for s in r.options.outcomes %}<option {{ 'selected' if f.outcome == s }}>{{ s }}</option>{% endfor %}</select>
+  <button type="submit">اعمال فیلتر</button>
+  <span class="muted">{{ r.rows | length }} از {{ r.total }} (جدیدترین بالا)</span>
+</form>
+<div class="tw"><table>
+<tr><th>زمان</th><th>بازار</th><th>استراتژی</th><th>شرط‌ها</th><th class="n">ML p_win</th><th>LLM</th><th>دلایل LLM</th>
+<th>ریسک</th><th>نتیجه</th><th>رد در / کد</th><th>دلیل نهایی</th></tr>
+{% for x in r.rows %}
+<tr class="click" data-href="/opportunities/{{ x.decision_id }}">
+  <td class="n">{{ x.ts }}</td><td>{{ x.symbol }}</td><td>{{ x.strategy }}</td><td class="ltr">{{ x.conditions }}</td>
+  <td class="n">{% if x.p_win is not none %}{{ x.p_win | fmt(3) }}{% if x.threshold is not none %} / {{ x.threshold | fmt(3) }}{% endif %}{% else %}{{ x.ml_status or '—' }}{% endif %}</td>
+  <td>{{ x.llm_verdict or '—' }}{% if x.llm_status and x.llm_status != 'ok' %} <span class="muted">({{ x.llm_status }})</span>{% endif %}</td>
+  <td>{{ x.llm_reasons }}</td>
+  <td class="{{ 'neg' if x.risk == 'REJECT' }}">{{ x.risk or '—' }}{% if x.risk_checks %} <span class="muted ltr">{{ x.risk_checks }}</span>{% endif %}</td>
+  <td class="{{ 'pos' if x.outcome == 'ORDER_PLACED' else ('neg' if x.outcome == 'REJECTED') }}">{{ x.outcome }}</td>
+  <td class="ltr">{{ x.rejected_at or '' }}{% if x.reject_code %} · {{ x.reject_code }}{% endif %}</td>
+  <td>{{ x.final_reason }}</td>
+</tr>
+{% else %}<tr><td colspan="11" class="muted">کاندیدی ثبت نشده است.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

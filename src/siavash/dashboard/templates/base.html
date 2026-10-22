@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{% if refresh_s %}<meta http-equiv="refresh" content="{{ refresh_s }}">{% endif %}
+<title>{% block title %}داشبورد سیاوش{% endblock %}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700&display=swap">
+<script src="/static/dashboard.js"></script>
+<style>
+:root {
+  --bg: #f5f5f3; --surface: #fcfcfb; --fg: #0b0b0b; --muted: #52514e; --line: #e2e1dc;
+  --accent: #2a78d6; --series-1: #2a78d6; --series-dd: #e34948;
+  --good: #0a7d0a; --bad: #c62f2e; --warn: #9a6400; --chip: #ecebe6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111110; --surface: #1a1a19; --fg: #f0efec; --muted: #c3c2b7; --line: #2e2e2b;
+    --accent: #3987e5; --series-1: #3987e5; --series-dd: #e66767;
+    --good: #3fbf3f; --bad: #ef7070; --warn: #e2a72e; --chip: #262624;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111110; --surface: #1a1a19; --fg: #f0efec; --muted: #c3c2b7; --line: #2e2e2b;
+  --accent: #3987e5; --series-1: #3987e5; --series-dd: #e66767;
+  --good: #3fbf3f; --bad: #ef7070; --warn: #e2a72e; --chip: #262624;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.6 Vazirmatn, Tahoma, sans-serif; }
+header { background: var(--surface); border-bottom: 1px solid var(--line); padding: 10px 16px;
+  display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+header h1 { font-size: 17px; margin: 0; }
+nav { display: flex; flex-wrap: wrap; gap: 4px; }
+nav a { color: var(--muted); text-decoration: none; padding: 4px 10px; border-radius: 6px; }
+nav a.on { background: var(--chip); color: var(--fg); font-weight: 500; }
+.sp { flex: 1; }
+.badge { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: var(--chip); color: var(--muted); }
+button.theme { background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 6px;
+  padding: 3px 8px; font: inherit; cursor: pointer; }
+main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+h2 { font-size: 16px; margin: 24px 0 8px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+.kpi .l { color: var(--muted); font-size: 12px; }
+.kpi .v { font-size: 20px; font-weight: 700; direction: ltr; text-align: right; }
+.kpi .s { color: var(--muted); font-size: 12px; }
+.pos { color: var(--good); } .neg { color: var(--bad); } .warn { color: var(--warn); }
+.tw { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 8px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; }
+th { color: var(--muted); font-weight: 500; white-space: nowrap; background: var(--surface); position: sticky; top: 0; }
+td.n, th.n { direction: ltr; text-align: left; white-space: nowrap; font-variant-numeric: tabular-nums; }
+td.ltr { direction: ltr; text-align: left; }
+tr.click { cursor: pointer; } tr.click:hover td { background: var(--chip); }
+.muted { color: var(--muted); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+.chart { position: relative; height: 240px; }
+form.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+select, form.filters button { font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--fg); }
+pre { direction: ltr; text-align: left; overflow-x: auto; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; font-size: 12px; }
+.md { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px 16px 16px;
+  direction: ltr; text-align: left; overflow-x: auto; }
+.md img { max-width: 100%; background: #fff; }
+.md table { width: auto; } .md th, .md td { text-align: left; }
+.bar { height: 8px; border-radius: 4px; background: var(--chip); overflow: hidden; min-width: 80px; }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 4px; }
+footer { color: var(--muted); font-size: 12px; text-align: center; padding: 16px; }
+</style>
+{% block head %}{% endblock %}
+</head>
+<body>
+<header>
+  <h1>سیاوش</h1>
+  <nav>{% for href, label in nav %}<a href="{{ href }}" class="{{ 'on' if path == href or (href != '/' and path.startswith(href)) }}">{{ label }}</a>{% endfor %}</nav>
+  <span class="sp"></span>
+  <span class="badge">حالت: {{ mode }}</span>
+  <span class="badge">فقط‌خواندنی</span>
+  <button class="theme" id="theme" type="button" title="روشن / تیره">◐</button>
+</header>
+<main>
+{% block body %}{% endblock %}
+</main>
+<footer>{% if refresh_s %}بازخوانی خودکار هر {{ refresh_s }} ثانیه · {% endif %}زمان‌ها به UTC</footer>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}نمای کلی · سیاوش{% endblock %}
+{% block head %}<script src="{{ chart_js }}" defer></script>{% endblock %}
+{% block body %}
+{% if o.store_error %}<p class="warn">⚠ {{ o.store_error }}</p>{% endif %}
+<div class="kpis">
+  <div class="card kpi"><div class="l">ارزش حساب (TMN)</div><div class="v">{{ o.equity_tmn | fmt }}</div>
+    <div class="s">{{ o.equity_ts or 'بدون داده' }}</div></div>
+  <div class="card kpi"><div class="l">سود/زیان کل</div>
+    <div class="v {{ 'pos' if (o.pnl_pct or 0) > 0 else ('neg' if (o.pnl_pct or 0) < 0) }}">{{ o.pnl_pct | fmt(2) }} %</div>
+    <div class="s">نسبت به {{ o.capital_base | fmt }} TMN · امروز {{ o.daily_pnl_pct | fmt(2) }} %</div></div>
+  <div class="card kpi"><div class="l">افت از اوج</div><div class="v">{{ o.drawdown_pct | fmt(2) }} %</div>
+    <div class="s">بیشینه {{ o.max_drawdown_pct | fmt(2) }} %</div></div>
+  <div class="card kpi"><div class="l">وضعیت ترمز</div>
+    <div class="v {{ 'pos' if o.breaker.state == 'NORMAL' else 'neg' }}">{{ o.breaker.state }}</div>
+    <div class="s">{{ o.breaker.reason or '' }}{% if o.paused %} · توقف ورود توسط اپراتور{% endif %}</div></div>
+  <div class="card kpi"><div class="l">رژیم بازار</div><div class="v">{{ o.regime.regime if o.regime else '—' }}</div>
+    <div class="s">{% if o.regime %}منبع: {{ o.regime.source }} · {{ o.regime.ts[:16] }}{% else %}بدون داده{% endif %}</div></div>
+  <div class="card kpi"><div class="l">در معرض (TMN)</div><div class="v">{{ o.exposure_tmn | fmt }}</div>
+    <div class="s">{{ o.open_positions }} پوزیشن باز</div></div>
+  <div class="card kpi"><div class="l">معاملات امروز (تهران)</div><div class="v">{{ o.entries_today }}</div>
+    <div class="s">ورود · {{ o.closed_today }} بسته‌شده · {{ o.fills_today }} fill</div></div>
+</div>
+<div class="grid2" id="charts" data-chart="{{ chart_data }}">
+  <div><h2>ارزش حساب (TMN)</h2><div class="card chart"><canvas id="eq" aria-label="نمودار ارزش حساب"></canvas></div></div>
+  <div><h2>افت از اوج (%)</h2><div class="card chart"><canvas id="dd" aria-label="نمودار افت از اوج"></canvas></div></div>
+</div>
+{% if o.chart.ts | length < 2 %}<p class="muted">هنوز داده‌ای در logs/equity.csv نیست.</p>{% endif %}
+{% endblock %}

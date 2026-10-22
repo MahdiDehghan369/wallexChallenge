@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}هوش مصنوعی · سیاوش{% endblock %}
+{% block body %}
+<div class="kpis">
+  <div class="card kpi"><div class="l">بازبینی‌های موفق LLM</div><div class="v">{{ a.n_reviewed }}</div>
+    <div class="s">{% for k, v in a.review_status.items() %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% else %}بدون بازبینی{% endfor %}</div></div>
+  <div class="card kpi"><div class="l">نرخ تأیید</div><div class="v pos">{{ a.approve_pct | fmt(1) }} %</div>
+    <div class="s">رد: {{ a.reject_pct | fmt(1) }} %</div></div>
+  <div class="card kpi"><div class="l">فراخوانی‌های مدل (calls.jsonl)</div><div class="v">{{ a.n_calls }}</div>
+    <div class="s">{% for k, v in a.call_status.items() %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% endfor %}</div></div>
+  <div class="card kpi"><div class="l">توکن‌های ثبت‌شده</div><div class="v">{{ a.tokens_logged | fmt }}</div>
+    <div class="s">سقف ورودی هر فراخوانی {{ a.max_input_tokens_per_call | fmt }}</div></div>
+</div>
+
+<h2>بودجه LLM (llm.budget)</h2>
+<div class="tw"><table>
+<tr><th>شاخص</th><th class="n">مصرف</th><th class="n">سقف</th><th>درصد</th><th class="n">دوره (تهران)</th></tr>
+{% for b in a.budget %}
+<tr><td>{{ b.name }}</td><td class="n">{{ b.used | fmt }}</td><td class="n">{{ b.limit | fmt }}</td>
+<td><div class="bar" role="img" aria-label="{{ b.pct | fmt(1) }} %"><i style="width: {{ [b.pct or 0, 100] | min }}%"></i></div> <span class="muted">{{ b.pct | fmt(1) }} %</span></td>
+<td class="n">{{ b.period or '—' }}</td></tr>
+{% endfor %}
+</table></div>
+
+<h2>تاریخچه رژیم</h2>
+<p class="muted">منبع: {% for k, v in a.regime_sources.items() %}{{ k }} {{ v }}{{ ' · ' if not loop.last }}{% else %}—{% endfor %}</p>
+<div class="tw"><table>
+<tr><th class="n">زمان</th><th>رژیم</th><th>رژیم قاعده‌ای</th><th>منبع</th><th>وضعیت</th><th class="n">ضریب ریسک</th><th>دلایل</th></tr>
+{% for r in a.regimes %}
+<tr><td class="n">{{ r.ts }}</td><td>{{ r.regime }}</td><td>{{ r.rule_regime }}</td><td>{{ r.source }}</td><td>{{ r.status }}</td>
+<td class="n">{{ r.risk_multiplier }}</td><td>{{ r.reasons }}</td></tr>
+{% else %}<tr><td colspan="7" class="muted">logs/regime.jsonl خالی است.</td></tr>{% endfor %}
+</table></div>
+
+<h2>تحلیل خلاف‌واقع (counterfactual)</h2>
+{% if a.counterfactual %}
+<p class="muted">از {{ a.counterfactual.source }}</p>
+<div class="tw"><table>
+<tr><th>دروازه</th><th class="n">رد</th><th class="n">رد درست</th><th class="n">فرصت ازدست‌رفته</th><th class="n">زیان اجتناب‌شده %</th><th class="n">سود ازدست‌رفته %</th><th class="n">ارزش خالص %</th></tr>
+{% for g, v in a.counterfactual.gates.items() %}
+<tr><td>{{ g }}</td><td class="n">{{ v.rejected }}</td><td class="n">{{ v.correct_rejections }}</td><td class="n">{{ v.missed_opportunities }}</td>
+<td class="n">{{ v.avoided_loss_pct | fmt(2) }}</td><td class="n">{{ v.missed_profit_pct | fmt(2) }}</td>
+<td class="n {{ 'pos' if (v.net_value_pct or 0) > 0 else 'neg' }}">{{ v.net_value_pct | fmt(2) }}</td></tr>
+{% endfor %}
+</table></div>
+{% else %}<p class="muted">هنوز گزارشی با بخش counterfactual نیست (make report).</p>{% endif %}
+{% endblock %}

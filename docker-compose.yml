@@ -13,6 +13,12 @@ services:
         required: false
     environment:
       VERSION_TAG: ${VERSION_TAG:-}
+      # read-only dashboard + /health: the container listens on all of its interfaces, but the port is
+      # published on the host's loopback only (reach it through an SSH tunnel, never directly)
+      PORT: ${DASHBOARD_PORT:-8080}
+      DASHBOARD_HOST: 0.0.0.0
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-8080}:${DASHBOARD_PORT:-8080}"
     volumes:
       - ./logs:/app/logs
       - ./state:/app/state

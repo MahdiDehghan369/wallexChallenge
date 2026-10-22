@@ -27,6 +27,10 @@ dependencies = [
     "openai~=1.60",
     "mcp~=1.6",
     "aiosqlite~=0.21",
+    "starlette>=0.46",
+    "uvicorn>=0.34",
+    "jinja2~=3.1",
+    "markdown-it-py>=3.0",
 ]
 
 [project.optional-dependencies]
@@ -48,7 +52,7 @@ siavash = "siavash.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-siavash = ["agents/prompts/*.md", "agents/prompts/*.json"]
+siavash = ["agents/prompts/*.md", "agents/prompts/*.json", "dashboard/templates/*.html", "dashboard/static/*.js"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

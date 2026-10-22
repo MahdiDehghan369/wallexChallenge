@@ -86,7 +86,22 @@ def run(
         )
         raise typer.Exit(1)
     _operator_record(cfg, "run", mode=mode)
+    from siavash.dashboard.app import dashboard_env, start_in_thread
+
+    env = dashboard_env()
+    if env.port:  # PORT set (Liara / compose): serve /health + the read-only dashboard on it
+        start_in_thread(cfg, env)
     asyncio.run(_run_engine(cfg, mode))
+
+
+@app.command()
+def dashboard(config: str = typer.Option("config", "--config")) -> None:
+    """Read-only monitoring dashboard + /health (host/port: base.yaml > dashboard, env DASHBOARD_HOST / PORT)."""
+    from siavash.dashboard.app import serve
+
+    cfg = _cfg(config)
+    setup_logging("INFO", cfg.base.paths.logs)
+    serve(cfg)
 
 
 def _tail_decisions(cfg: AppConfig, n: int = 10) -> list[dict[str, Any]]:

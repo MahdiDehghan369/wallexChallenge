@@ -118,6 +118,56 @@ make report
 siavash report --logs logs --out reports/live
 ```
 
+### Dashboard (read-only)
+
+A Persian web dashboard with six pages, refreshed every `dashboard.refresh_s` (30 s):
+- overview;
+- opportunities, with the full decision JSON per row;
+- positions and trades;
+- AI: LLM calls, budget, regime history, counterfactual;
+- reports: renders `reports/**/*.md`;
+- system: heartbeat, API errors and latency, git_sha, config_hash.
+
+It only reads `logs/`, `state/state.sqlite` (opened with `mode=ro`), `data/live/` and `reports/`. It has no
+buttons or endpoints that place or cancel orders, pause, resume, or change config. To act, use the CLI
+commands in section 7.
+
+- **Auth:** HTTP Basic, `DASHBOARD_USER` (default `admin`) / `DASHBOARD_PASSWORD` in `.env`.
+  - While `DASHBOARD_PASSWORD` is empty the dashboard is disabled and only `/health` answers.
+  - Use a long random password; it is masked in logs like the API keys.
+- **`/health`:** unauthenticated, on the same port. It returns `200 {"status":"ok"}` while
+  `state/heartbeat` is younger than `loop.watchdog_timeout_s`, otherwise `503`.
+- **Bind address:** `base.yaml > dashboard` gives `127.0.0.1:8080`. Env `DASHBOARD_HOST` and `PORT`
+  override it.
+- **Inside the engine:** `siavash run` starts the server in a background thread only when `PORT` is
+  set.
+
+**Local / VPS host (no Docker):**
+
+```bash
+make dashboard-serve
+siavash dashboard
+```
+
+**VPS with Docker:**
+- Compose sets `PORT` (default 8080, `DASHBOARD_PORT` in `.env` changes it) and publishes the port on
+  the host's **loopback only** (`127.0.0.1:8080`).
+- Inside the container the server listens on `0.0.0.0` so the port mapping can reach it. It is still
+  not reachable from outside the VPS.
+- Open it through an SSH tunnel from your own machine, then browse `http://127.0.0.1:8080`:
+
+```bash
+ssh -N -L 8080:127.0.0.1:8080 user@your-vps
+curl -s http://127.0.0.1:8080/health
+```
+
+**Liara:**
+- In the app's environment settings, set `PORT` to the app's port, plus `DASHBOARD_HOST=0.0.0.0` and
+  `DASHBOARD_PASSWORD`.
+- Point the platform health check at `/health`.
+- Open `https://<app>.liara.run/`; the browser asks for the user name and password.
+- Only use `0.0.0.0` there, behind Liara's HTTPS. Never expose the plain-HTTP port of a VPS directly.
+
 ## 7. Emergency procedures
 
 | situation | action |

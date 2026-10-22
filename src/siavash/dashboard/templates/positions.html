@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}پوزیشن‌ها · سیاوش{% endblock %}
+{% block body %}
+{% if p.store_error %}<p class="warn">⚠ {{ p.store_error }}</p>{% endif %}
+<h2>پوزیشن‌های باز</h2>
+<div class="tw"><table>
+<tr><th>بازار</th><th>استراتژی</th><th>وضعیت</th><th class="n">مقدار</th><th class="n">ورود</th><th class="n">حد ضرر</th>
+<th class="n">حد سود</th><th class="n">حد ضرر متحرک</th><th class="n">توقف زمانی</th><th class="n">قیمت فعلی</th><th class="n">سود/زیان باز (TMN)</th></tr>
+{% for x in p.open %}
+<tr><td>{{ x.symbol }}</td><td>{{ x.strategy }}</td><td>{{ x.status }}</td><td class="n">{{ x.qty }}</td>
+<td class="n">{{ x.entry | fmt }}</td><td class="n">{{ x.sl | fmt }}</td><td class="n">{{ x.tp | fmt }}</td>
+<td class="n">{{ x.trailing | fmt }}</td><td class="n">{{ x.time_stop }}</td><td class="n">{{ x.price | fmt }}</td>
+<td class="n {{ 'pos' if (x.upnl_tmn or 0) > 0 else ('neg' if (x.upnl_tmn or 0) < 0) }}">{{ x.upnl_tmn | fmt }}{% if x.upnl_pct is not none %} ({{ x.upnl_pct | fmt(2) }} %){% endif %}</td></tr>
+{% else %}<tr><td colspan="11" class="muted">پوزیشن بازی نیست.</td></tr>{% endfor %}
+</table></div>
+{% if p.open and not p.prices_known %}<p class="muted">قیمت فعلی از data/live/*/books.jsonl خوانده می‌شود؛ هنوز ضبط نشده است.</p>{% endif %}
+
+<h2>معاملات بسته‌شده (fills.csv)</h2>
+<p class="muted">سود/زیان تحقق‌یافته {{ p.realized_tmn | fmt }} TMN · کارمزد {{ p.fees_tmn | fmt }} TMN · {{ p.closed | length }} معامله</p>
+<div class="tw"><table>
+<tr><th>بازار</th><th>استراتژی</th><th class="n">ورود</th><th class="n">خروج</th><th class="n">خرید (TMN)</th><th class="n">فروش (TMN)</th>
+<th class="n">کارمزد</th><th class="n">سود/زیان (TMN)</th><th class="n">بازده %</th><th>دلیل خروج</th></tr>
+{% for t in p.closed %}
+<tr><td>{{ t.symbol }}</td><td>{{ t.strategy or '—' }}</td><td class="n">{{ t.entry_ts }}</td><td class="n">{{ t.exit_ts }}</td>
+<td class="n">{{ t.buy_tmn | fmt }}</td><td class="n">{{ t.sell_tmn | fmt }}</td><td class="n">{{ t.fees_tmn | fmt }}</td>
+<td class="n {{ 'pos' if t.pnl_tmn > 0 else 'neg' }}">{{ t.pnl_tmn | fmt }}</td><td class="n">{{ t.ret_pct | fmt(2) }}</td><td>{{ t.exit_reason or '—' }}</td></tr>
+{% else %}<tr><td colspan="10" class="muted">معامله بسته‌شده‌ای نیست.</td></tr>{% endfor %}
+</table></div>
+{% endblock %}

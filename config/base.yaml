@@ -70,3 +70,11 @@ data:
 alerts:
   backend: log_only              # log_only | webhook
   min_interval_s: 3
+dashboard:                       # read-only; disabled while env DASHBOARD_PASSWORD is unset
+  host: 127.0.0.1                # env DASHBOARD_HOST overrides (0.0.0.0 only on Liara)
+  port: 8080                     # env PORT overrides; /health is served on the same port
+  refresh_s: 30
+  max_decisions: 500             # newest ENTRY_CANDIDATE records shown
+  max_chart_points: 1500         # equity/drawdown series are thinned to this many points
+  regime_history: 100
+  tail_bytes: 20000000           # only the last N bytes of each jsonl log are read
