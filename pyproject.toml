@@ -65,6 +65,10 @@ line-length = 110
 target-version = "py311"
 src = ["src", "tests"]
 
+[tool.ruff.format]
+# section 8.3 contracts are kept verbatim (not reformatted)
+exclude = ["src/siavash/core/types.py", "src/siavash/core/models.py", "src/siavash/core/interfaces.py"]
+
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
 ignore = [
@@ -76,7 +80,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # section 8.3 contracts are reproduced verbatim (star imports, one-line enums)
-"src/siavash/core/*.py" = ["F403", "F405", "E701", "E702"]
+"src/siavash/core/*.py" = ["F403", "F405", "E701", "E702", "E501", "I001", "UP035", "UP037"]
 "tests/**/*.py" = ["B011"]
 
 [tool.mypy]
