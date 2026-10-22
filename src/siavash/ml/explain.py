@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Any
 
 import numpy as np
@@ -9,7 +10,7 @@ import numpy as np
 from siavash.ml.registry import LoadedModel
 
 
-def explain(model: LoadedModel, row: dict[str, Any], k: int = 5) -> list[tuple[str, float]]:
+def explain(model: LoadedModel, row: Mapping[str, Any], k: int = 5) -> list[tuple[str, float]]:
     """``[(feature, shap_value)]`` sorted by |value|, largest first (log-odds contributions)."""
     values = model.explainer.shap_values(model.frame(row))
     arr = np.asarray(values[1] if isinstance(values, list) else values, dtype=float)

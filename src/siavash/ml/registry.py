@@ -12,6 +12,7 @@ import hashlib
 import json
 import pickle
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -98,14 +99,14 @@ class LoadedModel:
     features: list[str]
     _explainer: Any = field(default=None, repr=False)
 
-    def frame(self, rows: pd.DataFrame | dict[str, Any]) -> pd.DataFrame:
-        df = pd.DataFrame([rows]) if isinstance(rows, dict) else rows
+    def frame(self, rows: pd.DataFrame | Mapping[str, Any]) -> pd.DataFrame:
+        df = rows if isinstance(rows, pd.DataFrame) else pd.DataFrame([dict(rows)])
         return df.reindex(columns=self.features).astype(float)
 
-    def predict_raw(self, rows: pd.DataFrame | dict[str, Any]) -> np.ndarray:
+    def predict_raw(self, rows: pd.DataFrame | Mapping[str, Any]) -> np.ndarray:
         return np.asarray(self.booster.predict(self.frame(rows)), dtype=float)
 
-    def predict(self, rows: pd.DataFrame | dict[str, Any]) -> np.ndarray:
+    def predict(self, rows: pd.DataFrame | Mapping[str, Any]) -> np.ndarray:
         """Calibrated P(win) (raw probability when no calibrator was saved)."""
         p = self.predict_raw(rows)
         return np.asarray(self.calibrator.predict(p), dtype=float) if self.calibrator is not None else p

@@ -27,6 +27,7 @@ from siavash.features.builder import FeatureParams, build_features
 from siavash.features.orderbook import orderbook_features
 from siavash.features.regime import RuleRegimeProvider, market_features
 from siavash.logging import get_logger
+from siavash.ml.scorer import regime_features
 from siavash.risk.endgame import endgame_phase
 from siavash.risk.manager import DefaultRiskManager
 from siavash.signals.fee_filter import FEE_TOO_HIGH, passes_fee_filter, round_trip_fee_pct
@@ -254,7 +255,7 @@ class DecisionPipeline:
             )
             return False
         try:
-            ml = self.scorer.score(c, row)
+            ml = self.scorer.score(c, {**row, **regime_features(regime.regime)})
         except Exception as e:
             log.warning("scorer_failed", error=str(e))
             ml = MLScore(status=ComponentStatus.ERROR)

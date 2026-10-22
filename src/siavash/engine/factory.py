@@ -301,12 +301,9 @@ def make_pipeline(app: App, orch: Orchestrator, cfg: Any, llm_mode: str | None =
 
     scorer = None
     if cfg.strategy.ml.enabled:
-        try:
-            from siavash.ml.scorer import LgbmScorer  # type: ignore[import-not-found]
+        from siavash.ml.scorer import LgbmScorer
 
-            scorer = LgbmScorer.from_config(cfg)
-        except Exception:
-            scorer = None
+        scorer = LgbmScorer(cfg, models_root=cfg.base.paths.models)
     reviewer = LLMReviewer(cfg, llm, tools, recent_trades_fn(app))
     analyst = LLMRegimeProvider(cfg, llm, tools, perf, app.decision_logger, logs / "regime.jsonl", app.clock)
     return DecisionPipeline(
