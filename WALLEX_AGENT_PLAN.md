@@ -1108,13 +1108,15 @@ def is_ours(client_order_id: str) -> bool: return client_order_id.startswith("SI
 **پذیرش:**
 - [ ] `pytest tests/unit/exchange/test_market_data.py -q` با fixtureها و respx؛ صفحه‌بندی ۳ تکه‌ای درست ادغام شود.
 
+
 ### T-105 — endpointهای حساب و سفارش
 `مالک: A | نوع: AGENT | اولویت: P0 | وابستگی: T-103 | Milestone: M1`
 **خروجی:** `src/siavash/exchange/account.py`، `tests/unit/exchange/test_account.py`، `tests/unit/test_no_forbidden_paths.py`.
 **شرح:** `WallexAccount` با متدهای: `get_balances`, `place_order(req)`, `cancel_order(symbol, client_order_id|order_id)`, `get_order`, `get_open_orders`, `get_my_trades(since)`. قبل از ارسال: گرد کردن با MarketRegistry و بررسی min. اگر API `client_order_id` پشتیبانی نمی‌کند، نگاشت را در `OrderIdMap` (SQLite در `state/`) نگه دار.
+`get_my_trades(since)` endpoint مستقل ندارد: آن را از `GET /v1/account/orders` (صفحه‌بندی‌شده با `per_page=100`، فیلتر `from`) و `fills[]` هر سفارش بساز؛ برای سفارش‌های باز و اخیر از `GET /v1/account/orders/{client_id}` استفاده کن. چون fill شناسه یکتا ندارد، dedupe با (clientOrderId, timestamp, price, quantity) انجام شود و `fill_id` داخلی = sha1 همین چهار فیلد. موجودی: `free = value − locked`.
 **پذیرش:**
-- [ ] `pytest tests/unit/exchange/test_account.py -q`
-- [ ] `pytest tests/unit/test_no_forbidden_paths.py -q` — تستی که در `src/` به دنبال الگوهای `futures|margin|leverage|withdraw|transfer|deposit` (case-insensitive، به جز کامنت‌های مستندسازی در `guard.py`) بگردد و در صورت یافتن fail شود.
+- [ ] `pytest tests/unit/exchange/test_account.py -q` (شامل تست ساخت fill از `fills[]` و dedupe در دو بار فراخوانی پیاپی)
+- [ ] `pytest tests/unit/test_no_forbidden_paths.py -q` — تستی که در `src/` به دنبال الگوهای `futures|margin|leverage|withdraw|transfer|deposit|iban|card-numbers|wallets` (case-insensitive) بگردد و در صورت یافتن fail شود. **استثناها:** کامنت‌های مستندسازی در `guard.py`، و نام فیلدهای پاسخ بازارها در `endpoints.py` (`is_margin`, `leverage_step`, `max_leverage`) که فقط برای **رد کردن** بازارهای غیر اسپات خوانده می‌شوند.
 
 ### T-106 — SymbolGuard
 `مالک: A | نوع: AGENT | اولویت: P0 | وابستگی: T-105 | Milestone: M1`
@@ -1318,10 +1320,16 @@ def is_ours(client_order_id: str) -> bool: return client_order_id.startswith("SI
 
 ### T-501 — لایه انتزاعی LLM
 `مالک: B | نوع: AGENT | اولویت: P0 | وابستگی: T-002, T-003 | Milestone: M4`
-**خروجی:** `src/siavash/agents/llm.py`، `tests/unit/agents/test_llm.py`.
-**شرح:** `LLMClient(cfg)` روی کتابخانه `openai` با `base_url` قابل تنظیم (OpenAI-compatible: OpenRouter، gateway داخلی و...)؛ proxy اختیاری؛ `temperature=0`؛ `timeout_s (20)`؛ ۲ retry روی خطای شبکه/5xx؛ مدل fallback. متد `async complete_json(system, user, schema: type[BaseModel], tools=None, max_tool_calls=3) -> (parsed, raw_meta)`: حلقه function-calling (اجرای ابزار از T-107 و برگرداندن نتیجه)، سپس پارس JSON و اعتبارسنجی با pydantic. ثبت هر فراخوانی در `logs/llm/calls.jsonl` (model, prompt_version, input_hash, tokens, latency, status) — بدون کلید.
+**خروجی:** `src/siavash/agents/llm.py`، `src/siavash/agents/budget.py`، `tests/unit/agents/test_llm.py`، `tests/unit/agents/test_budget.py`، دستور `siavash llm-check` در `src/siavash/cli.py`.
+**شرح:** `LLMClient(cfg)` روی کتابخانه `openai` با `base_url` قابل تنظیم (OpenAI-compatible)؛ proxy اختیاری؛ `temperature=0`؛ `timeout_s (20)`؛ ۲ retry روی خطای شبکه/5xx؛ مدل fallback. متد `async complete_json(system, user, schema: type[BaseModel], tools=None, max_tool_calls=3) -> (parsed, raw_meta)`: حلقه function-calling (اجرای ابزار از T-107 و برگرداندن نتیجه)، سپس پارس JSON و اعتبارسنجی با pydantic. ثبت هر فراخوانی در `logs/llm/calls.jsonl` (model, prompt_version, input_hash, prompt_tokens, completion_tokens, latency, status) — بدون کلید.
+**ارائه‌دهنده LLM (قطعی):** BoxAPI — سازگار با OpenAI، `base_url = https://ai.boxapi.ir/ai/v1`، فقط `/chat/completions`، بدون proxy (`llm.use_proxy=false`). مدل‌ها از env (`LLM_MODEL`, `LLM_FALLBACK_MODEL`؛ پیش‌فرض `gpt-5.4-mini` و `gpt-5-mini`). **کل بودجه فقط ۳ دلار است.**
+- **Budget guard (`budget.py`):** config جدید `llm.budget: {max_calls_per_hour: 20, max_calls_per_day: 200, max_tokens_per_day: 400000, max_input_tokens_per_call: 3000}`. قبل از هر فراخوانی بررسی شود؛ ورودی بزرگ‌تر از `max_input_tokens_per_call` (تخمین با `len(text)/3`) کوتاه شود یا رد شود. با رسیدن به هر سقف: `BudgetExceeded` → reviewer و analyst به fallback قطعی بروند (`status=FALLBACK`) + هشدار. شمارنده‌ها (ساعتی/روزانه، روز = Asia/Tehran) در store ماندگار باشند. پاسخ‌هایی که از کش (T-502) می‌آیند در بودجه حساب نشوند.
+- **Capability probe:** دستور `siavash llm-check` با دو درخواست کوچک، پشتیبانی BoxAPI از function calling (`tools`) و `response_format={"type":"json_object"}` را تست کند و نتیجه را در `state/llm_capabilities.json` ذخیره کند. `LLMClient` در شروع این فایل را بخواند: اگر tools پشتیبانی نمی‌شود، `complete_json` بدون tools کار کند (ابزارها نادیده و در لاگ ثبت شود)؛ اگر JSON mode پشتیبانی نمی‌شود، از دستور «فقط JSON معتبر برگردان» در پرامپت + استخراج اولین بلوک JSON از متن + اعتبارسنجی pydantic استفاده کند.
+- پرامپت‌ها فشرده باشند (فقط ویژگی‌های خلاصه، بدون داده خام کندل).
 **پذیرش:**
-- [ ] `pytest tests/unit/agents/test_llm.py -q` با mock HTTP (respx) برای: پاسخ معتبر، JSON خراب، timeout، یک دور tool call.
+- [ ] `pytest tests/unit/agents/test_llm.py -q` با mock HTTP (respx) برای: پاسخ معتبر، JSON خراب، timeout، یک دور tool call، حالت بدون tools، حالت بدون JSON mode (استخراج JSON از متن).
+- [ ] `pytest tests/unit/agents/test_budget.py -q`: رسیدن به هر سقف → fallback؛ ماندگاری شمارنده‌ها پس از ری‌استارت؛ عدم شمارش پاسخ‌های کش‌شده.
+- [ ] `siavash llm-check --help`
 
 ### T-502 — کش و Replay پاسخ‌های LLM
 `مالک: B | نوع: AGENT | اولویت: P0 | وابستگی: T-501 | Milestone: M4`
@@ -2217,7 +2225,28 @@ VERIFIED=True کن، و همه تست‌های E1 را دوباره سبز کن.
 ```
 (ردیف‌ها دقیقاً از جدول ۹.۴ کپی شوند.)
 
-### ضمیمه H — endpointهای شناخته‌شده API عمومی والکس (⚠️ تأییدنشده)
+
+### ضمیمه H — endpointهای API والکس (✅ از Swagger رسمی)
+
+> ✅ منبع: فایل‌های Swagger رسمی در `docs/vendor/wallex/` (`wallex-basic-services.swagger.json` و `wallex-spot.swagger.json`). در صورت تفاوت، Swagger برنده است. host در Swagger `api.wallex.com` است ولی MCP روی `api.wallex.ir` است؛ در T-108 هر دو تست و یکی انتخاب شود (مقدار در `WALLEX_BASE_URL`).
+
+| کاربرد | متد و مسیر | نکات |
+|---|---|---|
+| لیست بازارها | `GET /hector/web/v1/markets` | `result.markets[]` با `symbol, base_asset, quote_asset, price_precision, amount_precision (تعداد رقم اعشار → tick = 10^-precision), is_spot, is_margin, quote_volume_24h, price`. **حداقل مقدار/ارزش سفارش ندارد** (از config با مقدار محافظه‌کار؛ در T-108 تأیید شود) |
+| دفتر سفارش | `GET /v1/depth?symbol=BTCTMN` | `result.ask[]`, `result.bid[]` با `price, quantity, sum` |
+| دفتر سفارش همه بازارها | `GET /depth/all` | `result` دیکشنری نماد → `{ask, bid}` (برای انتخاب universe) |
+| معاملات اخیر | `GET /v1/trades?symbol=` | `result.latestTrades[]` با `price, quantity, isBuyOrder, timestamp` |
+| کندل | `GET /v1/udf/history?symbol=&resolution=&from=&to=` | قالب UDF: `{s,t[],o[],h[],l[],c[],v[]}` (اعداد به‌صورت string)؛ resolution مثل `1, 5, 15, 60, D` |
+| احراز هویت | هدر `x-api-key` | |
+| موجودی | `GET /v1/account/balances` | `result.balances` دیکشنری asset → `{value (کل), locked}`؛ free = value − locked |
+| کارمزد | `GET /v1/account/fee` | `result[SYMBOL] = {makerFeeRate, takerFeeRate}` (کسر؛ 0.002 = 0.2٪) — **منبع کارمزد config همین است** |
+| ثبت سفارش | `POST /v1/account/orders` | بدنه (همه string): `symbol, side, type (LIMIT/MARKET/STOP_LIMIT/STOP_MARKET), price, quantity, client_id, stop_Price`. ربات فقط LIMIT و MARKET استفاده می‌کند |
+| وضعیت سفارش | `GET /v1/account/orders/{client_id}` | `OrderResource`: `clientOrderId, status, active, origQty, executedQty, executedPrice, executedSum, fee, fills[] (price, quantity, sum, fee, feeAsset, isBuyer, timestamp)` |
+| لغو سفارش | `DELETE /v1/account/orders/{client_id}` | |
+| سفارش‌های باز | `GET /v1/account/openOrders?symbol=` | |
+| تاریخچه سفارش‌ها | `GET /v1/account/orders?market=&side=&type=&page=&per_page=&from=&to=` | `per_page` حداکثر ۱۰۰؛ `from/to` با فرمت `YYYY-MM-DD`. **endpoint جدا برای معاملات کاربر وجود ندارد؛ fillها از `fills[]` سفارش‌ها استخراج شوند** |
+| ⛔ ممنوع | `/v1/account/wallets/*`, `/v1/account/ibans`, `/v1/account/money-withdrawal`, `/v1/account/card-numbers` | هرگز در کد استفاده نشوند؛ در `endpoints.py` هم تعریف نشوند |
+| نامعلوم (در T-108 تعیین شود) | — | حداقل سفارش، مقادیر `status`، حروف `side`/`type` در بدنه (BUY یا buy)، طول مجاز `client_id`، rate limit |
 
 > این فهرست از اطلاعات عمومی قبلی جمع‌آوری شده و **ممکن است قدیمی یا نادرست باشد**. فقط برای ساخت نسخه اولیه `endpoints.py` با `VERIFIED = False` و fixtureهای mock استفاده شود. مستندات رسمی‌ای که برگزارکننده داده، همیشه برنده است.
 
