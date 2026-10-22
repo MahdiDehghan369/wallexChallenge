@@ -4,13 +4,16 @@
 Public market-data endpoints only (no orders). Examples:
     python scripts/download_data.py --days 120 --tfs 15m 1h
     python scripts/download_data.py --aux-source     # also convert Binance kline files in data/aux/
+    python scripts/download_data.py --from-snapshot  # no network: use data/snapshot (T-206)
 """
 
 from __future__ import annotations
 
 import argparse
 import asyncio
+import shutil
 import sys
+from pathlib import Path
 
 from siavash.config import load_config
 from siavash.core.types import Timeframe
@@ -32,10 +35,31 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "--aux-source", action="store_true", help="also convert Binance kline files from --aux-dir"
     )
     ap.add_argument("--aux-dir", default="data/aux")
+    ap.add_argument(
+        "--from-snapshot",
+        action="store_true",
+        help="no API access: copy data/snapshot/processed into data/processed (judges)",
+    )
     return ap.parse_args(argv)
 
 
+def from_snapshot(
+    snapshot: Path = Path("data/snapshot/processed"), dst: Path = Path("data/processed")
+) -> int:
+    files = sorted(snapshot.glob("*.parquet"))
+    if not files:
+        print(f"no snapshot in {snapshot}", file=sys.stderr)
+        return 2
+    dst.mkdir(parents=True, exist_ok=True)
+    for f in files:
+        shutil.copy2(f, dst / f.name)
+    print(f"copied {len(files)} snapshot files -> {dst} (no API access used)")
+    return 0
+
+
 async def _run(args: argparse.Namespace) -> int:
+    if args.from_snapshot:
+        return from_snapshot()
     from siavash.exchange.client import WallexHttp
     from siavash.exchange.market_data import WallexMarketData
 
