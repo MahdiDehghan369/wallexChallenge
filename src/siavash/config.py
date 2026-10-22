@@ -276,6 +276,7 @@ class StrategyConfig(_C):
     s3: S3Config = S3Config()
     ml: MLConfig = MLConfig()
     reviewer_key_features: list[str] = Field(default_factory=list, max_length=30)
+    tunable_ranges: dict[str, tuple[float, float]] = Field(default_factory=dict)
 
 
 # --------------------------------------------------------------------------- risk.yaml

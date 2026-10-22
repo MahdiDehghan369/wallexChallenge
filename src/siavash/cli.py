@@ -271,9 +271,47 @@ def replay(
 
 
 @app.command()
-def reflect(date: str = typer.Option(..., "--date")) -> None:
-    """Daily reflection report (LLM)."""
-    _not_yet("T-506")
+def reflect(
+    date: str = typer.Option(..., "--date", help="Tehran trading day YYYY-MM-DD"),
+    logs: str = typer.Option("logs", "--logs"),
+    config: str = typer.Option("config", "--config"),
+) -> None:
+    """Daily reflection report (LLM; suggestions only, nothing is applied) → reports/daily_YYYYMMDD.md."""
+    from datetime import date as date_cls
+
+    from siavash.agents.budget import LLMBudget
+    from siavash.agents.cache import CachedLLMClient, LLMCache
+    from siavash.agents.llm import LLMClient
+    from siavash.agents.reflector import DailyReflector
+    from siavash.backtest.market_data import processed_frames
+    from siavash.reporting.consistency import load_live_frames, merge_frames
+
+    cfg = _cfg(config)
+    setup_logging("WARNING", cfg.base.paths.logs)
+    day = date_cls.fromisoformat(date)
+    data = Path(cfg.base.paths.data)
+    frames = merge_frames(
+        processed_frames(data / "processed") if (data / "processed").exists() else {},
+        load_live_frames(data / "live") if (data / "live").exists() else {},
+    )
+
+    async def go() -> Path:
+        store = _store(cfg)
+        try:
+            client = LLMClient.from_config(cfg, budget=LLMBudget.from_config(cfg, store))
+            llm = CachedLLMClient(
+                client, LLMCache(Path(logs) / "llm" / "cache.sqlite", cfg.llm.cache_mode), cfg.llm.model
+            )
+            try:
+                return await DailyReflector(cfg, llm, logs, frames or None, cfg.base.paths.reports).reflect(
+                    day
+                )
+            finally:
+                await client.aclose()
+        finally:
+            await store.close()
+
+    typer.echo(f"report: {asyncio.run(go())}")
 
 
 @app.command("export-submission")

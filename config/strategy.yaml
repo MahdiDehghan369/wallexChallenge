@@ -70,3 +70,14 @@ ml:
 reviewer_key_features: [15m_rsi14, 15m_atr14_pct, 15m_bb_pos, 15m_vol_z20, 15m_ret_4,
   1h_adx14, 1h_ema20_slope, 1h_ret_4, 4h_ema200_dist, 4h_rsi14, x_implied_z,
   x_btc_ret_1h, x_btc_ret_4h, x_breadth_ema50, x_rv_percentile_7d, ob_spread_pct, ob_imbalance_5]
+# T-506: the only parameters the DailyReflector may suggest, with their allowed [min, max]
+# (risk maxima = section-5 caps; suggestions outside are dropped; nothing is applied automatically)
+tunable_ranges:
+  strategy.s1.sl_atr: [1.0, 2.0]
+  strategy.s1.adx_min: [15, 30]
+  strategy.s2.rsi_max: [20, 35]
+  strategy.s3.z_entry: [1.5, 3.0]
+  strategy.fee_multiple: [2.0, 4.0]
+  strategy.ml.threshold: [0.45, 0.70]
+  risk.risk_per_trade_pct: [0.1, 0.5]
+  risk.max_concurrent_positions: [1, 3]
