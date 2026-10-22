@@ -33,7 +33,7 @@ validate-data:
 	$(PYTHON) scripts/validate_data.py $(ARGS)
 
 train:
-	$(call not_implemented,T-403)
+	$(PYTHON) scripts/train_model.py $(ARGS)
 
 backtest:
 	$(PYTHON) scripts/run_backtest.py $(ARGS)
