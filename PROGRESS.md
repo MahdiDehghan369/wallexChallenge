@@ -102,7 +102,7 @@
 | 77 | T-206 | Snapshot داده برای داوران | B | AGENT | T-202 | DONE | 56ed683 | 10.6 MB, committed directly (no LFS needed) |
 | 78 | T-006 | CI | A | AGENT | T-001 | DONE | c8db94d | badge added with T-1301 |
 | 79 | T-1301 | README | A | AGENT | T-1104, T-905 | DONE | 0612b1b | video link placeholder until T-1304 |
-| 80 | T-1302 | STRATEGY.md (داکیومنت داوری) | B | AGENT+HUMAN | T-904, T-1203, T-1201 | IN_PROGRESS |  | template + fill script done; docs/STRATEGY.md rendered after the real-data walk-forward report |
+| 80 | T-1302 | STRATEGY.md (داکیومنت داوری) | B | AGENT+HUMAN | T-904, T-1203, T-1201 | IN_PROGRESS |  | DRAFT docs/STRATEGY.md rendered 2026-10-22 (`fill_strategy_numbers.py --draft`; includes D-001 findings: no robust edge @0.35 %, S3 only gross edge, S1 none, ML in-sample, LLM not evaluated). Final render (no `--draft`) after T-108 real fees + T-1002 shadow + live |
 | 81 | T-1303 | بسته لاگ تحویلی | A | AGENT | T-605, T-1201 | DONE | 415aeb1 |  |
 | 82 | T-1204 | داشبورد ساده (اختیاری) | A | AGENT | T-1201 | DONE | 7898923 |  |
 | 83 | T-1304 | ویدیو دمو | B | AGENT+HUMAN | T-1201, T-1302 | WAITING_HUMAN |  | Agent part done (docs/DEMO_SCRIPT.md, 8 صحنه). انسان: بعد از چالش ضبط ویدیو طبق اسکریپت، آپلود قبل از ددلاین، لینک در README |

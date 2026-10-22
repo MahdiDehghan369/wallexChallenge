@@ -37,6 +37,15 @@ def test_render(tmp_path: Path) -> None:
     assert len(problems) == 1 and "missing.key" in problems[0]
 
 
+def test_draft_banner(tmp_path: Path) -> None:
+    out = tmp_path / "S.md"
+    assert fsn.main(["--out", str(out), "--draft"]) == 0
+    text = out.read_text(encoding="utf-8")
+    assert text.startswith(fsn.DRAFT_BANNER) and "T-108" in text and "T-1002" in text
+    assert fsn.main(["--out", str(out)]) == 0
+    assert not out.read_text(encoding="utf-8").startswith("> **Draft")
+
+
 def test_repo_template_has_only_allowed_gaps() -> None:
     """Every placeholder of the real template resolves, except the walk-forward report before it exists."""
     cfg = load_config("config")

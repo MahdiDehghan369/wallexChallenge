@@ -11,6 +11,7 @@ reports exist; any other unresolved placeholder is an error.
 
     python scripts/fill_strategy_numbers.py           # write docs/STRATEGY.md
     python scripts/fill_strategy_numbers.py --check   # fail if anything is unresolved
+    python scripts/fill_strategy_numbers.py --draft   # prepend the DRAFT banner (final render: no flag)
 """
 
 from __future__ import annotations
@@ -26,6 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PLACEHOLDER = re.compile(r"\{\{(cfg|json|md|changelog)(?::(.*?))?\}\}")
 TBD = "TBD after challenge"
 CHALLENGE_SOURCES = ("reports/live", "reports/shadow", "reports/consistency.md", "reports/replay.md")
+DRAFT_BANNER = "> **Draft — numbers will be re-rendered after real fees (T-108) and shadow (T-1002)**\n\n"
 
 
 class Unresolved(Exception):
@@ -95,11 +97,14 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--template", default="docs/STRATEGY.template.md")
     ap.add_argument("--out", default="docs/STRATEGY.md")
     ap.add_argument("--check", action="store_true", help="only check; exit 1 on unresolved placeholders")
+    ap.add_argument("--draft", action="store_true", help="prepend the DRAFT banner")
     args = ap.parse_args(argv)
     from siavash.config import load_config
 
     cfg = load_config(ROOT / "config", env_file=None)
     text, problems = render((ROOT / args.template).read_text(encoding="utf-8"), cfg)
+    if args.draft:
+        text = DRAFT_BANNER + text
     for p in problems:
         print(f"unresolved: {p}", file=sys.stderr)
     tbd = text.count(TBD)

@@ -9,6 +9,9 @@ and an entry under "Versions".
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.
+- T-1302 (draft): `docs/STRATEGY.md` rendered with `fill_strategy_numbers.py --draft` (new flag: DRAFT
+  banner). The template now has a D-001 diagnostics section (no robust edge, S3 only gross edge, S1 none,
+  ML in-sample, LLM not evaluated: empty cache), all numbers read from the reports.
 - T-904 report review: the walk-forward report now shows per-strategy trade counts per sensitivity cell,
   flags parameters that cannot affect any trade (`inert`, e.g. `s3.z_entry` when the S3 TP cap
   `s3.tp_pct` < the fee-filter move), labels the summed-return drawdown `sum_dd_pct` and adds a compounded

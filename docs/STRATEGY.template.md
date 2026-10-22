@@ -97,13 +97,43 @@ make report
   `{{md:reports/ml_dataset.md:unfiltered mean net return: ([-\d.]+) %}}`٪ در هر معامله.
 - walk-forward ML: AUC خارج از نمونه `{{md:reports/ml_walkforward.md:pooled OOF AUC: ([\d.]+)}}`؛ توصیه فعال‌سازی:
   `{{json:models/lgbm_v1/metadata.json:recommend_enabled}}` (جزئیات `reports/ml_walkforward.md`).
+- **ML فقط in-sample سنجیده شده:** مدل `lgbm_v1` و θ = `{{cfg:strategy.ml.threshold}}` روی همان داده‌ای
+  (`{{md:reports/backtest/walkforward/REPORT.md:model \(trained on ([\d-]+ → [\d-]+)\)}}`) برازش شده‌اند که بک‌تست روی آن است؛
+  نتایج «+ML» در بک‌تست مبنای تصمیم نیستند. تنها سنجش صادقانه hold-out در بخش «تشخیص لبه» است. ML فعال: `{{cfg:strategy.ml.enabled}}`.
+
+### تشخیص لبه (D-001، walk-forward + hold-out یک‌باره)
+
+منبع: `reports/diagnostics/SUMMARY.md` (هیچ config زنده‌ای تغییر نکرد).
+
+- **نتیجه: {{md:reports/diagnostics/SUMMARY.md:\*\*(No robust edge found)\.\*\*}}** با کارمزد فعلی (`{{cfg:risk.fees.taker_pct}}`٪ هر طرف).
+  هیچ‌یک از `{{md:reports/diagnostics/SUMMARY.md:Variants tried: (\d+)}}` واریانت آزموده‌شده هم در پنجره‌های OOS و هم در hold-out
+  ۲۰ روزه بعد از هزینه سودده نبود. قواعد زنده در کارمزد رفت‌وبرگشت ۰٫۷٪:
+  `{{md:reports/diagnostics/SUMMARY.md:\| 0\.7 % \| ([−+\-][\d.]+ %)}}` در هر معامله.
+- لبه ناخالص ترکیبی S1+S2+S3: `{{md:reports/diagnostics/SUMMARY.md:S1/S2/S3 combined: \*\*([−+\-][\d.]+ %)\*\*}}` در هر معامله
+  قبل از کارمزد و لغزش — کوچک‌تر از هزینه.
+- **S3 تنها استراتژی با لبه ناخالص واقعی است:** `{{md:reports/diagnostics/SUMMARY.md:S3 implied deviation\*\* \((\+[\d.]+ % gross, \+[\d.]+ % drift-adjusted)}}`؛
+  کارمزد سربه‌سر بعد از لغزش فقط `{{md:reports/diagnostics/SUMMARY.md:break-even fee after slippage ([\d.]+ %)}}`.
+  با `s3.tp_pct` = `{{cfg:strategy.s3.tp_pct}}`٪ و فیلتر کارمزد فعلی، **هیچ معامله S3 از فیلتر کارمزد عبور نمی‌کند**
+  (حرکت لازم `{{md:reports/backtest/walkforward/REPORT.md:fee filter needs expected move ≥ ([\d.]+ %)}}`).
+- **S1 لبه ندارد:** `{{md:reports/diagnostics/SUMMARY.md:S1: [\d,]+ trades, [\d.]+ % win, ([−+\-][\d.]+ %)}}` ناخالص در هر معامله.
+- فیلتر ML روی hold-out: `{{md:reports/diagnostics/SUMMARY.md:Hold-out: ([−+\-][\d.]+ %) at 0\.2 %}}` در کارمزد ۰٫۲٪ و
+  `{{md:reports/diagnostics/SUMMARY.md:Hold-out: [−+\-][\d.]+ % at 0\.2 %, ([−+\-][\d.]+ %) at 0\.3 %}}` در ۰٫۳٪ — فقط در کارمزد خیلی پایین نزدیک صفر.
+- بازار تومانی بدون کارمزد مجاز: {{md:reports/diagnostics/SUMMARY.md:\*\*(None allowed)\.\*\*}}.
+- **LLM هنوز ارزیابی نشده:** در بک‌تست «+ML+LLM (cached)» کش LLM خالی بود
+  (`{{md:reports/backtest/walkforward/REPORT.md:\| \+ML\+LLM \(cached\) \| \d+ \| \d+ \| (\d+) \|}}` ردیف کش)، پس هر
+  `{{md:reports/backtest/walkforward/REPORT.md:\| \+ML\+LLM \(cached\) \| (\d+) \|}}` فراخوانی تحلیلگر به قواعد قطعی fallback کرد و
+  نتیجه دقیقاً برابر «+ML» است. نقش LLM فقط با داده shadow/لایو سنجیده می‌شود.
 
 ### بک‌تست و walk-forward
 
 - پنجره‌ها: `{{md:reports/backtest/walkforward/REPORT.md:windows: (\d+/\d+) engine windows lost money}}` پنجره با زیان؛
   میانگین `{{md:reports/backtest/walkforward/REPORT.md:mean ([-\d.]+) % per window}}`٪ در هر پنجره.
-- حساسیت پارامتر: `{{md:reports/backtest/walkforward/REPORT.md:sensitivity: (\d+/\d+) parameter cells}}` خانه سودده.
+- حساسیت پارامتر: `{{md:reports/backtest/walkforward/REPORT.md:sensitivity: (\d+/\d+) parameter cells}}` خانه سودده در شبیه‌سازی
+  سطح کاندید (جمع بازده‌ها، بدون سقف پورتفو — نه بازده حساب). `s3.z_entry` در
+  `{{md:reports/backtest/walkforward/REPORT.md:`z_entry` cannot affect any trade in (\d+/\d+) cells}}` خانه بی‌اثر است (S3 معامله‌ای ندارد).
 - مقایسه نسخه‌ها (بازده خالص٪): قاعده‌ای `{{md:reports/backtest/walkforward/REPORT.md:\| rule-only \| ([-\d.]+) \|}}`؛
+  «+ML» (in-sample) `{{md:reports/backtest/walkforward/REPORT.md:\| \+ML \| ([-\d.]+) \|}}` با فقط
+  `{{md:reports/backtest/walkforward/REPORT.md:activity: `\+ML` made (\d+ trade\(s\) in \d+ days)}}` — معیار «فعالیت منظم» را رد می‌کند؛
   بنچمارک buy & hold بیت‌کوین `{{md:reports/backtest/walkforward/REPORT.md:buy & hold BTC/TMN ([-\d.]+) %}}`٪، نقد ماندن ۰٪.
 
 ### Shadow و لایو
@@ -124,8 +154,10 @@ make report
 
 ## محدودیت‌ها و ریسک‌های شناخته‌شده
 
-- با کارمزد بدبینانه فعلی (`{{cfg:risk.fees.maker_pct}}`٪ هر طرف) و اسپرد، هر سه استراتژی روی ۱۲۰ روز داده واقعی بازده
-  خالص منفی داشتند؛ ML زیان را کم می‌کند ولی سودده نمی‌کند، پس غیرفعال ماند. نتیجه با کارمزد واقعی حساب باید دوباره سنجیده شود.
+- **لبه پایدار پیدا نشد:** با کارمزد بدبینانه فعلی (`{{cfg:risk.fees.maker_pct}}`٪ هر طرف) و اسپرد فرضی، استراتژی‌ها روی ۱۲۰ روز
+  داده واقعی بازده خالص منفی دارند. ML فقط در کارمزد ≤ ۰٫۳٪ کمک می‌کند و ارزیابی‌اش در بک‌تست in-sample است؛ پس غیرفعال ماند.
+  LLM هنوز روی داده تاریخی سنجیده نشده (کش خالی). همه اعداد بعد از کارمزد واقعی (T-108) و shadow (T-1002) دوباره سنجیده می‌شوند.
+- hold-out تشخیص لبه مصرف شده؛ داده out-of-sample بعدی فقط داده‌های بعد از ۲۰۲۶-۱۰-۲۲ است.
 - حداقل سفارش اسپات در Swagger نیست؛ مقدار محافظه‌کارانه از config (`{{cfg:base.exchange.min_notional}}`).
 - کندل‌های والکس پراکنده‌اند (بدون معامله = بدون کندل)؛ پر کردن رو به جلو فقط وقتی کندل بعدی واقعی رسیده باشد.
 - شبیه‌سازی fill در بک‌تست از اسپرد فرضی استفاده می‌کند؛ لغزش واقعی در `reports/consistency.md` مقایسه می‌شود.
