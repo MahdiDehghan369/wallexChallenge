@@ -17,4 +17,5 @@ __pycache__/
 !data/snapshot/**/*.parquet
 reports/backtest/*/
 !reports/backtest/walkforward/
+reports/backtest/walkforward/runs/
 submission/
