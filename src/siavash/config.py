@@ -146,17 +146,28 @@ class ReviewerConfig(_C):
     timeout_s: float = Field(20, gt=0)
 
 
+class LLMBudgetConfig(_C):
+    """Hard spending caps (the whole LLM budget is 3 USD). Hour/day boundaries are Asia/Tehran."""
+
+    max_calls_per_hour: int = Field(20, ge=0)
+    max_calls_per_day: int = Field(200, ge=0)
+    max_tokens_per_day: int = Field(400_000, ge=0)
+    max_input_tokens_per_call: int = Field(3000, ge=1)
+
+
 class LLMConfig(_C):
     analyst: AnalystConfig = AnalystConfig()
     reviewer: ReviewerConfig = ReviewerConfig()
+    budget: LLMBudgetConfig = LLMBudgetConfig()
     timeout_s: float = Field(20, gt=0)
     max_retries: int = Field(2, ge=0)
     max_tool_calls: int = Field(3, ge=0, le=10)
     tools_backend: Literal["auto", "mcp", "native"] = "auto"
-    use_proxy: bool = True
+    use_proxy: bool = False
     cache_mode: Literal["live", "replay", "record_only"] = "live"
     fallback_size_multiplier: float = Field(0.5, ge=0.25, le=1.0)
     fallback_ml_edge: float = Field(0.05, ge=0)
+    capabilities_file: str = "llm_capabilities.json"
     # از env (غیر محرمانه)
     base_url: str | None = None
     model: str | None = None

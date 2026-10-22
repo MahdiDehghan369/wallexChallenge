@@ -25,6 +25,14 @@ and an entry under "Versions".
   - errors: `result{field: [messages]}` (422) is included in the message used for classification.
   - new `WallexAccount.get_fees()` (`GET /v1/account/fee`, rates converted to percent).
   - forbidden-path test also bans `iban|card-numbers|wallets`.
+- T-501 (plan revision): LLM provider is BoxAPI (`base_url https://ai.boxapi.ir/ai/v1`, models
+  `gpt-5.4-mini` / `gpt-5-mini`, no proxy) in `config/base.yaml > llm` (env still overrides).
+  New `siavash.agents.budget.LLMBudget` + config `llm.budget` (20 calls/h, 200 calls/day, 400k tokens/day,
+  3000 input tokens/call): counters persist in the state store (Tehran hour/day), cache hits are free,
+  `BudgetExceeded` → reviewer/analyst deterministic fallback + `llm_budget` alert, never retried on the
+  fallback model. New `siavash llm-check` writes `state/llm_capabilities.json`; `LLMClient` drops tools
+  when unsupported and uses `response_format=json_object` only when supported (otherwise a JSON-only
+  instruction + JSON extraction). `calls.jsonl` now logs `prompt_tokens` / `completion_tokens`.
 
 ## Versions
 

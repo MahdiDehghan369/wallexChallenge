@@ -49,8 +49,19 @@ llm:
   max_retries: 2
   max_tool_calls: 3
   tools_backend: auto             # auto | mcp | native
-  use_proxy: false
+  use_proxy: false                # BoxAPI is reached directly (no proxy)
   cache_mode: live                # live | replay | record_only
+  # provider: BoxAPI (OpenAI-compatible, /chat/completions only); env LLM_BASE_URL / LLM_MODEL /
+  # LLM_FALLBACK_MODEL override these, the key comes only from env LLM_API_KEY
+  base_url: https://ai.boxapi.ir/ai/v1
+  model: gpt-5.4-mini
+  fallback_model: gpt-5-mini
+  budget:                         # whole LLM budget is 3 USD; hour/day = Asia/Tehran
+    max_calls_per_hour: 20
+    max_calls_per_day: 200
+    max_tokens_per_day: 400000
+    max_input_tokens_per_call: 3000   # estimated as len(text) / 3; larger inputs are rejected
+  capabilities_file: llm_capabilities.json   # under paths.state, written by `siavash llm-check`
   fallback_size_multiplier: 0.5   # deterministic review when the LLM is unavailable
   fallback_ml_edge: 0.05          # fallback approves only if p_win >= threshold + edge
 data:

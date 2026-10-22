@@ -269,5 +269,42 @@ def export_submission() -> None:
     _not_yet("T-1303")
 
 
+async def _llm_check(cfg: AppConfig) -> dict[str, Any]:
+    from siavash.agents.budget import LLMBudget
+    from siavash.agents.llm import LLMClient
+
+    store = _store(cfg)
+    try:
+        client = LLMClient.from_config(cfg, budget=LLMBudget.from_config(cfg, store))
+        try:
+            return await client.probe()
+        finally:
+            await client.aclose()
+    finally:
+        await store.close()
+
+
+@app.command("llm-check")
+def llm_check(config: str = typer.Option("config", "--config")) -> None:
+    """Probe the LLM gateway (tools + JSON mode, 2 tiny requests) and save state/llm_capabilities.json."""
+    from siavash.agents.llm import LLMError, capabilities_path
+
+    cfg = _cfg(config)
+    setup_logging("WARNING", cfg.base.paths.logs)
+    if not cfg.secrets.llm_api_key or not cfg.llm.model:
+        typer.echo("LLM is not configured: set LLM_API_KEY (and optionally LLM_MODEL) in .env", err=True)
+        raise typer.Exit(2)
+    try:
+        caps = asyncio.run(_llm_check(cfg))
+    except LLMError as e:
+        typer.echo(f"llm-check failed: {e}", err=True)
+        raise typer.Exit(1) from e
+    path = capabilities_path(cfg)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(caps, indent=2, ensure_ascii=False), encoding="utf-8")
+    typer.echo(json.dumps(caps, indent=2, ensure_ascii=False))
+    typer.echo(f"saved {path}")
+
+
 if __name__ == "__main__":
     app()

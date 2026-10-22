@@ -249,6 +249,7 @@ def make_pipeline(app: App, orch: Orchestrator, cfg: Any, llm_mode: str | None =
     ``llm_mode``: ``None`` → ``cfg.llm.cache_mode``; ``"off"`` → no LLM (deterministic fallbacks).
     """
     from siavash.agents.analyst import LLMRegimeProvider
+    from siavash.agents.budget import LLMBudget
     from siavash.agents.cache import CachedLLMClient, LLMCache
     from siavash.agents.llm import LLMClient
     from siavash.agents.reviewer import LLMReviewer
@@ -259,7 +260,13 @@ def make_pipeline(app: App, orch: Orchestrator, cfg: Any, llm_mode: str | None =
     llm: Any = None
     if llm_mode != "off":
         mode: Any = llm_mode or cfg.llm.cache_mode
-        client = LLMClient.from_config(cfg)
+        budget = LLMBudget.from_config(
+            cfg,
+            app.store,
+            now_fn=app.clock.now,
+            on_exceeded=lambda why: app.alert("llm_budget", {"reason": why}),
+        )
+        client = LLMClient.from_config(cfg, budget=budget)
         llm = CachedLLMClient(
             client if mode != "replay" else None, LLMCache(logs / "llm" / "cache.sqlite", mode), cfg.llm.model
         )

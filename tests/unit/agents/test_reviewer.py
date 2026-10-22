@@ -128,6 +128,15 @@ async def test_broken_output_falls_back_after_repair() -> None:
     assert r2.status is ComponentStatus.FALLBACK
 
 
+async def test_budget_exceeded_falls_back() -> None:
+    from siavash.agents.budget import BudgetExceeded
+
+    llm = MockLLM([BudgetExceeded("max_calls_per_hour=20")])
+    r = await LLMReviewer(_cfg(), llm).review(C, FEATS, ML, REG, PF)
+    assert r.status is ComponentStatus.FALLBACK and "BudgetExceeded" in r.reasons[0]
+    assert len(llm.inputs) == 1  # no repair attempt on a budget stop
+
+
 async def test_clamp_and_disabled() -> None:
     r = await LLMReviewer(_cfg(), MockLLM([{"verdict": "APPROVE", "size_multiplier": 2.5}])).review(
         C, FEATS, ML, REG, PF

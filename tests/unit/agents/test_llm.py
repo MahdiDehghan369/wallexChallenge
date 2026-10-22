@@ -170,3 +170,67 @@ def test_helpers() -> None:
 async def test_not_configured() -> None:
     with pytest.raises(LLMError, match="not configured"):
         await LLMClient(None, None, calls_log=None).complete_json("s", "u", Out)
+
+
+@respx.mock
+async def test_without_tools_capability(tmp_path: Path) -> None:
+    route = respx.post(f"{BASE}/chat/completions").mock(
+        return_value=httpx.Response(200, json=completion('{"verdict": "APPROVE", "size_multiplier": 1.0}'))
+    )
+    tools = [{"type": "function", "function": {"name": "get_ticker", "parameters": {"type": "object"}}}]
+
+    async def executor(name: str, args: dict[str, Any]) -> str:
+        raise AssertionError("tools must not run")
+
+    c = client(tmp_path, capabilities={"tools": False, "json_mode": True})
+    out, meta = await c.complete_json("s", "u", Out, tools=tools, tool_executor=executor)
+    body = json.loads(route.calls.last.request.content)
+    assert "tools" not in body and body["response_format"] == {"type": "json_object"}
+    assert out.verdict == "APPROVE" and meta["tool_calls"] == 0
+
+
+@respx.mock
+async def test_without_json_mode_extracts_json_from_text(tmp_path: Path) -> None:
+    route = respx.post(f"{BASE}/chat/completions").mock(
+        return_value=httpx.Response(
+            200,
+            json=completion('Sure! Here it is: {"verdict": "REJECT", "size_multiplier": 0.25} hope it helps'),
+        )
+    )
+    out, _ = await client(tmp_path, capabilities={"tools": True, "json_mode": False}).complete_json(
+        "sys", "u", Out
+    )
+    body = json.loads(route.calls.last.request.content)
+    assert "response_format" not in body
+    assert (
+        body["messages"][0]["content"].startswith("sys")
+        and "only one valid JSON" in body["messages"][0]["content"]
+    )
+    assert out.verdict == "REJECT"
+
+
+@respx.mock
+async def test_probe_capabilities(tmp_path: Path) -> None:
+    tool_call = {"id": "t1", "type": "function", "function": {"name": "ping", "arguments": '{"x": 1}'}}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body = json.loads(request.content)
+        if "tools" in body:
+            return httpx.Response(200, json=completion(None, [tool_call]))
+        return httpx.Response(400, json={"error": {"message": "response_format not supported"}})
+
+    respx.post(f"{BASE}/chat/completions").mock(side_effect=handler)
+    caps = await client(tmp_path).probe()
+    assert caps["tools"] is True and caps["json_mode"] is False and caps["model"] == "m"
+    assert "json_mode_error" in caps
+
+
+def test_capabilities_file(tmp_path: Path) -> None:
+    from siavash.agents.llm import load_capabilities
+
+    p = tmp_path / "caps.json"
+    assert load_capabilities(p) is None
+    p.write_text('{"tools": false, "json_mode": true}')
+    c = client(tmp_path, capabilities=load_capabilities(p))
+    assert c.tools_supported is False and c.json_mode is True
+    assert client(tmp_path).tools_supported is True and client(tmp_path).json_mode is False
