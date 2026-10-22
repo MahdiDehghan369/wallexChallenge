@@ -30,7 +30,13 @@ def implied_deviation(
     std = dev_pct.rolling(window_bars, min_periods=window_bars).std(ddof=0)
     z = ((dev_pct - mean) / std).where(std > 0)
     out = pd.DataFrame(
-        {"implied": implied, "dev_pct": dev_pct, "x_implied_z": z, "x_implied_dev_pct": dev_pct},
+        {
+            "implied": implied,
+            "dev_pct": dev_pct,
+            "x_implied_z": z,
+            "x_implied_dev_pct": dev_pct,
+            "x_implied_dev_mean_pct": mean,
+        },
         index=joined.index,
     )
     return out.replace([np.inf, -np.inf], np.nan)
@@ -50,11 +56,11 @@ def implied_features(
     window_bars: int = 96,
     tf: Timeframe | str = Timeframe.M15,
 ) -> pd.DataFrame:
-    """``x_implied_z`` / ``x_implied_dev_pct`` for one base asset from three OHLCV frames."""
+    """``x_implied_z`` / ``x_implied_dev_pct`` (+ aux ``x_implied_dev_mean_pct``) for one base asset."""
     dev = implied_deviation(
         close_series(tmn_df, tf), close_series(usdt_df, tf), close_series(usdt_tmn_df, tf), window_bars
     )
-    return dev[["x_implied_z", "x_implied_dev_pct"]]
+    return dev[["x_implied_z", "x_implied_dev_pct", "x_implied_dev_mean_pct"]]
 
 
 def implied_pairs(

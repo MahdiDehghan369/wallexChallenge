@@ -32,7 +32,13 @@ def _series(m: dict[str, pd.DataFrame]) -> tuple[pd.Series, pd.Series, pd.Series
 def test_basic_columns(market: dict[str, pd.DataFrame]) -> None:
     tmn, usdt, ut = _series(market)
     out = implied_deviation(tmn, usdt, ut, 96)
-    assert list(out.columns) == ["implied", "dev_pct", "x_implied_z", "x_implied_dev_pct"]
+    assert list(out.columns) == [
+        "implied",
+        "dev_pct",
+        "x_implied_z",
+        "x_implied_dev_pct",
+        "x_implied_dev_mean_pct",
+    ]
     assert out["x_implied_z"].iloc[:95].isna().all()
     assert out["x_implied_z"].iloc[96:].notna().all()
     np.testing.assert_allclose(out["implied"], usdt * ut)
@@ -73,7 +79,7 @@ def test_inner_join_and_nan_gap(market: dict[str, pd.DataFrame]) -> None:
 
 def test_implied_features(market: dict[str, pd.DataFrame]) -> None:
     f = implied_features(market["BTC/TMN"], market["BTC/USDT"], market["USDT/TMN"], 96)
-    assert list(f.columns) == ["x_implied_z", "x_implied_dev_pct"]
+    assert list(f.columns) == ["x_implied_z", "x_implied_dev_pct", "x_implied_dev_mean_pct"]
 
 
 def _mi(sym: str, active: bool = True) -> MarketInfo:
