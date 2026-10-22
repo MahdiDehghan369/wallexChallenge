@@ -75,6 +75,11 @@ class App:
     heartbeat_path: Path | None = None
     regime: RegimeAssessment | None = None
     latency: Any = None  # reporting.latency.LatencyRecorder
+    alerts: Any = None  # ops.alerts.Alerts (callable ``alerts(kind, data)``)
+
+    def alert(self, kind: str, data: dict[str, Any]) -> None:
+        if self.alerts is not None:
+            self.alerts(kind, data)
 
 
 class Orchestrator:
@@ -237,6 +242,7 @@ class Orchestrator:
         self.decision_positions[position.entry_decision_id] = position.position_id
         self._decision_ts[position.entry_decision_id] = self.clock.now()
         a.entries.record(self.clock.now())
+        a.alert("entry", {"symbol": position.symbol, "strategy": position.strategy.value, "qty": str(qty)})
         self.spawn(a.store.kv_set("entries", a.entries.to_list()), "persist_entries")
 
         async def run() -> None:
@@ -334,7 +340,9 @@ class Orchestrator:
             minutes=loop.reconcile_interval_min
         ):
             self._last_reconcile = now
-            await reconcile(a.broker, a.store, a.positions, a.registry, self.clock, a.decision_logger)
+            await reconcile(
+                a.broker, a.store, a.positions, a.registry, self.clock, a.decision_logger, alert=a.alerts
+            )
         if self.pipeline is not None and hasattr(self.pipeline, "update_regime"):
             if self._last_regime is None or now - self._last_regime >= timedelta(
                 minutes=loop.analyst_interval_min
@@ -394,7 +402,11 @@ class Orchestrator:
         for o, meta in await a.store.load_orders():
             if not o.status.is_terminal:
                 a.tracker.track(o, TrackMeta(meta.get("decision_id") or "", meta.get("position_id"), None))
-        await reconcile(a.broker, a.store, a.positions, a.registry, self.clock, a.decision_logger)
+        if a.alerts is not None and hasattr(a.alerts, "start"):
+            a.alerts.start()
+        await reconcile(
+            a.broker, a.store, a.positions, a.registry, self.clock, a.decision_logger, alert=a.alerts
+        )
         self._last_reconcile = self.clock.now()
         rt = get_runtime()
         from siavash.engine.decision_log import build_record
@@ -483,6 +495,8 @@ class Orchestrator:
         await a.store.kv_set("cooldowns", a.cooldowns.to_dict())
         await a.store.kv_set("entries", a.entries.to_list())
         log.info("shutdown", open_positions=len(a.positions.open_positions()))
+        if a.alerts is not None and hasattr(a.alerts, "stop"):
+            await a.alerts.stop()
         await a.store.close()
 
 

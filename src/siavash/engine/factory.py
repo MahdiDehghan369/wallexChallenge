@@ -25,6 +25,7 @@ from siavash.exchange.rate_limit import ErrorCounter
 from siavash.execution.router import OrderRouter
 from siavash.execution.safe_submit import SafeSubmitter
 from siavash.execution.tracker import OrderTracker
+from siavash.ops.alerts import Alerts
 from siavash.reporting.equity import EquityTracker
 from siavash.reporting.latency import LatencyRecorder
 from siavash.risk.breakers import BreakerController
@@ -76,7 +77,8 @@ def assemble(
     equity = EquityTracker(
         broker, EquityTracker.bid_fn_from_live(live_data, market_data), store, clock, cfg, logs / "equity.csv"
     )
-    breakers = BreakerController(store, cfg, clock, decision_logger=decision_logger)
+    alerts = Alerts.from_config(cfg) if mode in ("paper", "live") else None
+    breakers = BreakerController(store, cfg, clock, alert=alerts, decision_logger=decision_logger)
     endgame = EndgameLiquidator(
         broker,
         router,
@@ -112,6 +114,7 @@ def assemble(
         universe=list(universe or []),
         heartbeat_path=heartbeat_path,
         latency=LatencyRecorder(logs / "latency.jsonl"),
+        alerts=alerts,
     )
 
 
