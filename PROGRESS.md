@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T12:40:17Z
-- DONE: 73 / 84
+- آخرین به‌روزرسانی: 2026-10-22T12:44:08Z
+- DONE: 74 / 84
 - منتظر انسان: T-109, T-108, T-1107
 - مسدود: —
 
@@ -88,8 +88,8 @@
 | 74 | T-1107 | Go-Live Checklist | A | AGENT+HUMAN | T-1002, T-704, T-1105 | WAITING_HUMAN |  | Agent part done (preflight.py, GO_LIVE_CHECKLIST.md). انسان: روی سرور python scripts/preflight.py → READY، تیک موارد انسانی در docs/GO_LIVE_CHECKLIST.md، commit، سپس CONFIRM_LIVE=YES make live |
 | 75 | T-506 | DailyReflector Agent | B | AGENT | T-1201, T-507 | DONE | 07cd6b9 |  |
 | 76 | T-1305 | دستور Replay برای داور | B | AGENT | T-1003, T-502 | DONE | 484ddbc |  |
-| 77 | T-206 | Snapshot داده برای داوران | B | AGENT | T-202 | DONE |  | 10.6 MB, committed directly (no LFS needed) |
-| 78 | T-006 | CI | A | AGENT | T-001 | TODO |  |  |
+| 77 | T-206 | Snapshot داده برای داوران | B | AGENT | T-202 | DONE | 56ed683 | 10.6 MB, committed directly (no LFS needed) |
+| 78 | T-006 | CI | A | AGENT | T-001 | DONE |  | badge added with T-1301 |
 | 79 | T-1301 | README | A | AGENT | T-1104, T-905 | TODO |  |  |
 | 80 | T-1302 | STRATEGY.md (داکیومنت داوری) | B | AGENT+HUMAN | T-904, T-1203, T-1201 | TODO |  |  |
 | 81 | T-1303 | بسته لاگ تحویلی | A | AGENT | T-605, T-1201 | TODO |  |  |

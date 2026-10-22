@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: make lint
+      - name: Unit tests (no network, no live)
+        run: make test
+      - name: RUNBOOK / README commands exist
+        run: |
+          python scripts/check_runbook_commands.py docs/RUNBOOK.md
+          python scripts/check_runbook_commands.py README.md
