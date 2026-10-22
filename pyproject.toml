@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "siavash"
+version = "0.1.0"
+description = "Siavash — spot-only AI trading agent for the Wallex challenge"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "httpx~=0.28.1",
+    "tenacity~=9.0",
+    "pydantic~=2.11",
+    "pydantic-settings~=2.7",
+    "pyyaml~=6.0",
+    "pandas~=2.2",
+    "numpy~=2.2",
+    "pyarrow~=19.0",
+    "lightgbm~=4.6",
+    "scikit-learn~=1.6",
+    "shap~=0.47",
+    "structlog~=25.1",
+    "typer~=0.15",
+    "python-ulid~=3.0",
+    "matplotlib~=3.10",
+    "openai~=1.60",
+    "mcp~=1.6",
+    "aiosqlite~=0.21",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest~=8.3",
+    "pytest-asyncio~=0.25",
+    "respx~=0.22",
+    "hypothesis~=6.120",
+    "ruff~=0.9",
+    "mypy~=1.14",
+    "freezegun~=1.5",
+    "types-PyYAML~=6.0",
+]
+
+[project.scripts]
+siavash = "siavash.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+siavash = ["agents/prompts/*.md", "agents/prompts/*.json"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+addopts = "-m \"not live\""
+markers = [
+    "live: tests that hit the real Wallex API (human only, `make test-live`)",
+]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # Persian text in strings/comments
+    "UP042",                       # contracts use (str, Enum) on purpose
+    "RUF012",
+    "SIM108",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# section 8.3 contracts are reproduced verbatim (star imports, one-line enums)
+"src/siavash/core/*.py" = ["F403", "F405", "E701", "E702"]
+"tests/**/*.py" = ["B011"]
+
+[tool.mypy]
+python_version = "3.11"
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+warn_unused_ignores = false
+no_implicit_optional = true
