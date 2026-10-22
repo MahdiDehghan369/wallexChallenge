@@ -74,6 +74,9 @@ class InMemoryMarketData(MarketData):
         return self.tickers[symbol]
 
     async def get_recent_trades(self, symbol: str, limit: int = 100) -> list[PublicTrade]:
+        return await self._recent_trades(symbol, limit)
+
+    async def _recent_trades(self, symbol: str, limit: int) -> list[PublicTrade]:
         self.calls.append(("get_recent_trades", symbol))
         trades = self.trades.get(symbol, [])
         if self.clock is not None:

@@ -76,6 +76,8 @@ ignore = [
     "UP042",                       # contracts use (str, Enum) on purpose
     "RUF012",
     "SIM108",
+    "SIM102",                      # nested ifs kept for readability
+    "SIM105",
     "E501",                        # line length is enforced by `ruff format`
 ]
 

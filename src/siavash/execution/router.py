@@ -62,6 +62,8 @@ class OrderRouter:
         self.book_fn = book_fn
         self.submit = submit or _direct_submit
         self._attempts: dict[tuple[str, str], int] = {}
+        # called after every accepted order: (order, decision_id, leg) — used to start fill tracking
+        self.on_order: Callable[[Order, str, str], Awaitable[None] | None] | None = None
 
     # ------------------------------------------------------------------ helpers
     def _next_coid(self, decision_id: str, leg: str) -> str:
@@ -123,7 +125,12 @@ class OrderRouter:
             decision_id=decision_id,
             purpose=purpose,  # type: ignore[arg-type]
         )
-        return await self.submit(self.broker, req)
+        order = await self.submit(self.broker, req)
+        if self.on_order is not None:
+            res = self.on_order(order, decision_id, leg)
+            if res is not None:
+                await res
+        return order
 
     def _log_slippage(self, order: Order, ref: Decimal, kind: str) -> None:
         if order.avg_fill_price is not None and ref > 0 and order.filled_qty > 0:
