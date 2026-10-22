@@ -4,9 +4,9 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T11:44:00Z
+- آخرین به‌روزرسانی: 2026-10-22T11:51:28Z
 - DONE: 66 / 84
-- منتظر انسان: T-109
+- منتظر انسان: T-109, T-108
 - مسدود: —
 
 ## جدول
@@ -34,7 +34,7 @@
 | 20 | T-105 | endpointهای حساب و سفارش | A | AGENT | T-103 | DONE | 68bd18e | OrderIdMap در state/id_map.sqlite |
 | 21 | T-106 | SymbolGuard | A | AGENT | T-105 | DONE | 56780c8 | allowed_quotes و allow_usdt_liquidation به risk.yaml اضافه شد؛ USDT/TMN فقط SELL در endgame |
 | 22 | T-109 | بررسی شبکه و محل اجرا | A | HUMAN | — | WAITING_HUMAN |  | انسان: VPS نهایی را انتخاب کنید و از همان سرور دسترسی و latency به API والکس (curl https://api.wallex.ir/hector/web/v1/markets و api.wallex.com) و BoxAPI (https://ai.boxapi.ir/ai/v1، بدون proxy) را بررسی کنید؛ نتیجه را در docs/RUNBOOK.md بخش «شبکه» بنویسید |
-| 23 | T-108 | Smoke test حساب واقعی | A | AGENT+HUMAN | T-106, T-605, T-109 | TODO |  | منتظر T-109 (HUMAN)؛ بخش Agent بعد از T-109 انجام می‌شود |
+| 23 | T-108 | Smoke test حساب واقعی | A | AGENT+HUMAN | T-106, T-605, T-109 | WAITING_HUMAN |  | Agent part done. انسان (روی سرور نهایی): python scripts/smoke_test.py --save-samples docs/vendor/wallex/samples و یک بار با --base-url https://api.wallex.com؛ کارمزد چاپ‌شده را در config/risk.yaml بگذارید؛ make test-live؛ اگر قوانین اجازه می‌دهد --place-test-order. سپس نمونه‌ها را commit کنید تا Agent موارد UNKNOWN را ببندد |
 | 24 | T-201 | دانلودر داده تاریخی | B | AGENT+HUMAN | T-104 | DONE | b5153a7 | بخش انسان هم انجام شد: Agent داده عمومی ۱۲۰ روز (15m,1h) ۲۹ نماد را با endpointهای عمومی دانلود کرد (بدون کلید) — reports/data_coverage.md؛ روی سرور نهایی هم make download-data اجرا شود |
 | 25 | T-202 | اعتبارسنجی و پاک‌سازی داده | B | AGENT | T-201 | DONE | 7f2deb1 | روی داده واقعی اجرا شد: reports/data_quality.md (گپ مشترک صرافی 2026-09-22 12:45) |
 | 26 | T-203 | سرویس داده لایو | A | AGENT | T-104, T-008 | DONE | 4ae26b8 | باکت‌های گم‌شده (بازار کم‌معامله) فقط بعد از رسیدن کندل بعدی ffill می‌شوند |
@@ -79,7 +79,7 @@
 | 65 | T-405 | رجیستری مدل و SHAP | B | AGENT | T-404 | DONE | 5c29835 | models/lgbm_v1 from real data (recommend_enabled=false) |
 | 66 | T-406 | ML Scorer | B | AGENT | T-405 | DONE | 2b82698 |  |
 | 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | DONE | da88349 | agent part done; HUMAN: read reports/backtest/walkforward/REPORT.md (real data) and decide final params (+CHANGELOG) |
-| 68 | T-1106 | نسخه‌گذاری دیپلوی | A | AGENT | T-004, T-003 | DONE |  | bash -n ok; shellcheck not installable offline; --dry-run verified in a clean clone |
+| 68 | T-1106 | نسخه‌گذاری دیپلوی | A | AGENT | T-004, T-003 | DONE | fbd0e1f | bash -n ok; shellcheck not installable offline; --dry-run verified in a clean clone |
 | 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | TODO |  |  |
 | 70 | T-1003 | مقایسه Backtest ↔ Shadow ↔ Live | B | AGENT | T-901, T-903 | TODO |  |  |
 | 71 | T-1002 | اجرای Shadow | B | HUMAN | T-1106, T-1105, T-602 | TODO |  |  |
