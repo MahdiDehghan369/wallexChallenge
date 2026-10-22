@@ -88,6 +88,18 @@ class PaperConfig(_C):
 class BacktestConfig(_C):
     assumed_spread_pct: dict[str, float] = Field(default_factory=lambda: {"default": 0.15})
     extra_slippage_pct: float = Field(0.05, ge=0)
+    warmup_days: float = Field(35, ge=0)
+    # data only changes once per 15m candle in a backtest: coarser polling keeps runs fast
+    loop_overrides: dict[str, float] = Field(
+        default_factory=lambda: {
+            "price_guard_s": 60.0,
+            "main_loop_s": 300.0,
+            "poll_seconds": 60.0,
+            "book_poll_seconds": 900.0,
+            "heartbeat_s": 3600.0,
+        }
+    )
+    execution_overrides: dict[str, float] = Field(default_factory=lambda: {"order_poll_seconds": 30.0})
 
     def spread_for(self, symbol: str) -> float:
         """Assumed spread (percent) for ``symbol``; falls back to ``default``."""

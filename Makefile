@@ -36,7 +36,7 @@ train:
 	$(call not_implemented,T-403)
 
 backtest:
-	$(call not_implemented,T-901)
+	$(PYTHON) scripts/run_backtest.py $(ARGS)
 
 walkforward:
 	$(call not_implemented,T-904)

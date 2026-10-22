@@ -36,6 +36,9 @@ paper:
 bt:
   assumed_spread_pct: {default: 0.15, BTC/TMN: 0.05, ETH/TMN: 0.08, USDT/TMN: 0.03}
   extra_slippage_pct: 0.05
+  warmup_days: 35                 # indicator warm-up (4h EMA200 needs ~33 days) before trading starts
+  loop_overrides: {price_guard_s: 60, main_loop_s: 300, poll_seconds: 60, book_poll_seconds: 900, heartbeat_s: 3600}
+  execution_overrides: {order_poll_seconds: 30}
 llm:
   analyst: {enabled: true}
   reviewer: {enabled: true, allow_tools: false, timeout_s: 20}
