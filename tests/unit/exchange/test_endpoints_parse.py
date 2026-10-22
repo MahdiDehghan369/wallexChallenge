@@ -80,6 +80,34 @@ def test_parse_fills() -> None:
     assert fills[0].client_order_id.startswith("SIAV-")
 
 
+def test_real_public_samples() -> None:
+    """Samples captured from the live public API on 2026-10-22 (tests/fixtures/wallex/real/)."""
+    markets = {m.symbol: m for m in ep.parse_markets(load("real/markets"))}
+    btc = markets["BTC/TMN"]
+    assert btc.qty_step == Decimal("0.00000001") and btc.price_tick == Decimal("1")
+    assert btc.min_notional > 0 and btc.min_qty > 0 and btc.is_active
+    tickers = ep.parse_tickers(load("real/markets"), TS)
+    assert tickers["BTC/TMN"].bid is not None and tickers["BTC/TMN"].volume_24h_quote > 0
+    ob = ep.parse_orderbook(load("real/depth"), "BTC/TMN", TS)
+    assert ob.best_bid is not None and ob.best_ask is not None and ob.best_bid < ob.best_ask
+    tr = ep.parse_trades(load("real/trades"), "BTC/TMN")
+    assert len(tr) == 5 and all(t.side is not None for t in tr)
+    m1 = ep.parse_udf_bars(load("real/udf_res15_1m"))
+    assert len(m1) == 60 and all((b[0].timestamp() % 60) == 0 for b in m1)
+    c15 = ep.parse_candles(load("real/udf_res15_1m"), "BTC/TMN", Timeframe.M15)
+    assert 1 <= len(c15) <= 60 and all(c.ts_open.minute % 15 == 0 for c in c15)
+    h1 = ep.parse_candles(load("real/udf_res60_1h"), "BTC/TMN", Timeframe.H1)
+    assert len(h1) == 12
+
+
+def test_udf_errors() -> None:
+    import pytest
+
+    with pytest.raises(ep.UdfError, match="Invalid resolution"):
+        ep.parse_udf_bars(load("real/udf_invalid_resolution"))
+    assert ep.parse_udf_bars({"s": "no_data"}) == []
+
+
 def test_parse_error() -> None:
     assert ep.parse_error(400, load("error_insufficient"))[0] == ep.ERR_INSUFFICIENT_BALANCE
     assert ep.parse_error(401, {})[0] == ep.ERR_AUTH

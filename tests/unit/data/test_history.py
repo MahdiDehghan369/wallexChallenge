@@ -100,10 +100,10 @@ async def test_download_through_paginating_client(respx_mock: respx.MockRouter, 
         return None
 
     http = WallexHttp("https://wallex.test", None, public_rate=(1000, 1000), sleep_fn=nosleep)
-    md = WallexMarketData(http, max_bars=40)
+    md = WallexMarketData(http, max_bars=600)  # 600 one-minute source bars per page
     clock = FakeClock(SYN_START + timedelta(days=1))
     await download(md, ["BTC/TMN"], [Timeframe.M15], days=1, out=tmp_path, clock=clock, report_path=None)
-    assert route.call_count == 3  # 96 closed bars / 40 per page
+    assert route.call_count == 3  # 1440 source minutes / 600 per page
     assert len(read_parquet(raw_path(tmp_path, "BTC/TMN", "15m"))) == 96
 
 

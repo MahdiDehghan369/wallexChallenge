@@ -15,13 +15,13 @@ from siavash.exchange.markets import UnknownMarket
 
 
 class WallexMarketData(MarketData):
-    """Public market data. ``get_candles`` paginates when the range exceeds ``max_bars`` per request."""
+    """Public market data. ``get_candles`` paginates and aggregates (15m from 1m, 4h from 1h)."""
 
     def __init__(
         self,
         http: WallexHttp,
         clock: Clock | None = None,
-        max_bars: int = ep.CANDLES_MAX_BARS,
+        max_bars: int | None = None,
         ticker_cache_s: float = 5.0,
     ) -> None:
         self.http = http
@@ -57,20 +57,32 @@ class WallexMarketData(MarketData):
         return ep.parse_tickers(await self._markets_raw(self.ticker_cache_s), self._now())
 
     async def get_candles(self, symbol: str, tf: Timeframe, start: datetime, end: datetime) -> list[Candle]:
-        """Candles with ``start <= ts_open < end``; chunked requests merged, de-duplicated and sorted."""
-        span = timedelta(seconds=tf.seconds * self.max_bars)
-        merged: dict[datetime, Candle] = {}
-        cursor = start
-        while cursor < end:
-            chunk_end = min(cursor + span, end)
+        """Candles with ``start <= ts_open < end``.
+
+        Source bars (see ``endpoints.CANDLE_SOURCES``) are fetched over the tf-aligned range in pages
+        of ``max_bars`` source bars, merged, de-duplicated and aggregated into ``tf`` candles, so a
+        returned candle always contains all of its source bars.
+        """
+        src = ep.CANDLE_SOURCES[tf]
+        page = timedelta(seconds=src.source_seconds * (self.max_bars or src.max_bars))
+        lo = datetime.fromtimestamp(int(start.timestamp()) // tf.seconds * tf.seconds, tz=UTC)
+        hi_s = -(-int(end.timestamp()) // tf.seconds) * tf.seconds
+        hi = datetime.fromtimestamp(hi_s, tz=UTC)
+        bars: dict[datetime, tuple[datetime, float, float, float, float, float]] = {}
+        cursor = lo
+        while cursor < hi:
+            chunk_end = min(cursor + page, hi)
+            # UDF "to" is inclusive; stop one second before the next chunk / bucket boundary
             raw = await self.http.get(
-                ep.Paths.CANDLES, params=ep.candles_params(symbol, tf, cursor, chunk_end)
+                ep.Paths.CANDLES,
+                params=ep.candles_params(symbol, tf, cursor, chunk_end - timedelta(seconds=1)),
             )
-            for c in ep.parse_candles(raw, symbol, tf):
-                if start <= c.ts_open < end:
-                    merged[c.ts_open] = c
+            for b in ep.parse_udf_bars(raw):
+                if lo <= b[0] < hi:
+                    bars[b[0]] = b
             cursor = chunk_end
-        return [merged[k] for k in sorted(merged)]
+        candles = ep.aggregate_bars([bars[k] for k in sorted(bars)], symbol, tf)
+        return [c for c in candles if start <= c.ts_open < end]
 
     async def get_orderbook(self, symbol: str, depth: int = 20) -> OrderBook:
         raw = await self.http.get(ep.Paths.DEPTH, params=ep.symbol_params(symbol))

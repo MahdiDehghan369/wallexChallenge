@@ -28,7 +28,7 @@ async def _nosleep(_: float) -> None:
 @pytest.fixture
 def md() -> WallexMarketData:
     http = WallexHttp(BASE, "k", public_rate=(1000, 1000), sleep_fn=_nosleep)
-    return WallexMarketData(http, FakeClock(T0), max_bars=4, ticker_cache_s=5)
+    return WallexMarketData(http, FakeClock(T0), max_bars=60, ticker_cache_s=5)
 
 
 def _udf(start: int, end: int, step: int) -> dict:
@@ -48,16 +48,47 @@ def _udf(start: int, end: int, step: int) -> dict:
 async def test_candles_paginate_three_chunks(respx_mock: respx.MockRouter, md: WallexMarketData) -> None:
     def handler(request: httpx.Request) -> httpx.Response:
         p = request.url.params
+        # observed API behaviour: resolution "15" serves 1-minute bars
         assert p["symbol"] == "BTCTMN" and p["resolution"] == "15"
-        return httpx.Response(200, json=_udf(int(p["from"]), int(p["to"]), 900))
+        return httpx.Response(200, json=_udf(int(p["from"]), int(p["to"]), 60))
 
     route = respx_mock.get(ep.Paths.CANDLES).mock(side_effect=handler)
     end = T0 + timedelta(minutes=15 * 10)
     candles = await md.get_candles("BTC/TMN", Timeframe.M15, T0, end)
-    assert route.call_count == 3  # 4 + 4 + 2 bars
+    assert route.call_count == 3  # 150 source minutes / 60 per page
     assert len(candles) == 10
     assert [c.ts_open for c in candles] == [T0 + timedelta(minutes=15 * i) for i in range(10)]
     assert all(c.symbol == "BTC/TMN" and c.timeframe is Timeframe.M15 for c in candles)
+    assert all(c.volume == 45 for c in candles)  # 15 one-minute bars × 3
+
+
+@respx.mock(base_url=BASE)
+async def test_unaligned_range_returns_complete_buckets(
+    respx_mock: respx.MockRouter, md: WallexMarketData
+) -> None:
+    respx_mock.get(ep.Paths.CANDLES).mock(
+        side_effect=lambda r: httpx.Response(
+            200, json=_udf(int(r.url.params["from"]), int(r.url.params["to"]), 60)
+        )
+    )
+    candles = await md.get_candles(
+        "BTC/TMN", Timeframe.M15, T0 + timedelta(minutes=7), T0 + timedelta(minutes=31)
+    )
+    # buckets 00:15 and 00:30 qualify (00:00 starts before 'start'); each one is complete
+    assert [c.ts_open for c in candles] == [T0 + timedelta(minutes=15), T0 + timedelta(minutes=30)]
+    assert all(c.volume == 45 for c in candles)
+
+
+@respx.mock(base_url=BASE)
+async def test_four_hour_from_hourly(respx_mock: respx.MockRouter, md: WallexMarketData) -> None:
+    def handler(request: httpx.Request) -> httpx.Response:
+        p = request.url.params
+        assert p["resolution"] == "60"
+        return httpx.Response(200, json=_udf(int(p["from"]), int(p["to"]), 3600))
+
+    respx_mock.get(ep.Paths.CANDLES).mock(side_effect=handler)
+    candles = await md.get_candles("BTC/TMN", Timeframe.H4, T0, T0 + timedelta(hours=8))
+    assert len(candles) == 2 and candles[0].volume == 12
 
 
 @respx.mock(base_url=BASE)

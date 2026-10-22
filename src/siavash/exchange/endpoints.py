@@ -1,10 +1,13 @@
 """Wallex REST endpoints, field names and response parsers (T-101).
 
 ⚠️ VERIFIED = False — built from appendix H of WALLEX_AGENT_PLAN.md (public, possibly stale info).
-No official docs were present in ``docs/vendor/wallex/``. Parts that appendix H does not describe
-(balances, order and user-trade payloads, error bodies) use a **MOCK SCHEMA** defined only here so
-that the rest of the code can be built and tested against fixtures. When official docs arrive,
-only this file, ``docs/wallex_api_notes.md`` and ``tests/fixtures/wallex/*.json`` must change.
+No official docs were present in ``docs/vendor/wallex/``.
+
+PUBLIC endpoints (markets, depth, trades, udf/history) were OBSERVED with read-only requests on
+2026-10-22; real samples are in ``tests/fixtures/wallex/real/``. Private endpoints (balances,
+order and user-trade payloads, error bodies) still use a **MOCK SCHEMA** defined only here so the
+rest of the code can be built and tested. When official docs arrive, only this file,
+``docs/wallex_api_notes.md`` and ``tests/fixtures/wallex/*.json`` must change.
 
 This is the ONLY module that knows Wallex URLs, paths or field names.
 """
@@ -55,14 +58,30 @@ PRIVATE_PATHS = frozenset(
     {Paths.BALANCES, Paths.ORDERS, Paths.ORDER, Paths.OPEN_ORDERS, Paths.MY_TRADES, Paths.FEE}
 )
 
-# TradingView-UDF resolutions — UNVERIFIED (allowed values and max range must be confirmed)
-RESOLUTIONS: dict[Timeframe, str] = {
-    Timeframe.M1: "1",
-    Timeframe.M15: "15",
-    Timeframe.H1: "60",
-    Timeframe.H4: "240",
+# UDF resolutions — OBSERVED 2026-10-22 (not documented):
+#   "15" -> 1-minute bars (sparse: minutes without trades are missing), history >= 120 days
+#   "60", "240", "720" -> 1-hour bars;  "1D" -> daily;  "1" -> no_data;
+#   "5", "30", "120", "180", "360", "1W" -> {"s": "error", "errmsg": "Invalid resolution!"}
+#   a "60" request returned at most ~700 bars (60-day range -> 696 bars).
+# So 15m candles are aggregated from 1m bars and 4h candles from 1h bars.
+
+
+class CandleSource:
+    """How to obtain one timeframe: request ``resolution`` (bars of ``source_seconds``) and aggregate."""
+
+    def __init__(self, resolution: str, source_seconds: int, max_bars: int) -> None:
+        self.resolution = resolution
+        self.source_seconds = source_seconds
+        self.max_bars = max_bars  # page size used by the client (bars of the source resolution)
+
+
+CANDLE_SOURCES: dict[Timeframe, CandleSource] = {
+    Timeframe.M1: CandleSource("15", 60, 4320),
+    Timeframe.M15: CandleSource("15", 60, 4320),
+    Timeframe.H1: CandleSource("60", 3600, 600),
+    Timeframe.H4: CandleSource("60", 3600, 600),
 }
-CANDLES_MAX_BARS = 500  # UNVERIFIED conservative page size; client paginates
+RESOLUTIONS: dict[Timeframe, str] = {tf: s.resolution for tf, s in CANDLE_SOURCES.items()}
 TRADES_MAX = 100  # UNVERIFIED
 
 # client order id support — UNKNOWN (appendix H: body field "client_id" is "احتمالی")
@@ -329,26 +348,60 @@ def parse_tickers(resp: Any, ts: datetime) -> dict[str, Ticker]:
     return out
 
 
-def parse_candles(resp: Any, symbol: str, tf: Timeframe) -> list[Candle]:
-    """UDF history -> candles (sorted, de-duplicated). ``s == "no_data"`` -> []."""
+class UdfError(ValueError):
+    """``{"s": "error", "errmsg": ...}`` from the UDF endpoint (e.g. invalid resolution)."""
+
+
+def parse_udf_bars(resp: Any) -> list[tuple[datetime, float, float, float, float, float]]:
+    """UDF history -> ``[(ts_open, o, h, l, c, v)]`` sorted and de-duplicated; ``no_data`` -> []."""
     r = _result(resp)
-    if r.get(F["udf_status"]) not in (None, "ok"):
+    status = r.get(F["udf_status"])
+    if status == "no_data":
         return []
+    if status not in (None, "ok"):
+        raise UdfError(str(r.get("errmsg") or status))
     t, o, h, lo, c, v = (r.get(F[k]) or [] for k in ("udf_t", "udf_o", "udf_h", "udf_l", "udf_c", "udf_v"))
-    seen: dict[datetime, Candle] = {}
+    seen: dict[datetime, tuple[datetime, float, float, float, float, float]] = {}
     for i in range(len(t)):
         ts = _ts(t[i])
-        seen[ts] = Candle(
+        vol = float(v[i]) if i < len(v) else 0.0
+        seen[ts] = (ts, float(o[i]), float(h[i]), float(lo[i]), float(c[i]), vol)
+    return [seen[k] for k in sorted(seen)]
+
+
+def aggregate_bars(
+    bars: list[tuple[datetime, float, float, float, float, float]], symbol: str, tf: Timeframe
+) -> list[Candle]:
+    """Bucket source bars into ``tf`` candles (bucket = floor(ts, tf)); empty buckets are skipped (gaps)."""
+    out: dict[int, list[float]] = {}
+    for ts, o, h, lo, c, v in bars:
+        key = int(ts.timestamp()) // tf.seconds * tf.seconds
+        b = out.get(key)
+        if b is None:
+            out[key] = [o, h, lo, c, v]
+        else:
+            b[1] = max(b[1], h)
+            b[2] = min(b[2], lo)
+            b[3] = c
+            b[4] += v
+    return [
+        Candle(
             symbol=symbol,
             timeframe=tf,
-            ts_open=ts,
-            open=float(o[i]),
-            high=float(h[i]),
-            low=float(lo[i]),
-            close=float(c[i]),
-            volume=float(v[i]) if i < len(v) else 0.0,
+            ts_open=datetime.fromtimestamp(k, tz=UTC),
+            open=b[0],
+            high=b[1],
+            low=b[2],
+            close=b[3],
+            volume=b[4],
         )
-    return [seen[k] for k in sorted(seen)]
+        for k, b in sorted(out.items())
+    ]
+
+
+def parse_candles(resp: Any, symbol: str, tf: Timeframe) -> list[Candle]:
+    """UDF history for ``CANDLE_SOURCES[tf]`` -> ``tf`` candles (aggregated when the source is finer)."""
+    return aggregate_bars(parse_udf_bars(resp), symbol, tf)
 
 
 def parse_orderbook(resp: Any, symbol: str, ts: datetime) -> OrderBook:

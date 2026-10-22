@@ -7,6 +7,30 @@
 > When the official docs (and real response samples) arrive, re-run T-101 (prompt F5 in the plan):
 > update `endpoints.py`, this file and `tests/fixtures/wallex/*.json`, then set `VERIFIED = True`.
 
+## Observed behaviour of the public API (read-only probes, 2026-10-22)
+
+Unauthenticated GET requests from the dev machine succeeded; trimmed real responses are stored in
+`tests/fixtures/wallex/real/` and parsed by the unit tests. Findings:
+
+- `GET /v1/markets` → `{"result": {"symbols": {...}}, "message", "success"}` with 373 symbols. Each entry
+  has `baseAsset`, `quoteAsset`, `stepSize` (quantity **decimals**, e.g. 8 for BTCTMN), `tickSize`
+  (price decimals, 0 for TMN), `minQty` (e.g. `1e-08`), `minNotional` (e.g. `50000` TMN),
+  `baseAssetPrecision`, `quotePrecision`, `isNew`, `isZeroFee`, `isMarketTypeEnable`, and
+  `stats{bidPrice, askPrice, lastPrice, 24h_volume, 24h_quoteVolume, 24h_tmnVolume, 24h_highPrice, …}`
+  (numbers as strings). There is **no** `isActive` field (parser treats missing as active).
+- `GET /v1/depth?symbol=` → `result.ask[]` / `result.bid[]` with numeric `price`, `quantity` and string `sum`.
+- `GET /v1/trades?symbol=` → `result.latestTrades[]` with `price`, `quantity`, `sum`, `isBuyOrder`, ISO `timestamp`.
+- `GET /v1/udf/history` — **resolution semantics are not standard**:
+  - `resolution=15` returns **1-minute** bars; minutes without trades are missing (sparse). Data goes back ≥ 120 days.
+  - `resolution=60`, `240` and `720` all return **1-hour** bars; `1D` returns daily bars.
+  - `resolution=1` → `{"s": "no_data"}`; `5, 30, 120, 180, 360, 1W` → `{"s": "error", "errmsg": "Invalid resolution!"}`.
+  - a 60-day request at `60` returned only 696 bars (~29 days) → requests are capped (~700 bars).
+  - illiquid markets have holes even at 1h (USDT/TMN had an 11 h gap).
+  - **Consequence in code:** 15m candles are aggregated from 1m bars (`resolution=15`) and 4h from 1h bars
+    (`endpoints.CANDLE_SOURCES`); pages are 4320 one-minute bars or 600 one-hour bars.
+
+Private endpoints were **not** touched (no key, and placing orders is human-only).
+
 ## Base URL and authentication
 
 | Item | Value | Source |
@@ -19,10 +43,10 @@
 
 | Use | Method | Path | Params / body | Response (as parsed) | Status |
 |---|---|---|---|---|---|
-| Markets + tickers | GET | `/v1/markets` | — | `result.symbols{SYMBOL: {baseAsset, quoteAsset, stats{…}, minQty?, minNotional?, precision?}}` | path: H; precision/stat names **MOCK** |
-| Order book | GET | `/v1/depth` | `symbol=BTCTMN` | `result.ask[]`, `result.bid[]` each `{price, quantity, sum}` | H |
-| Public trades | GET | `/v1/trades` | `symbol=BTCTMN` | `result.latestTrades[] {price, quantity, isBuyOrder, timestamp}` | H |
-| Candles | GET | `/v1/udf/history` | `symbol, resolution, from, to` (unix s) | TradingView UDF `{s, t[], o[], h[], l[], c[], v[]}` | H; resolutions & max range **UNVERIFIED** |
+| Markets + tickers | GET | `/v1/markets` | — | `result.symbols{SYMBOL: {baseAsset, quoteAsset, stepSize, tickSize, minQty, minNotional, stats{bidPrice, askPrice, lastPrice, 24h_quoteVolume, …}}}` | **observed** |
+| Order book | GET | `/v1/depth` | `symbol=BTCTMN` | `result.ask[]`, `result.bid[]` each `{price, quantity, sum}` | **observed** |
+| Public trades | GET | `/v1/trades` | `symbol=BTCTMN` | `result.latestTrades[] {price, quantity, isBuyOrder, timestamp}` | **observed** |
+| Candles | GET | `/v1/udf/history` | `symbol, resolution, from, to` (unix s, inclusive) | TradingView UDF `{s, t[], o[], h[], l[], c[], v[]}` | **observed** (see resolution quirks above) |
 | Balances | GET | `/v1/account/balances` | — | `result.balances{ASSET: {asset, value, locked}}` | path: H; payload **MOCK** |
 | Place order | POST | `/v1/account/orders` | `symbol, side (buy/sell), type (limit/market), price, quantity, client_id` | order object | path/body: H ("احتمالی"); response **MOCK** |
 | Cancel order | DELETE | `/v1/account/orders` | `orderId` or `clientOrderId` | order object | path: H; body **MOCK** |
@@ -55,10 +79,10 @@ canonical `BASE/QUOTE`; conversion only via `siavash.core.symbols` within `siava
 
 ## Price / quantity precision and minimums
 
-Appendix H says the markets endpoint "probably" returns `minQty` / `minNotional` / precision.
-The parser reads `minQty`, `minNotional` and two **MOCK** fields `stepSize` (quantity decimals) and
-`tickSize` (price decimals); a value < 1 is treated as the step itself. Missing → step 1 TMN price /
-0.000001 qty and minimums 0 (the risk layer still enforces config minimums). Verify before live.
+Observed: `stepSize` = quantity decimals, `tickSize` = price decimals, plus `minQty` and
+`minNotional` (BTCTMN: 8, 0, 1e-08, 50000). The parser converts decimals to steps (a value < 1 would
+be treated as the step itself). Whether the order endpoint enforces exactly these values is still
+unverified — the smoke test (T-108) should confirm.
 
 ## Order types; spot stop orders
 
