@@ -192,4 +192,113 @@ def build_app(
     )
 
 
-__all__ = ["PipelineFactory", "assemble", "build_app", "endgame_phase"]
+def strategy_stats_fn(app: App) -> Callable[[str, int], dict[str, Any]]:
+    """Recent performance of one strategy from closed positions (for agents' tools / prompts)."""
+    from datetime import timedelta
+
+    def fn(strategy: str, hours: int) -> dict[str, Any]:
+        since = app.clock.now() - timedelta(hours=hours)
+        closed = [p for p in app.positions.closed_since(since) if p.strategy.value == strategy]
+        pnl = [float(p.realized_pnl_tmn) for p in closed]
+        return {
+            "strategy": strategy,
+            "hours": hours,
+            "trades": len(closed),
+            "win_rate": round(sum(1 for x in pnl if x > 0) / len(pnl), 3) if pnl else None,
+            "pnl_tmn": round(sum(pnl), 0),
+        }
+
+    return fn
+
+
+def recent_trades_fn(app: App) -> Callable[[str, int], list[dict[str, Any]]]:
+    def fn(strategy: str, n: int) -> list[dict[str, Any]]:
+        closed = sorted(
+            (
+                p
+                for p in app.positions.positions.values()
+                if p.strategy.value == strategy and p.closed_at is not None
+            ),
+            key=lambda p: p.closed_at,  # type: ignore[arg-type,return-value]
+        )[-n:]
+        return [
+            {
+                "symbol": p.symbol,
+                "pnl_tmn": float(p.realized_pnl_tmn),
+                "exit": p.exit_reason.value if p.exit_reason else None,
+            }
+            for p in closed
+        ]
+
+    return fn
+
+
+def make_pipeline(app: App, orch: Orchestrator, cfg: Any, llm_mode: str | None = None) -> PipelineLike:
+    """Production decision pipeline: signals + ML scorer + cached LLM reviewer / analyst + risk.
+
+    ``llm_mode``: ``None`` → ``cfg.llm.cache_mode``; ``"off"`` → no LLM (deterministic fallbacks).
+    """
+    from siavash.agents.analyst import LLMRegimeProvider
+    from siavash.agents.cache import CachedLLMClient, LLMCache
+    from siavash.agents.llm import LLMClient
+    from siavash.agents.reviewer import LLMReviewer
+    from siavash.agents.tools import ToolRegistry, select_backend
+    from siavash.engine.pipeline import DecisionPipeline
+
+    logs = Path(cfg.base.paths.logs)
+    llm: Any = None
+    if llm_mode != "off":
+        mode: Any = llm_mode or cfg.llm.cache_mode
+        client = LLMClient.from_config(cfg)
+        llm = CachedLLMClient(
+            client if mode != "replay" else None, LLMCache(logs / "llm" / "cache.sqlite", mode), cfg.llm.model
+        )
+    tools: Any = None
+    if llm is not None:
+        backend = select_backend(cfg)
+        if backend == "mcp":
+            from siavash.exchange.mcp_tools import McpToolRegistry, mcp_server_config
+
+            server = mcp_server_config()
+            assert server is not None
+            tools = McpToolRegistry(
+                server,
+                app.market_data,
+                None,
+                strategy_stats_fn(app),
+                logs / "llm" / "tool_calls.jsonl",
+                app.clock.now,
+            )
+        else:
+            tools = ToolRegistry(
+                app.market_data,
+                None,
+                strategy_stats_fn(app),
+                logs / "llm" / "tool_calls.jsonl",
+                app.clock.now,
+            )
+
+    def perf(hours: int) -> dict[str, Any]:
+        f = strategy_stats_fn(app)
+        return {s: f(s, hours) for s in cfg.strategy.strategies.enabled}
+
+    scorer = None
+    if cfg.strategy.ml.enabled:
+        try:
+            from siavash.ml.scorer import LgbmScorer  # type: ignore[import-not-found]
+
+            scorer = LgbmScorer.from_config(cfg)
+        except Exception:
+            scorer = None
+    reviewer = LLMReviewer(cfg, llm, tools, recent_trades_fn(app))
+    analyst = LLMRegimeProvider(cfg, llm, tools, perf, app.decision_logger, logs / "regime.jsonl", app.clock)
+    return DecisionPipeline(
+        orch,
+        scorer=scorer,
+        reviewer=reviewer,
+        regime_provider=analyst,
+        dynamic_universe=app.mode not in ("backtest", "replay"),
+    )
+
+
+__all__ = ["PipelineFactory", "assemble", "build_app", "endgame_phase", "make_pipeline"]

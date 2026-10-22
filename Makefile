@@ -42,12 +42,12 @@ walkforward:
 	$(call not_implemented,T-904)
 
 paper:
-	$(call not_implemented,T-1104)
+	$(SIAVASH) run --mode paper
 
 # Human only. The agent never runs this target.
 live:
 	@read -p "Type LIVE to confirm: " ans; [ "$$ans" = "LIVE" ] || { echo "aborted"; exit 1; }
-	$(call not_implemented,T-1104)
+	CONFIRM_LIVE=YES $(SIAVASH) run --mode live
 
 report:
 	$(call not_implemented,T-1201)
@@ -56,16 +56,16 @@ replay:
 	$(call not_implemented,T-1305)
 
 flatten:
-	$(call not_implemented,T-1104)
+	$(SIAVASH) flatten --confirm
 
 pause:
-	$(call not_implemented,T-1104)
+	$(SIAVASH) pause
 
 resume:
-	$(call not_implemented,T-1104)
+	$(SIAVASH) resume $(ARGS)
 
 status:
-	$(call not_implemented,T-1104)
+	$(SIAVASH) status
 
 shadow-report:
 	$(call not_implemented,T-1003)
