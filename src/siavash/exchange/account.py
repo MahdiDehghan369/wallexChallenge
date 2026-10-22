@@ -82,6 +82,29 @@ class OrderIdMap:
             self._conn.close()
 
 
+def prepare_order(req: OrderRequest, registry: MarketRegistry, guard: GuardLike) -> OrderRequest:
+    """Shared pre-trade validation used by every broker (live, paper, backtest).
+
+    decision_id required → SymbolGuard (rule 4) → round qty down / price by side → market minimums.
+    """
+    if not req.decision_id:
+        raise BadRequest("order without decision_id")
+    guard.assert_tradable(req.symbol, req.side)
+    qty = registry.round_qty(req.symbol, req.qty)
+    price = req.price
+    if req.type is OrderType.LIMIT:
+        if price is None or price <= 0:
+            raise BadRequest("LIMIT order requires a positive price")
+        price = registry.round_price(req.symbol, price, req.side)
+    if price is None:
+        m = registry.get(req.symbol)
+        if qty <= 0 or qty < m.min_qty:
+            raise BelowMinimum(f"{req.symbol}: qty {qty} below minimum {m.min_qty}")
+    elif not registry.check_min(req.symbol, qty, price):
+        raise BelowMinimum(f"{req.symbol}: qty {qty} @ {price} below market minimum")
+    return req.model_copy(update={"qty": qty, "price": price})
+
+
 class WallexAccount:
     """Private endpoints: balances, orders, user trades."""
 
@@ -110,23 +133,7 @@ class WallexAccount:
 
     def prepare(self, req: OrderRequest) -> OrderRequest:
         """Guard + rounding + minimum checks (no I/O). Raises before anything is sent."""
-        if not req.decision_id:
-            raise BadRequest("order without decision_id")
-        self.guard.assert_tradable(req.symbol, req.side)  # mandatory SymbolGuard (rule 4)
-        qty = self.registry.round_qty(req.symbol, req.qty)
-        price = req.price
-        if req.type is OrderType.LIMIT:
-            if price is None or price <= 0:
-                raise BadRequest("LIMIT order requires a positive price")
-            price = self.registry.round_price(req.symbol, price, req.side)
-        ref_price = price
-        if ref_price is None:
-            m = self.registry.get(req.symbol)
-            if qty <= 0 or qty < m.min_qty:
-                raise BelowMinimum(f"{req.symbol}: qty {qty} below minimum {m.min_qty}")
-        elif not self.registry.check_min(req.symbol, qty, ref_price):
-            raise BelowMinimum(f"{req.symbol}: qty {qty} @ {ref_price} below market minimum")
-        return req.model_copy(update={"qty": qty, "price": price})
+        return prepare_order(req, self.registry, self.guard)
 
     async def get_balances(self) -> dict[str, Balance]:
         return ep.parse_balance(await self.http.get(ep.Paths.BALANCES, private=True))
