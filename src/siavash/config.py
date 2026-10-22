@@ -139,6 +139,8 @@ class LLMConfig(_C):
     tools_backend: Literal["auto", "mcp", "native"] = "auto"
     use_proxy: bool = True
     cache_mode: Literal["live", "replay", "record_only"] = "live"
+    fallback_size_multiplier: float = Field(0.5, ge=0.25, le=1.0)
+    fallback_ml_edge: float = Field(0.05, ge=0)
     # از env (غیر محرمانه)
     base_url: str | None = None
     model: str | None = None

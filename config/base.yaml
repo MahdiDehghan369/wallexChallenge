@@ -43,8 +43,10 @@ llm:
   max_retries: 2
   max_tool_calls: 3
   tools_backend: auto             # auto | mcp | native
-  use_proxy: true
+  use_proxy: false
   cache_mode: live                # live | replay | record_only
+  fallback_size_multiplier: 0.5   # deterministic review when the LLM is unavailable
+  fallback_ml_edge: 0.05          # fallback approves only if p_win >= threshold + edge
 data:
   max_ffill_bars: 3               # gaps up to this many bars are forward-filled (is_filled=True, volume=0)
   outlier_jump_pct: 20            # |close/prev_close - 1| above this (15m) is flagged as outlier
