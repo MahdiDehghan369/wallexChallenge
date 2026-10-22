@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "message": "MOCK fixture built from appendix H (UNVERIFIED)",
+  "result": {
+    "latestTrades": [
+      {"symbol": "BTCTMN", "quantity": "0.0015", "price": "7350000000", "sum": "11025000", "isBuyOrder": true, "timestamp": "2026-11-05T09:15:02Z"},
+      {"symbol": "BTCTMN", "quantity": "0.0030", "price": "7349000000", "sum": "22047000", "isBuyOrder": false, "timestamp": "2026-11-05T09:14:40Z"},
+      {"symbol": "BTCTMN", "quantity": "0.0007", "price": "7351000000", "sum": "5145700", "isBuyOrder": true, "timestamp": "2026-11-05T09:14:10Z"}
+    ]
+  }
+}

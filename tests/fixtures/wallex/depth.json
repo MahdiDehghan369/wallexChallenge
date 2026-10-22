@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "message": "MOCK fixture built from appendix H (UNVERIFIED)",
+  "result": {
+    "ask": [
+      {"price": "7351000000", "quantity": "0.012", "sum": "88212000"},
+      {"price": "7352000000", "quantity": "0.050", "sum": "367600000"},
+      {"price": "7355000000", "quantity": "0.200", "sum": "1471000000"}
+    ],
+    "bid": [
+      {"price": "7349000000", "quantity": "0.020", "sum": "146980000"},
+      {"price": "7348000000", "quantity": "0.080", "sum": "587840000"},
+      {"price": "7345000000", "quantity": "0.300", "sum": "2203500000"}
+    ]
+  }
+}

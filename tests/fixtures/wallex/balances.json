@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "message": "MOCK SCHEMA (not in appendix H) — replace with a real sample",
+  "result": {
+    "balances": {
+      "TMN": {"asset": "TMN", "value": "5000000", "locked": "1000000"},
+      "BTC": {"asset": "BTC", "value": "0.000150", "locked": "0"},
+      "USDT": {"asset": "USDT", "value": "0", "locked": "0"}
+    }
+  }
+}

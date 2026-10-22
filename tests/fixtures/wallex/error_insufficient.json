@@ -1,0 +1,6 @@
+{
+  "success": false,
+  "code": 400,
+  "message": "Insufficient balance (MOCK SCHEMA)",
+  "result": {}
+}

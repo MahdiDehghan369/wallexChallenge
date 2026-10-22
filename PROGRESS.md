@@ -25,9 +25,9 @@
 | 11 | T-303 | Feature Builder چندتایم‌فریمی | B | AGENT | T-301, T-007 | DONE | b019752 | |
 | 12 | T-205 | قیمت ضمنی و انحراف | B | AGENT | T-303 | DONE | 98dcf51 | |
 | 13 | T-304 | ویژگی‌های رژیم و رژیم‌یاب قاعده‌ای | B | AGENT | T-303 | DONE | 46ba3e8 | ویژگی x_btc_ema_trend_1h و نگاشت regime.enabled_strategies در strategy.yaml اضافه شد |
-| 14 | T-305 | Signal Generatorها | B | AGENT | T-304, T-205 | TODO |  | |
-| 15 | T-306 | فیلتر کارمزد | B | AGENT | T-305 | TODO |  | |
-| 16 | T-101 | کشف و مستندسازی API والکس | A | AGENT+HUMAN | T-001 | TODO |  | |
+| 14 | T-305 | Signal Generatorها | B | AGENT | T-304, T-205 | DONE | 4e8b415 | ویژگی کمکی x_implied_dev_mean_pct برای TP در z=0 اضافه شد |
+| 15 | T-306 | فیلتر کارمزد | B | AGENT | T-305 | DONE | 92129cb | با کارمزد بدبینانه 0.35/0.35 حداقل حرکت 1.75٪ است و همه کاندیدهای S3 (سقف TP=1.5٪) رد می‌شوند — کارمزد واقعی لازم است |
+| 16 | T-101 | کشف و مستندسازی API والکس | A | AGENT+HUMAN | T-001 | DONE (UNVERIFIED) | (این commit) | WAITING_HUMAN: مستندات رسمی API در docs/vendor/wallex/، MCP در docs/vendor/wallex_mcp/، کارمزد maker/taker در docs/vendor/wallex/fees.txt و نمونه پاسخ‌های واقعی در docs/vendor/wallex/samples/ بگذارید؛ بعد پرامپت F5. بخش‌های balances/orders/trades/errors فعلاً MOCK SCHEMA هستند |
 | 17 | T-102 | کلاینت HTTP پایه | A | AGENT | T-101, T-003 | TODO |  | |
 | 18 | T-103 | متادیتای بازار و گرد کردن | A | AGENT | T-102 | TODO |  | |
 | 19 | T-104 | endpointهای داده بازار | A | AGENT | T-103 | TODO |  | |

@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "message": "MOCK SCHEMA (not in appendix H) — replace with a real sample",
+  "result": {
+    "AccountLatestTrades": [
+      {"id": "t-1002", "orderId": "987654321", "clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1", "symbol": "BTCTMN",
+       "side": "buy", "price": "7349000000", "quantity": "0.000086", "fee": "0.000000301", "feeAsset": "BTC",
+       "timestamp": "2026-11-05T09:16:10Z", "isMaker": true},
+      {"id": "t-1001", "orderId": "987654321", "clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1", "symbol": "BTCTMN",
+       "side": "buy", "price": "7349000000", "quantity": "0.000050", "fee": "0.000000175", "feeAsset": "BTC",
+       "timestamp": "2026-11-05T09:15:30Z", "isMaker": true}
+    ]
+  }
+}
