@@ -32,7 +32,7 @@ from siavash.signals.registry import build_generators
 log = get_logger(__name__)
 
 REGIME_COLUMNS = [f"regime_{r.value}" for r in Regime]
-META_COLUMNS = ["ts", "symbol", "strategy", "regime"]
+META_COLUMNS = ["ts", "symbol", "strategy", "regime", "expected_move_pct"]
 LABEL_COLUMNS = ["label", "ret_pct", "exit_reason", "bars_held"]
 MODEL_COLUMNS = [*FEATURES, *REGIME_COLUMNS]  # model inputs
 
@@ -125,6 +125,7 @@ def build_dataset(
                     "symbol": sym,
                     "strategy": c.strategy.value,
                     "regime": regime.value,
+                    "expected_move_pct": c.expected_move_pct,
                 }
                 rec.update({f: r.get(f, np.nan) for f in FEATURES})
                 rec.update({col: float(col == f"regime_{regime.value}") for col in REGIME_COLUMNS})

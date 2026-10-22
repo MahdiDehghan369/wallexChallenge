@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T11:26:47Z
-- DONE: 64 / 84
+- آخرین به‌روزرسانی: 2026-10-22T11:39:39Z
+- DONE: 65 / 84
 - منتظر انسان: T-109
 - مسدود: —
 
@@ -77,8 +77,8 @@
 | 63 | T-403 | آموزش Walk-forward | B | AGENT | T-402 | DONE | 62dd64d |  |
 | 64 | T-404 | کالیبراسیون و انتخاب آستانه | B | AGENT | T-403 | DONE | caf8700 | real data: θ=0.675 but all θ lose money with 0.35/0.35 fees -> ml.enabled=false |
 | 65 | T-405 | رجیستری مدل و SHAP | B | AGENT | T-404 | DONE | 5c29835 | models/lgbm_v1 from real data (recommend_enabled=false) |
-| 66 | T-406 | ML Scorer | B | AGENT | T-405 | DONE |  |  |
-| 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | TODO |  |  |
+| 66 | T-406 | ML Scorer | B | AGENT | T-405 | DONE | 2b82698 |  |
+| 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | DONE |  | agent part done; HUMAN: read reports/backtest/walkforward/REPORT.md (real data) and decide final params (+CHANGELOG) |
 | 68 | T-1106 | نسخه‌گذاری دیپلوی | A | AGENT | T-004, T-003 | TODO |  |  |
 | 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | TODO |  |  |
 | 70 | T-1003 | مقایسه Backtest ↔ Shadow ↔ Live | B | AGENT | T-901, T-903 | TODO |  |  |
