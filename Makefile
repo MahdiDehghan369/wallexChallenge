@@ -9,7 +9,7 @@ define not_implemented
 	@echo "not implemented: $(1)"; exit 1
 endef
 
-.PHONY: install lint test test-live download-data validate-data train backtest walkforward \
+.PHONY: install lint test test-live download-data validate-data train backtest walkforward diagnostics \
 	paper live report replay flatten pause resume status shadow-report export-submission \
 	dashboard docker-build docker-up docker-logs
 
@@ -40,6 +40,10 @@ backtest:
 
 walkforward:
 	$(PYTHON) scripts/run_walkforward.py $(ARGS)
+
+# research only: reports/diagnostics/ (the hold-out runs only with ARGS=--holdout, once)
+diagnostics:
+	$(PYTHON) scripts/run_diagnostics.py $(ARGS)
 
 paper:
 	$(SIAVASH) run --mode paper

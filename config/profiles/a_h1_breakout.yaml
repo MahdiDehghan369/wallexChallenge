@@ -1,0 +1,13 @@
+# Variant (a): 1h signal timeframe, 4h trend filter, wide fixed targets, fewer trades.
+name: a_h1_breakout
+description: >-
+  1h close above the previous 20×1h high with 1h volume z > 1, 4h EMA20 > EMA50 and 4h ADX > 20;
+  TP 3–5 %, SL 1.5–2.5 %, 48 h time stop, taker entry
+kind: h1_breakout
+params:
+  vol_z_min: 1.0
+  adx_4h_min: 20
+  time_stop_min: 2880
+grid:
+  tp_pct: [3.0, 4.0, 5.0]
+  sl_pct: [1.5, 2.0, 2.5]

@@ -1,0 +1,14 @@
+# Variant (d): long-only trend following on the 3 most liquid allowed TMN markets (dev-period turnover).
+name: d_trend_top3
+description: >-
+  long-only trend following on the top 3 TMN markets by turnover: 1h and 4h EMA20 > EMA50, 1h close
+  above EMA20 and up, 1h ADX > 20; SL 2×ATR(1h), trailing stop 3×ATR, TP 10×ATR, 72 h time stop
+kind: trend_follow
+params:
+  adx_1h_min: 20
+  sl_atr: 2.0
+  trail_atr: 3.0
+  tp_atr: 10.0
+  time_stop_min: 4320
+symbols:
+  top_liquid: 3

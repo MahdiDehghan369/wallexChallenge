@@ -1,0 +1,11 @@
+# Variant (b): baseline signals, maker-only entries and maker take-profit exits (taker only for
+# stop-loss and time stop). Entry = resting bid at the signal close, valid for 2 × 15m bars.
+name: b_maker
+description: >-
+  baseline S1/S2/S3 signals; resting limit entry at the signal close (filled only if traded through
+  within 30 min), resting limit TP, taker SL / time stop
+kind: rules
+execution:
+  mode: maker
+  entry_ttl_bars: 2
+  entry_offset_pct: 0.0

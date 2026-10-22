@@ -1,0 +1,8 @@
+# Settings of the edge diagnostics (scripts/run_diagnostics.py). Research only — never read by
+# live / paper / backtest. Profiles = the other *.yaml files in this folder.
+fee_rt_pct: [0.0, 0.2, 0.3, 0.4, 0.5, 0.7]   # round-trip fee grid (maker = taker = rt / 2)
+holdout_days: 20                             # final hold-out, evaluated once at the end
+window_days: 14                              # walk-forward evaluation windows inside the dev period
+min_group_trades: 30                         # edge breakdown: smaller groups marked as noise
+selection_min_trades: 10                     # walk-forward pick needs this many past trades
+nested_keep_fractions: [0.1, 0.2, 0.3, 0.5, 0.7, 1.0]   # ML: keep the top-q of p_raw

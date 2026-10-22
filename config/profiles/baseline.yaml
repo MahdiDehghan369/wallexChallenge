@@ -1,0 +1,4 @@
+# Reference: the current config/strategy.yaml unchanged (S1/S2/S3, 15m, taker entry).
+name: baseline
+description: current strategy.yaml (S1 + S2 + S3 on 15m, taker entry at the next open)
+kind: rules

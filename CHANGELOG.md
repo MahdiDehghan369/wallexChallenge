@@ -6,6 +6,9 @@ and an entry under "Versions".
 ## Unreleased
 
 - Project skeleton (T-001).
+- D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
+  research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
+  `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.
 - T-901: backtest engine (`siavash.backtest.engine`, `scripts/run_backtest.py`, `make backtest`).
 - T-101 (F5): Wallex endpoints re-done from the official Swagger; `endpoints.VERIFIED = True`.
   Differences from the earlier appendix-H / mock assumptions:

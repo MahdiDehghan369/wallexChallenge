@@ -1,0 +1,9 @@
+# Variant (c): S3 implied deviation only, with a stricter entry z.
+name: c_s3_strict
+description: S3 implied deviation only, z_entry 2.5 or 3.0 (other S3 parameters as in strategy.yaml)
+kind: rules
+strategy_overrides:
+  strategies:
+    enabled: [S3_IMPLIED_DEV]
+grid:
+  s3.z_entry: [2.5, 3.0]

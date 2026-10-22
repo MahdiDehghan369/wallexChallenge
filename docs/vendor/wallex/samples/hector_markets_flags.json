@@ -1,0 +1,3760 @@
+{
+ "source": "GET /hector/web/v1/markets (public, no auth), trimmed to the fields used by the diagnostics",
+ "fetched_at": "2026-10-22T10:22:58+00:00",
+ "result": {
+  "markets": [
+   {
+    "symbol": "PEPETMN",
+    "base_asset": "PEPE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 123493043419.3371
+   },
+   {
+    "symbol": "BTCTMN",
+    "base_asset": "BTC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 113806557822.70375
+   },
+   {
+    "symbol": "PUMPTMN",
+    "base_asset": "PUMP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 90340356261.2
+   },
+   {
+    "symbol": "ETHTMN",
+    "base_asset": "ETH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 76928783138.58643
+   },
+   {
+    "symbol": "USOONTMN",
+    "base_asset": "USOON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 71908798285.2069
+   },
+   {
+    "symbol": "USDTTMN",
+    "base_asset": "USDT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 58944856170.47316
+   },
+   {
+    "symbol": "BNBTMN",
+    "base_asset": "BNB",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 55170377059.9176
+   },
+   {
+    "symbol": "DOGETMN",
+    "base_asset": "DOGE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 40510112570.3
+   },
+   {
+    "symbol": "XRPTMN",
+    "base_asset": "XRP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 36900443968.9
+   },
+   {
+    "symbol": "ZECTMN",
+    "base_asset": "ZEC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 34659014007.025
+   },
+   {
+    "symbol": "ARBTMN",
+    "base_asset": "ARB",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 33828803291.254
+   },
+   {
+    "symbol": "XAUTTMN",
+    "base_asset": "XAUT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 33510830729.68173
+   },
+   {
+    "symbol": "SOLTMN",
+    "base_asset": "SOL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 29055706130.5127
+   },
+   {
+    "symbol": "DASHTMN",
+    "base_asset": "DASH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 19413553622.61093
+   },
+   {
+    "symbol": "STMN",
+    "base_asset": "S",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 12822245193.59
+   },
+   {
+    "symbol": "TRXTMN",
+    "base_asset": "TRX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 12635176716
+   },
+   {
+    "symbol": "XMRTMN",
+    "base_asset": "XMR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 11351437757.0509
+   },
+   {
+    "symbol": "SUITMN",
+    "base_asset": "SUI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8361063373.76
+   },
+   {
+    "symbol": "LTCTMN",
+    "base_asset": "LTC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8213057034.95655
+   },
+   {
+    "symbol": "UNITMN",
+    "base_asset": "UNI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8104817716.9
+   },
+   {
+    "symbol": "APETMN",
+    "base_asset": "APE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7857253930.58
+   },
+   {
+    "symbol": "ADATMN",
+    "base_asset": "ADA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7522331494.2
+   },
+   {
+    "symbol": "SHIBTMN",
+    "base_asset": "SHIB",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5531549076.7298
+   },
+   {
+    "symbol": "GRAMTMN",
+    "base_asset": "GRAM",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5480029009.84
+   },
+   {
+    "symbol": "ATMN",
+    "base_asset": "A",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5331632454.16
+   },
+   {
+    "symbol": "SANDTMN",
+    "base_asset": "SAND",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5084711709
+   },
+   {
+    "symbol": "FILTMN",
+    "base_asset": "FIL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5067540515
+   },
+   {
+    "symbol": "QNTTMN",
+    "base_asset": "QNT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4384146238.276
+   },
+   {
+    "symbol": "HYPETMN",
+    "base_asset": "HYPE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4323276081.608
+   },
+   {
+    "symbol": "COPXONTMN",
+    "base_asset": "COPXON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4140444566.8427
+   },
+   {
+    "symbol": "AVAXTMN",
+    "base_asset": "AVAX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3844441041.77835
+   },
+   {
+    "symbol": "DYDXTMN",
+    "base_asset": "DYDX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3579810710.73
+   },
+   {
+    "symbol": "WTMN",
+    "base_asset": "W",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3571661054.54
+   },
+   {
+    "symbol": "ETHFITMN",
+    "base_asset": "ETHFI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3413884054.07
+   },
+   {
+    "symbol": "PAXGTMN",
+    "base_asset": "PAXG",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3137747206.324533
+   },
+   {
+    "symbol": "ASTERTMN",
+    "base_asset": "ASTER",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3007110584.59
+   },
+   {
+    "symbol": "RUNETMN",
+    "base_asset": "RUNE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2995645517.8
+   },
+   {
+    "symbol": "SLVONTMN",
+    "base_asset": "SLVON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2924519425.771
+   },
+   {
+    "symbol": "LINKTMN",
+    "base_asset": "LINK",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2910294757.03
+   },
+   {
+    "symbol": "HBARTMN",
+    "base_asset": "HBAR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2668907118.35
+   },
+   {
+    "symbol": "GALATMN",
+    "base_asset": "GALA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2610862544.4
+   },
+   {
+    "symbol": "CAKETMN",
+    "base_asset": "CAKE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2598911439.98
+   },
+   {
+    "symbol": "CRVTMN",
+    "base_asset": "CRV",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2549416342.72
+   },
+   {
+    "symbol": "STRKTMN",
+    "base_asset": "STRK",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2489995810.06
+   },
+   {
+    "symbol": "BCHTMN",
+    "base_asset": "BCH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2314698283.26918
+   },
+   {
+    "symbol": "ENATMN",
+    "base_asset": "ENA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2265805834.58
+   },
+   {
+    "symbol": "NOTTMN",
+    "base_asset": "NOT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2227721803.6
+   },
+   {
+    "symbol": "NEARTMN",
+    "base_asset": "NEAR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2166410917.81
+   },
+   {
+    "symbol": "AAVETMN",
+    "base_asset": "AAVE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2115103113.7698
+   },
+   {
+    "symbol": "USDCTMN",
+    "base_asset": "USDC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2102215355.43
+   },
+   {
+    "symbol": "DOGSTMN",
+    "base_asset": "DOGS",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1947867410.446
+   },
+   {
+    "symbol": "SKYTMN",
+    "base_asset": "SKY",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1918465448.8
+   },
+   {
+    "symbol": "WLDTMN",
+    "base_asset": "WLD",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1896503256.84
+   },
+   {
+    "symbol": "BATTMN",
+    "base_asset": "BAT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1874588184.07
+   },
+   {
+    "symbol": "ONETMN",
+    "base_asset": "ONE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1862527530.429
+   },
+   {
+    "symbol": "ONDOTMN",
+    "base_asset": "ONDO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1832295638.57
+   },
+   {
+    "symbol": "SEITMN",
+    "base_asset": "SEI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1813006381.55
+   },
+   {
+    "symbol": "FORMTMN",
+    "base_asset": "FORM",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1777420410.511
+   },
+   {
+    "symbol": "CHZTMN",
+    "base_asset": "CHZ",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1666738203.2
+   },
+   {
+    "symbol": "ORCATMN",
+    "base_asset": "ORCA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1582656659.88
+   },
+   {
+    "symbol": "FLOKITMN",
+    "base_asset": "FLOKI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1516429070.738
+   },
+   {
+    "symbol": "HMSTRTMN",
+    "base_asset": "HMSTR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1315478470.377
+   },
+   {
+    "symbol": "DOTTMN",
+    "base_asset": "DOT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1271848501.04
+   },
+   {
+    "symbol": "PENGUTMN",
+    "base_asset": "PENGU",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1239004108.2
+   },
+   {
+    "symbol": "GRTTMN",
+    "base_asset": "GRT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1203174927.1
+   },
+   {
+    "symbol": "POLTMN",
+    "base_asset": "POL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1195170407.5
+   },
+   {
+    "symbol": "DEXETMN",
+    "base_asset": "DEXE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 932508021.09
+   },
+   {
+    "symbol": "BONKTMN",
+    "base_asset": "BONK",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 914540597.3412
+   },
+   {
+    "symbol": "IMXTMN",
+    "base_asset": "IMX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 861416959.6
+   },
+   {
+    "symbol": "TAOTMN",
+    "base_asset": "TAO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 821040508.751
+   },
+   {
+    "symbol": "BOMETMN",
+    "base_asset": "BOME",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 797394670.224
+   },
+   {
+    "symbol": "BANKTMN",
+    "base_asset": "BANK",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 754705177.54
+   },
+   {
+    "symbol": "ICPTMN",
+    "base_asset": "ICP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 746726249.18
+   },
+   {
+    "symbol": "UNGONTMN",
+    "base_asset": "UNGON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 744991545.513
+   },
+   {
+    "symbol": "2ZTMN",
+    "base_asset": "2Z",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 690901906
+   },
+   {
+    "symbol": "MASKTMN",
+    "base_asset": "MASK",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 686726076.26
+   },
+   {
+    "symbol": "JUPTMN",
+    "base_asset": "JUP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 639920858.65
+   },
+   {
+    "symbol": "RAYTMN",
+    "base_asset": "RAY",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 634030304.36
+   },
+   {
+    "symbol": "SOONTMN",
+    "base_asset": "SOON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 590256507.29
+   },
+   {
+    "symbol": "POLSTMN",
+    "base_asset": "POLS",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 579222528.4
+   },
+   {
+    "symbol": "MAGICTMN",
+    "base_asset": "MAGIC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 558403459.26
+   },
+   {
+    "symbol": "BICOTMN",
+    "base_asset": "BICO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 557220784.83
+   },
+   {
+    "symbol": "MMTTMN",
+    "base_asset": "MMT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 511493402.46
+   },
+   {
+    "symbol": "SUSHITMN",
+    "base_asset": "SUSHI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 503717946.9342
+   },
+   {
+    "symbol": "OSMOTMN",
+    "base_asset": "OSMO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 464486666.52
+   },
+   {
+    "symbol": "CVXTMN",
+    "base_asset": "CVX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 462161836.84
+   },
+   {
+    "symbol": "ATHTMN",
+    "base_asset": "ATH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 460286790.044
+   },
+   {
+    "symbol": "XPLTMN",
+    "base_asset": "XPL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 453083995.06
+   },
+   {
+    "symbol": "USDSTMN",
+    "base_asset": "USDS",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 427378126.41
+   },
+   {
+    "symbol": "PEOPLETMN",
+    "base_asset": "PEOPLE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 408266887.3668
+   },
+   {
+    "symbol": "FLOWTMN",
+    "base_asset": "FLOW",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 394642835.66
+   },
+   {
+    "symbol": "ATOMTMN",
+    "base_asset": "ATOM",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 391572225.19
+   },
+   {
+    "symbol": "EIGENTMN",
+    "base_asset": "EIGEN",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 388540374.9334
+   },
+   {
+    "symbol": "TNSRTMN",
+    "base_asset": "TNSR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 363716163.67
+   },
+   {
+    "symbol": "KASTMN",
+    "base_asset": "KAS",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 310606599.02
+   },
+   {
+    "symbol": "ENJTMN",
+    "base_asset": "ENJ",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 309592453.698
+   },
+   {
+    "symbol": "PROVETMN",
+    "base_asset": "PROVE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 287600201
+   },
+   {
+    "symbol": "COOKIETMN",
+    "base_asset": "COOKIE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 278631614.74
+   },
+   {
+    "symbol": "APTTMN",
+    "base_asset": "APT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 264486995.26
+   },
+   {
+    "symbol": "ELONTMN",
+    "base_asset": "ELON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 258833998.54747
+   },
+   {
+    "symbol": "METTMN",
+    "base_asset": "MET",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 254663129.85
+   },
+   {
+    "symbol": "XLMTMN",
+    "base_asset": "XLM",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 244767225.8
+   },
+   {
+    "symbol": "WIFTMN",
+    "base_asset": "WIF",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 231369470.646
+   },
+   {
+    "symbol": "MAJORTMN",
+    "base_asset": "MAJOR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 217534517.7
+   },
+   {
+    "symbol": "NMRTMN",
+    "base_asset": "NMR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 212963891.392
+   },
+   {
+    "symbol": "MOGTMN",
+    "base_asset": "MOG",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 195471926.34816
+   },
+   {
+    "symbol": "MANATMN",
+    "base_asset": "MANA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 180170273.4
+   },
+   {
+    "symbol": "SAHARATMN",
+    "base_asset": "SAHARA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 176477144.91
+   },
+   {
+    "symbol": "TIATMN",
+    "base_asset": "TIA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 171405806.44
+   },
+   {
+    "symbol": "FETTMN",
+    "base_asset": "FET",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 167915954.0249
+   },
+   {
+    "symbol": "EDUTMN",
+    "base_asset": "EDU",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 163234738.53
+   },
+   {
+    "symbol": "SNXTMN",
+    "base_asset": "SNX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 154404948.45
+   },
+   {
+    "symbol": "PYTHTMN",
+    "base_asset": "PYTH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 153823054.92
+   },
+   {
+    "symbol": "AXSTMN",
+    "base_asset": "AXS",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 145409813.94605
+   },
+   {
+    "symbol": "CHRTMN",
+    "base_asset": "CHR",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 142340589.89002022
+   },
+   {
+    "symbol": "TOSHITMN",
+    "base_asset": "TOSHI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 116342037.4837
+   },
+   {
+    "symbol": "SKLTMN",
+    "base_asset": "SKL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 106260808.09
+   },
+   {
+    "symbol": "MEMETMN",
+    "base_asset": "MEME",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 89280533.9173
+   },
+   {
+    "symbol": "1BBABYDOGETMN",
+    "base_asset": "1BBABYDOGE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 87868166.31701247
+   },
+   {
+    "symbol": "UMATMN",
+    "base_asset": "UMA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 83682329.88
+   },
+   {
+    "symbol": "ALICETMN",
+    "base_asset": "ALICE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 82358043.9
+   },
+   {
+    "symbol": "CATTMN",
+    "base_asset": "CAT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 81128868.10517
+   },
+   {
+    "symbol": "AIOZTMN",
+    "base_asset": "AIOZ",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 80016357
+   },
+   {
+    "symbol": "JSTTMN",
+    "base_asset": "JST",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 77012960.4
+   },
+   {
+    "symbol": "TURBOTMN",
+    "base_asset": "TURBO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 76615402.1
+   },
+   {
+    "symbol": "BIOTMN",
+    "base_asset": "BIO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 74319880.46
+   },
+   {
+    "symbol": "AMPTMN",
+    "base_asset": "AMP",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 68380935.30946262
+   },
+   {
+    "symbol": "ALGOTMN",
+    "base_asset": "ALGO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 62988721.51
+   },
+   {
+    "symbol": "LINEATMN",
+    "base_asset": "LINEA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 60439438.4
+   },
+   {
+    "symbol": "BTTCTMN",
+    "base_asset": "BTTC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 60057133.484396
+   },
+   {
+    "symbol": "COMPTMN",
+    "base_asset": "COMP",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 56724756.55140273
+   },
+   {
+    "symbol": "KAITOTMN",
+    "base_asset": "KAITO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 55727510.1
+   },
+   {
+    "symbol": "CGPTTMN",
+    "base_asset": "CGPT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 50958717.5572
+   },
+   {
+    "symbol": "KAIATMN",
+    "base_asset": "KAIA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 47346762.82
+   },
+   {
+    "symbol": "RENDERTMN",
+    "base_asset": "RENDER",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 45354385.38
+   },
+   {
+    "symbol": "MNTTMN",
+    "base_asset": "MNT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 35740798.39
+   },
+   {
+    "symbol": "KMNOTMN",
+    "base_asset": "KMNO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 33084620.48
+   },
+   {
+    "symbol": "RLCTMN",
+    "base_asset": "RLC",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 32827606.283839226
+   },
+   {
+    "symbol": "ARKMTMN",
+    "base_asset": "ARKM",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 31211072.58183322
+   },
+   {
+    "symbol": "MORPHOTMN",
+    "base_asset": "MORPHO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 25806569.78
+   },
+   {
+    "symbol": "AIXBTTMN",
+    "base_asset": "AIXBT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 25615911.18
+   },
+   {
+    "symbol": "ZORATMN",
+    "base_asset": "ZORA",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 24635945.812
+   },
+   {
+    "symbol": "MOVETMN",
+    "base_asset": "MOVE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 22103983.47
+   },
+   {
+    "symbol": "CATITMN",
+    "base_asset": "CATI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 19187265.4
+   },
+   {
+    "symbol": "SYRUPTMN",
+    "base_asset": "SYRUP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 17493903.93
+   },
+   {
+    "symbol": "ZENTMN",
+    "base_asset": "ZEN",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 15959937.065
+   },
+   {
+    "symbol": "CVCTMN",
+    "base_asset": "CVC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 14446221.3148
+   },
+   {
+    "symbol": "SLPTMN",
+    "base_asset": "SLP",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 13865205.42
+   },
+   {
+    "symbol": "INJTMN",
+    "base_asset": "INJ",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 13458742.447898423
+   },
+   {
+    "symbol": "SUPERTMN",
+    "base_asset": "SUPER",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 13116030.09
+   },
+   {
+    "symbol": "TTMN",
+    "base_asset": "T",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 13091613.61
+   },
+   {
+    "symbol": "ZILTMN",
+    "base_asset": "ZIL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 12976470.11
+   },
+   {
+    "symbol": "CELRTMN",
+    "base_asset": "CELR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 12682698
+   },
+   {
+    "symbol": "VIRTUALTMN",
+    "base_asset": "VIRTUAL",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 10836017.42
+   },
+   {
+    "symbol": "LRCTMN",
+    "base_asset": "LRC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 10409781.878
+   },
+   {
+    "symbol": "PENDLETMN",
+    "base_asset": "PENDLE",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8917074.148586612
+   },
+   {
+    "symbol": "AEROTMN",
+    "base_asset": "AERO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8163744.91
+   },
+   {
+    "symbol": "EGLDTMN",
+    "base_asset": "EGLD",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8067630.6103
+   },
+   {
+    "symbol": "GMTTMN",
+    "base_asset": "GMT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7794002.2
+   },
+   {
+    "symbol": "API3TMN",
+    "base_asset": "API3",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7312543.4
+   },
+   {
+    "symbol": "AGLDTMN",
+    "base_asset": "AGLD",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5525650.24
+   },
+   {
+    "symbol": "IOTMN",
+    "base_asset": "IO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4965179.69
+   },
+   {
+    "symbol": "NEIROTMN",
+    "base_asset": "NEIRO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3963562.396
+   },
+   {
+    "symbol": "SAFETMN",
+    "base_asset": "SAFE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3794954.68
+   },
+   {
+    "symbol": "PNUTTMN",
+    "base_asset": "PNUT",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3721495.9647803726
+   },
+   {
+    "symbol": "FLRTMN",
+    "base_asset": "FLR",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3538149.71
+   },
+   {
+    "symbol": "ETCTMN",
+    "base_asset": "ETC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3066540.27291
+   },
+   {
+    "symbol": "TRBTMN",
+    "base_asset": "TRB",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2805070.116
+   },
+   {
+    "symbol": "BANDTMN",
+    "base_asset": "BAND",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2338879.95
+   },
+   {
+    "symbol": "1INCHTMN",
+    "base_asset": "1INCH",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1858264.97
+   },
+   {
+    "symbol": "HOTTMN",
+    "base_asset": "HOT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1358803.921
+   },
+   {
+    "symbol": "NFTTMN",
+    "base_asset": "NFT",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1357852.9146809452
+   },
+   {
+    "symbol": "METISTMN",
+    "base_asset": "METIS",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 819165.9810821105
+   },
+   {
+    "symbol": "GTMN",
+    "base_asset": "G",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 705128.2045460661
+   },
+   {
+    "symbol": "FRAXTMN",
+    "base_asset": "FRAX",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 676925.28359
+   },
+   {
+    "symbol": "CTSITMN",
+    "base_asset": "CTSI",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 676496.9662626046
+   },
+   {
+    "symbol": "YFITMN",
+    "base_asset": "YFI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 576194.54016
+   },
+   {
+    "symbol": "ZETATMN",
+    "base_asset": "ZETA",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 532415.3087169826
+   },
+   {
+    "symbol": "BTCUSDT",
+    "base_asset": "BTC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 486096.7914461452
+   },
+   {
+    "symbol": "ETHUSDT",
+    "base_asset": "ETH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 369286.0749965
+   },
+   {
+    "symbol": "CYBERTMN",
+    "base_asset": "CYBER",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 327427.3091166888
+   },
+   {
+    "symbol": "XTZTMN",
+    "base_asset": "XTZ",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 322997.4
+   },
+   {
+    "symbol": "RSRTMN",
+    "base_asset": "RSR",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 254821.58324584374
+   },
+   {
+    "symbol": "ORAITMN",
+    "base_asset": "ORAI",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 215625.5009089562
+   },
+   {
+    "symbol": "TRACTMN",
+    "base_asset": "TRAC",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 208772.5732469408
+   },
+   {
+    "symbol": "JTOTMN",
+    "base_asset": "JTO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 199382.326359651
+   },
+   {
+    "symbol": "XRPUSDT",
+    "base_asset": "XRP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 143312.319823
+   },
+   {
+    "symbol": "XAUTUSDT",
+    "base_asset": "XAUT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 121945.6819158
+   },
+   {
+    "symbol": "PEPEUSDT",
+    "base_asset": "PEPE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 102689.73319164
+   },
+   {
+    "symbol": "ANKRTMN",
+    "base_asset": "ANKR",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 100999.93417616689
+   },
+   {
+    "symbol": "RPLTMN",
+    "base_asset": "RPL",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 100671.61547870617
+   },
+   {
+    "symbol": "ZROTMN",
+    "base_asset": "ZRO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 99892.9694910526
+   },
+   {
+    "symbol": "USOONUSDT",
+    "base_asset": "USOON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 93023.300464
+   },
+   {
+    "symbol": "SOLUSDT",
+    "base_asset": "SOL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 83295.9953283
+   },
+   {
+    "symbol": "AVNTTMN",
+    "base_asset": "AVNT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 73500
+   },
+   {
+    "symbol": "ZECUSDT",
+    "base_asset": "ZEC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 40493.49104
+   },
+   {
+    "symbol": "PUMPUSDT",
+    "base_asset": "PUMP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 38524.5672648
+   },
+   {
+    "symbol": "ARBUSDT",
+    "base_asset": "ARB",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 29868.18397752
+   },
+   {
+    "symbol": "BNBUSDT",
+    "base_asset": "BNB",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 28854.531912733
+   },
+   {
+    "symbol": "SUIUSDT",
+    "base_asset": "SUI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 25022.731878
+   },
+   {
+    "symbol": "APEUSDT",
+    "base_asset": "APE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 19184.26773
+   },
+   {
+    "symbol": "UNIUSDT",
+    "base_asset": "UNI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 17900.822926
+   },
+   {
+    "symbol": "ENAUSDT",
+    "base_asset": "ENA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 14248.02569
+   },
+   {
+    "symbol": "DOGEUSDT",
+    "base_asset": "DOGE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 13042.232729
+   },
+   {
+    "symbol": "XMRUSDT",
+    "base_asset": "XMR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 12908.49919
+   },
+   {
+    "symbol": "SUSDT",
+    "base_asset": "S",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 11302.567779
+   },
+   {
+    "symbol": "LINKUSDT",
+    "base_asset": "LINK",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 9429.469237
+   },
+   {
+    "symbol": "ADAUSDT",
+    "base_asset": "ADA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 9368.78832
+   },
+   {
+    "symbol": "FILUSDT",
+    "base_asset": "FIL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 9357.844424
+   },
+   {
+    "symbol": "GRAMUSDT",
+    "base_asset": "GRAM",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 9207.87581
+   },
+   {
+    "symbol": "LTCUSDT",
+    "base_asset": "LTC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8909.8722962
+   },
+   {
+    "symbol": "ONDOUSDT",
+    "base_asset": "ONDO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8436.796133
+   },
+   {
+    "symbol": "SLVONUSDT",
+    "base_asset": "SLVON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8327.41896
+   },
+   {
+    "symbol": "PENGUUSDT",
+    "base_asset": "PENGU",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8303.5929046
+   },
+   {
+    "symbol": "NEARUSDT",
+    "base_asset": "NEAR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7665.520157
+   },
+   {
+    "symbol": "AVAXUSDT",
+    "base_asset": "AVAX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7309.518012
+   },
+   {
+    "symbol": "AAVEUSDT",
+    "base_asset": "AAVE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 6973.1807764
+   },
+   {
+    "symbol": "COPXONUSDT",
+    "base_asset": "COPXON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 6553.144408
+   },
+   {
+    "symbol": "ASTERUSDT",
+    "base_asset": "ASTER",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5697.479825
+   },
+   {
+    "symbol": "USDCUSDT",
+    "base_asset": "USDC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 5494.839628
+   },
+   {
+    "symbol": "HYPEUSDT",
+    "base_asset": "HYPE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4991.525858
+   },
+   {
+    "symbol": "QNTUSDT",
+    "base_asset": "QNT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4988.14842
+   },
+   {
+    "symbol": "SKYUSDT",
+    "base_asset": "SKY",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4915.227659
+   },
+   {
+    "symbol": "STRKUSDT",
+    "base_asset": "STRK",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4887.682028
+   },
+   {
+    "symbol": "CRVUSDT",
+    "base_asset": "CRV",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4876.185321
+   },
+   {
+    "symbol": "DASHUSDT",
+    "base_asset": "DASH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4618.2350038
+   },
+   {
+    "symbol": "ETHFIUSDT",
+    "base_asset": "ETHFI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4510.860151
+   },
+   {
+    "symbol": "GALAUSDT",
+    "base_asset": "GALA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4312.019216
+   },
+   {
+    "symbol": "ORCAUSDT",
+    "base_asset": "ORCA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4088.210477
+   },
+   {
+    "symbol": "TAOUSDT",
+    "base_asset": "TAO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3950.4618
+   },
+   {
+    "symbol": "CAKEUSDT",
+    "base_asset": "CAKE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3911.788283
+   },
+   {
+    "symbol": "FLOKIUSDT",
+    "base_asset": "FLOKI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3887.42118661
+   },
+   {
+    "symbol": "WLDUSDT",
+    "base_asset": "WLD",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3652.65279
+   },
+   {
+    "symbol": "TRXUSDT",
+    "base_asset": "TRX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2958.467158
+   },
+   {
+    "symbol": "XLMUSDT",
+    "base_asset": "XLM",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2937.310256
+   },
+   {
+    "symbol": "NOTUSDT",
+    "base_asset": "NOT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2643.405578
+   },
+   {
+    "symbol": "SHIBUSDT",
+    "base_asset": "SHIB",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2581.30870463
+   },
+   {
+    "symbol": "JUPUSDT",
+    "base_asset": "JUP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2480.759207
+   },
+   {
+    "symbol": "WUSDT",
+    "base_asset": "W",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2206.6261066
+   },
+   {
+    "symbol": "AUSDT",
+    "base_asset": "A",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2018.101942
+   },
+   {
+    "symbol": "PAXGUSDT",
+    "base_asset": "PAXG",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1886.50547027
+   },
+   {
+    "symbol": "ICPUSDT",
+    "base_asset": "ICP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1603.55543
+   },
+   {
+    "symbol": "HBARUSDT",
+    "base_asset": "HBAR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1533.435771
+   },
+   {
+    "symbol": "POLUSDT",
+    "base_asset": "POL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1476.191
+   },
+   {
+    "symbol": "BCHUSDT",
+    "base_asset": "BCH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1462.9303737
+   },
+   {
+    "symbol": "USDSUSDT",
+    "base_asset": "USDS",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": true,
+    "quote_volume_24h": 1381.691715
+   },
+   {
+    "symbol": "ATOMUSDT",
+    "base_asset": "ATOM",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1301.4166
+   },
+   {
+    "symbol": "ATHUSDT",
+    "base_asset": "ATH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1254.77673881
+   },
+   {
+    "symbol": "APTUSDT",
+    "base_asset": "APT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1239.15798
+   },
+   {
+    "symbol": "PYTHUSDT",
+    "base_asset": "PYTH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 918.312509
+   },
+   {
+    "symbol": "FORMUSDT",
+    "base_asset": "FORM",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 907.890428
+   },
+   {
+    "symbol": "MAGICUSDT",
+    "base_asset": "MAGIC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 854.404642
+   },
+   {
+    "symbol": "KASUSDT",
+    "base_asset": "KAS",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 797.1365845
+   },
+   {
+    "symbol": "UNGONUSDT",
+    "base_asset": "UNGON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 733.92894
+   },
+   {
+    "symbol": "DOTUSDT",
+    "base_asset": "DOT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 720.41019
+   },
+   {
+    "symbol": "SOONUSDT",
+    "base_asset": "SOON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 676.613313
+   },
+   {
+    "symbol": "OSMOUSDT",
+    "base_asset": "OSMO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 632.860518
+   },
+   {
+    "symbol": "SANDUSDT",
+    "base_asset": "SAND",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 624.01761
+   },
+   {
+    "symbol": "SEIUSDT",
+    "base_asset": "SEI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 622.641655
+   },
+   {
+    "symbol": "INJUSDT",
+    "base_asset": "INJ",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 604.6556644001624
+   },
+   {
+    "symbol": "FETUSDT",
+    "base_asset": "FET",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 594.8341045
+   },
+   {
+    "symbol": "METUSDT",
+    "base_asset": "MET",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 536.939263
+   },
+   {
+    "symbol": "DEXEUSDT",
+    "base_asset": "DEXE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 535.43558
+   },
+   {
+    "symbol": "RAYUSDT",
+    "base_asset": "RAY",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 507.75922
+   },
+   {
+    "symbol": "CVXUSDT",
+    "base_asset": "CVX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 430.171219
+   },
+   {
+    "symbol": "BATUSDT",
+    "base_asset": "BAT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 419.679612
+   },
+   {
+    "symbol": "VIRTUALUSDT",
+    "base_asset": "VIRTUAL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 388.93076
+   },
+   {
+    "symbol": "XPLUSDT",
+    "base_asset": "XPL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 346.527378
+   },
+   {
+    "symbol": "TRBUSDT",
+    "base_asset": "TRB",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 286.7726084
+   },
+   {
+    "symbol": "SNXUSDT",
+    "base_asset": "SNX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 284.803313
+   },
+   {
+    "symbol": "TIAUSDT",
+    "base_asset": "TIA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 257.890802
+   },
+   {
+    "symbol": "UMAUSDT",
+    "base_asset": "UMA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 235.111205
+   },
+   {
+    "symbol": "RENDERUSDT",
+    "base_asset": "RENDER",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 231.66508
+   },
+   {
+    "symbol": "IMXUSDT",
+    "base_asset": "IMX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 216.783735
+   },
+   {
+    "symbol": "ZROUSDT",
+    "base_asset": "ZRO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 205.8911013840505
+   },
+   {
+    "symbol": "ZENUSDT",
+    "base_asset": "ZEN",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 190.254999
+   },
+   {
+    "symbol": "COMPUSDT",
+    "base_asset": "COMP",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 172.41933114
+   },
+   {
+    "symbol": "BONKUSDT",
+    "base_asset": "BONK",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 162.37972848
+   },
+   {
+    "symbol": "GRTUSDT",
+    "base_asset": "GRT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 158.9725179
+   },
+   {
+    "symbol": "PEOPLEUSDT",
+    "base_asset": "PEOPLE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 144.440620051
+   },
+   {
+    "symbol": "MAJORUSDT",
+    "base_asset": "MAJOR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 142.93721
+   },
+   {
+    "symbol": "ETCUSDT",
+    "base_asset": "ETC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 127.4149238
+   },
+   {
+    "symbol": "METISUSDT",
+    "base_asset": "METIS",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 123.9877399375
+   },
+   {
+    "symbol": "ENJUSDT",
+    "base_asset": "ENJ",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 120.64742188
+   },
+   {
+    "symbol": "MANAUSDT",
+    "base_asset": "MANA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 118.9605
+   },
+   {
+    "symbol": "TURBOUSDT",
+    "base_asset": "TURBO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 116.639494
+   },
+   {
+    "symbol": "AIOZUSDT",
+    "base_asset": "AIOZ",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 108.467019
+   },
+   {
+    "symbol": "KMNOUSDT",
+    "base_asset": "KMNO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 97.1973663
+   },
+   {
+    "symbol": "ARKMUSDT",
+    "base_asset": "ARKM",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 84.55256424374716
+   },
+   {
+    "symbol": "MORPHOUSDT",
+    "base_asset": "MORPHO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 82.170568
+   },
+   {
+    "symbol": "MNTUSDT",
+    "base_asset": "MNT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 80.6586
+   },
+   {
+    "symbol": "EGLDUSDT",
+    "base_asset": "EGLD",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 73.4271015
+   },
+   {
+    "symbol": "ALICEUSDT",
+    "base_asset": "ALICE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 68.563251
+   },
+   {
+    "symbol": "AMPUSDT",
+    "base_asset": "AMP",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 53.217685697571945
+   },
+   {
+    "symbol": "ZORAUSDT",
+    "base_asset": "ZORA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 51.9255069
+   },
+   {
+    "symbol": "CHZUSDT",
+    "base_asset": "CHZ",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 50.024156
+   },
+   {
+    "symbol": "LINEAUSDT",
+    "base_asset": "LINEA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 42.78609
+   },
+   {
+    "symbol": "KAIAUSDT",
+    "base_asset": "KAIA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 42.437185
+   },
+   {
+    "symbol": "RLCUSDT",
+    "base_asset": "RLC",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 40.33149327893129
+   },
+   {
+    "symbol": "MMTUSDT",
+    "base_asset": "MMT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 34.17026
+   },
+   {
+    "symbol": "TUSDT",
+    "base_asset": "T",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 31.0533677
+   },
+   {
+    "symbol": "COOKIEUSDT",
+    "base_asset": "COOKIE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 30.8154783
+   },
+   {
+    "symbol": "JSTUSDT",
+    "base_asset": "JST",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 27.452
+   },
+   {
+    "symbol": "POLSUSDT",
+    "base_asset": "POLS",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 26.507152
+   },
+   {
+    "symbol": "BIOUSDT",
+    "base_asset": "BIO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 16.3789174
+   },
+   {
+    "symbol": "GUSDT",
+    "base_asset": "G",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 11.627360226459947
+   },
+   {
+    "symbol": "AXSUSDT",
+    "base_asset": "AXS",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 11.2296042
+   },
+   {
+    "symbol": "MTLUSDT",
+    "base_asset": "MTL",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 10.383032419264014
+   },
+   {
+    "symbol": "IOUSDT",
+    "base_asset": "IO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 9.230048
+   },
+   {
+    "symbol": "WIFUSDT",
+    "base_asset": "WIF",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8.83958
+   },
+   {
+    "symbol": "MEMEUSDT",
+    "base_asset": "MEME",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 8.796040344
+   },
+   {
+    "symbol": "BOMEUSDT",
+    "base_asset": "BOME",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 7.67091391
+   },
+   {
+    "symbol": "API3USDT",
+    "base_asset": "API3",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 6.84782
+   },
+   {
+    "symbol": "ONEUSDT",
+    "base_asset": "ONE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 6.5384102
+   },
+   {
+    "symbol": "BANKUSDT",
+    "base_asset": "BANK",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4.6887522
+   },
+   {
+    "symbol": "MOGUSDT",
+    "base_asset": "MOG",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 4.68079047471
+   },
+   {
+    "symbol": "AGLDUSDT",
+    "base_asset": "AGLD",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3.860224
+   },
+   {
+    "symbol": "DOGSUSDT",
+    "base_asset": "DOGS",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3.7098884
+   },
+   {
+    "symbol": "SUPERUSDT",
+    "base_asset": "SUPER",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3.220343
+   },
+   {
+    "symbol": "EIGENUSDT",
+    "base_asset": "EIGEN",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 3.18218093
+   },
+   {
+    "symbol": "PNUTUSDT",
+    "base_asset": "PNUT",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.9781441325
+   },
+   {
+    "symbol": "NEIROUSDT",
+    "base_asset": "NEIRO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.733989781
+   },
+   {
+    "symbol": "NFTUSDT",
+    "base_asset": "NFT",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.5705828385995235
+   },
+   {
+    "symbol": "ZILUSDT",
+    "base_asset": "ZIL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.4237162
+   },
+   {
+    "symbol": "ELONUSDT",
+    "base_asset": "ELON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.17689246
+   },
+   {
+    "symbol": "SAHARAUSDT",
+    "base_asset": "SAHARA",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 2.0511925
+   },
+   {
+    "symbol": "HMSTRUSDT",
+    "base_asset": "HMSTR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": 1.45206013
+   },
+   {
+    "symbol": "METMN",
+    "base_asset": "ME",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CGPTUSDT",
+    "base_asset": "CGPT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SUSHIUSDT",
+    "base_asset": "SUSHI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WAVESUSDT",
+    "base_asset": "WAVES",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PENDLEUSDT",
+    "base_asset": "PENDLE",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ORAIUSDT",
+    "base_asset": "ORAI",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "COINXUSDT",
+    "base_asset": "COINX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BANANATMN",
+    "base_asset": "BANANA",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SKLUSDT",
+    "base_asset": "SKL",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CATIUSDT",
+    "base_asset": "CATI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "REQTMN",
+    "base_asset": "REQ",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ILVTMN",
+    "base_asset": "ILV",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "2ZUSDT",
+    "base_asset": "2Z",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AMZNXUSDT",
+    "base_asset": "AMZNX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WAVESTMN",
+    "base_asset": "WAVES",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "1BBABYDOGEUSDT",
+    "base_asset": "1BBABYDOGE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ENSUSDT",
+    "base_asset": "ENS",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SYRUPUSDT",
+    "base_asset": "SYRUP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TRACUSDT",
+    "base_asset": "TRAC",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "LRCUSDT",
+    "base_asset": "LRC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "FLRUSDT",
+    "base_asset": "FLR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "YGGTMN",
+    "base_asset": "YGG",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GIGGLEUSDT",
+    "base_asset": "GIGGLE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "NEXOUSDT",
+    "base_asset": "NEXO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ZETAUSDT",
+    "base_asset": "ZETA",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MEMEFIUSDT",
+    "base_asset": "MEMEFI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "JASMYTMN",
+    "base_asset": "JASMY",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "NVDAXTMN",
+    "base_asset": "NVDAX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GMTUSDT",
+    "base_asset": "GMT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MDTUSDT",
+    "base_asset": "MDT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BANDUSDT",
+    "base_asset": "BAND",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "RPLUSDT",
+    "base_asset": "RPL",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TSLAXUSDT",
+    "base_asset": "TSLAX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AEVOTMN",
+    "base_asset": "AEVO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "XUSDT",
+    "base_asset": "X",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "OMGTMN",
+    "base_asset": "OMG",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "HOTUSDT",
+    "base_asset": "HOT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "FRAXUSDT",
+    "base_asset": "FRAX",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AIXBTUSDT",
+    "base_asset": "AIXBT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WOOUSDT",
+    "base_asset": "WOO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "REQUSDT",
+    "base_asset": "REQ",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TONTMN",
+    "base_asset": "TON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WBTCUSDT",
+    "base_asset": "WBTC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AUDIOUSDT",
+    "base_asset": "AUDIO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CELRUSDT",
+    "base_asset": "CELR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "RSRUSDT",
+    "base_asset": "RSR",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MEMEFITMN",
+    "base_asset": "MEMEFI",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SSVTMN",
+    "base_asset": "SSV",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SENSOUSDT",
+    "base_asset": "SENSO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TWTTMN",
+    "base_asset": "TWT",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "NVDAXUSDT",
+    "base_asset": "NVDAX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MDTTMN",
+    "base_asset": "MDT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PYRTMN",
+    "base_asset": "PYR",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AVNTUSDT",
+    "base_asset": "AVNT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "C98USDT",
+    "base_asset": "C98",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TWTUSDT",
+    "base_asset": "TWT",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "LPTTMN",
+    "base_asset": "LPT",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SLPUSDT",
+    "base_asset": "SLP",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KAITOUSDT",
+    "base_asset": "KAITO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BICOUSDT",
+    "base_asset": "BICO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TONUSDT",
+    "base_asset": "TON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "HOODXTMN",
+    "base_asset": "HOODX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AUDIOTMN",
+    "base_asset": "AUDIO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "XTMN",
+    "base_asset": "X",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "HOODXUSDT",
+    "base_asset": "HOODX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KNCTMN",
+    "base_asset": "KNC",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ENSTMN",
+    "base_asset": "ENS",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WOOTMN",
+    "base_asset": "WOO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TOSHIUSDT",
+    "base_asset": "TOSHI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ILVUSDT",
+    "base_asset": "ILV",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GMXTMN",
+    "base_asset": "GMX",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ZRXUSDT",
+    "base_asset": "ZRX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "XTZUSDT",
+    "base_asset": "XTZ",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MEUSDT",
+    "base_asset": "ME",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TSLAXTMN",
+    "base_asset": "TSLAX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AEROUSDT",
+    "base_asset": "AERO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WINUSDT",
+    "base_asset": "WIN",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GNOTMN",
+    "base_asset": "GNO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "RUNEUSDT",
+    "base_asset": "RUNE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "OPUSDT",
+    "base_asset": "OP",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GLMUSDT",
+    "base_asset": "GLM",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PPLTONUSDT",
+    "base_asset": "PPLTON",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "FLOWUSDT",
+    "base_asset": "FLOW",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CHRUSDT",
+    "base_asset": "CHR",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AEVOUSDT",
+    "base_asset": "AEVO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "C98TMN",
+    "base_asset": "C98",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KITETMN",
+    "base_asset": "KITE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GNOUSDT",
+    "base_asset": "GNO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MOVEUSDT",
+    "base_asset": "MOVE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AMZNXTMN",
+    "base_asset": "AMZNX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BLURUSDT",
+    "base_asset": "BLUR",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KNCUSDT",
+    "base_asset": "KNC",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ZRXTMN",
+    "base_asset": "ZRX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GLMTMN",
+    "base_asset": "GLM",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "NMRUSDT",
+    "base_asset": "NMR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "METAXUSDT",
+    "base_asset": "METAX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BANANAUSDT",
+    "base_asset": "BANANA",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KCSUSDT",
+    "base_asset": "KCS",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "EDUUSDT",
+    "base_asset": "EDU",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ALGOUSDT",
+    "base_asset": "ALGO",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "LAYERUSDT",
+    "base_asset": "LAYER",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "1INCHUSDT",
+    "base_asset": "1INCH",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AAPLXTMN",
+    "base_asset": "AAPLX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PIXELUSDT",
+    "base_asset": "PIXEL",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KCSTMN",
+    "base_asset": "KCS",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PIXELTMN",
+    "base_asset": "PIXEL",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SFPTMN",
+    "base_asset": "SFP",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GMXUSDT",
+    "base_asset": "GMX",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PYRUSDT",
+    "base_asset": "PYR",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PROVEUSDT",
+    "base_asset": "PROVE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BLURTMN",
+    "base_asset": "BLUR",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "ANKRUSDT",
+    "base_asset": "ANKR",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "METAXTMN",
+    "base_asset": "METAX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CVCUSDT",
+    "base_asset": "CVC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "LAYERTMN",
+    "base_asset": "LAYER",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "OPTMN",
+    "base_asset": "OP",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "JTOUSDT",
+    "base_asset": "JTO",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "YFIUSDT",
+    "base_asset": "YFI",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WINTMN",
+    "base_asset": "WIN",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SFPUSDT",
+    "base_asset": "SFP",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "AAPLXUSDT",
+    "base_asset": "AAPLX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "GIGGLETMN",
+    "base_asset": "GIGGLE",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "JASMYUSDT",
+    "base_asset": "JASMY",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "LPTUSDT",
+    "base_asset": "LPT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "YGGUSDT",
+    "base_asset": "YGG",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SAFEUSDT",
+    "base_asset": "SAFE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MTLTMN",
+    "base_asset": "MTL",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "MASKUSDT",
+    "base_asset": "MASK",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SSVUSDT",
+    "base_asset": "SSV",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CATUSDT",
+    "base_asset": "CAT",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CYBERUSDT",
+    "base_asset": "CYBER",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "KITEUSDT",
+    "base_asset": "KITE",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "NEXOTMN",
+    "base_asset": "NEXO",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "WBTCTMN",
+    "base_asset": "WBTC",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "BTTCUSDT",
+    "base_asset": "BTTC",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "COINXTMN",
+    "base_asset": "COINX",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "SENSOTMN",
+    "base_asset": "SENSO",
+    "quote_asset": "TMN",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "PPLTONTMN",
+    "base_asset": "PPLTON",
+    "quote_asset": "TMN",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "TNSRUSDT",
+    "base_asset": "TNSR",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "OMGUSDT",
+    "base_asset": "OMG",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "DYDXUSDT",
+    "base_asset": "DYDX",
+    "quote_asset": "USDT",
+    "is_spot": true,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   },
+   {
+    "symbol": "CTSIUSDT",
+    "base_asset": "CTSI",
+    "quote_asset": "USDT",
+    "is_spot": false,
+    "is_zero_fee": false,
+    "quote_volume_24h": null
+   }
+  ]
+ }
+}
