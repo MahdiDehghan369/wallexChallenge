@@ -104,8 +104,14 @@ def _f(v: Any, nd: int = 2) -> str:
 
 
 def build_judge_report(
-    log_dir: str | Path, out_dir: str | Path, tz: str = "Asia/Tehran", mode: str = "live"
+    log_dir: str | Path,
+    out_dir: str | Path,
+    tz: str = "Asia/Tehran",
+    mode: str = "live",
+    frames: Any = None,
+    cfg: Any = None,
 ) -> dict[str, Any]:
+    """``frames`` (``{symbol: {tf: candles}}``) + ``cfg`` enable the AI counterfactual section (T-1203)."""
     logs, out = Path(log_dir), Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
     fills, equity, decisions = (
@@ -220,5 +226,12 @@ def build_judge_report(
         ],
         "",
     ]
+    if frames is not None and cfg is not None:
+        from siavash.reporting.counterfactual import counterfactual_markdown, evaluate_rejections, summarize
+
+        cf = summarize(evaluate_rejections(logs / "decisions.jsonl", frames, cfg))
+        payload["counterfactual"] = cf
+        lines.append(counterfactual_markdown(cf))
+        (out / "metrics.json").write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
     (out / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
     return payload

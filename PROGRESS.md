@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T12:05:51Z
-- DONE: 69 / 84
+- آخرین به‌روزرسانی: 2026-10-22T12:16:54Z
+- DONE: 70 / 84
 - منتظر انسان: T-109, T-108
 - مسدود: —
 
@@ -83,8 +83,8 @@
 | 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | DONE | 83b4cae | network section is a placeholder until T-109 |
 | 70 | T-1003 | مقایسه Backtest ↔ Shadow ↔ Live | B | AGENT | T-901, T-903 | DONE | a1ba73a |  |
 | 71 | T-1002 | اجرای Shadow | B | HUMAN | T-1106, T-1105, T-602 | TODO |  |  |
-| 72 | T-1201 | گزارش متریک‌های داوری | B | AGENT | T-903, T-805 | DONE |  |  |
-| 73 | T-1203 | گزارش Counterfactual نقش AI | B | AGENT | T-1201, T-401 | TODO |  |  |
+| 72 | T-1201 | گزارش متریک‌های داوری | B | AGENT | T-903, T-805 | DONE | 26615ba |  |
+| 73 | T-1203 | گزارش Counterfactual نقش AI | B | AGENT | T-1201, T-401 | DONE |  |  |
 | 74 | T-1107 | Go-Live Checklist | A | AGENT+HUMAN | T-1002, T-704, T-1105 | TODO |  |  |
 | 75 | T-506 | DailyReflector Agent | B | AGENT | T-1201, T-507 | TODO |  |  |
 | 76 | T-1305 | دستور Replay برای داور | B | AGENT | T-1003, T-502 | TODO |  |  |

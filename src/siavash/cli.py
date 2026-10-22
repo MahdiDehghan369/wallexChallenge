@@ -242,12 +242,20 @@ def report(
     mode: str = typer.Option("live", "--mode"),
     logs: str = typer.Option("logs", "--logs"),
     out: str = typer.Option("reports/live", "--out"),
+    live_data: str = typer.Option("data/live", "--live-data", help="candles for the AI counterfactual"),
+    history: str = typer.Option("data/processed", "--history"),
 ) -> None:
     """Judge-metrics report (REPORT.md, metrics.json, charts) from a logs directory."""
+    from siavash.backtest.market_data import processed_frames
+    from siavash.reporting.consistency import load_live_frames, merge_frames
     from siavash.reporting.judge_report import build_judge_report
 
     cfg = load_config("config")
-    payload = build_judge_report(logs, out, cfg.base.timezone, mode)
+    frames = merge_frames(
+        processed_frames(history) if Path(history).exists() else {},
+        load_live_frames(live_data) if Path(live_data).exists() else {},
+    )
+    payload = build_judge_report(logs, out, cfg.base.timezone, mode, frames or None, cfg)
     typer.echo(json.dumps(payload["judge"], indent=2, default=str))
     typer.echo(f"report: {Path(out) / 'REPORT.md'}")
 
