@@ -54,9 +54,12 @@ s3:   # Implied Deviation
   sl_pct: 1.2
   time_stop_min: 180
 ml:
-  enabled: false                  # تا T-404 بعد از walk-forward روشن شود
+  # T-404 (2026-10-22, real 15m data 2026-06-25..10-22, 29 TMN markets, fees 0.35/0.35):
+  # every θ still loses money (best θ=0.675: −0.145 %/trade vs −0.618 % unfiltered) → keep ML off.
+  # Re-run `make train` after the real account fees are set (T-108); see reports/ml_walkforward.md.
+  enabled: false
   model_version: null
-  threshold: 0.55
+  threshold: 0.675                # source: reports/ml_walkforward.md (max return/maxDD, ≥3 trades/day)
   train_days: 45
   test_days: 7
   embargo_hours: 12

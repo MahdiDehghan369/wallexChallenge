@@ -7,7 +7,8 @@
   filtered trades (in time order, additive % returns) over all folds.
 - θ = argmax(return / max_drawdown) subject to ``trades/day ≥ ml.min_trades_per_day``.
 - If no θ beats "no filter" (all trades) on the same score, ML should stay disabled — the report
-  says so explicitly.
+  says so explicitly. Enabling is also not recommended when the best filtered set still loses money
+  (a "smaller loss" filter does not make a losing strategy worth trading).
 """
 
 from __future__ import annotations
@@ -103,7 +104,7 @@ def select_threshold(oof: pd.DataFrame, min_trades_per_day: float) -> ThresholdR
             [{"theta": th, **evaluate(g[g["p_cal"] >= th], fdays)} for th in THETAS], min_trades_per_day
         )
         per_fold[int(k)] = fb["theta"] if fb else None
-    beats = best is not None and best["score"] > baseline["score"]
+    beats = best is not None and best["score"] > baseline["score"] and best["cum_ret_pct"] > 0
     calibrator = fit_calibrator(o["p_raw"], o["label"]) if o["label"].nunique() == 2 else None
     return ThresholdResult(
         best["theta"] if best else None,
@@ -155,8 +156,16 @@ def threshold_report(res: ThresholdResult) -> str:
             f"- selected **θ = {res.theta:.3f}** (beats the unfiltered strategy on return / drawdown)."
         )
     else:
-        lines.append(
-            f"- best θ = {res.theta:.3f} does **not** beat the unfiltered strategy → **recommend `ml.enabled: false`** "
-            "(the ML filter adds no value on this data)."
-        )
+        best = res.table[res.table["theta"] == res.theta].iloc[0]
+        if best["score"] > res.baseline["score"]:
+            lines.append(
+                f"- best θ = {res.theta:.3f} reduces losses vs the unfiltered strategy, but the filtered trades still "
+                f"lose money (cum {best['cum_ret_pct']:.2f} %) → **recommend `ml.enabled: false`**: the strategies "
+                "themselves are not profitable on this data with these costs."
+            )
+        else:
+            lines.append(
+                f"- best θ = {res.theta:.3f} does **not** beat the unfiltered strategy → **recommend `ml.enabled: false`** "
+                "(the ML filter adds no value on this data)."
+            )
     return "\n".join([*lines, ""])
