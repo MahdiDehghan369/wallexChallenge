@@ -66,6 +66,7 @@ class ExchangeConfig(_C):
     max_retries: int = Field(4, ge=1, le=10)
     backoff_min_s: float = Field(0.5, gt=0)
     backoff_max_s: float = Field(8, gt=0)
+    ticker_cache_s: float = Field(5, ge=0)
 
 
 class ExecutionConfig(_C):
