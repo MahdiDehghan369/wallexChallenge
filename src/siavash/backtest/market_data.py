@@ -24,6 +24,43 @@ from siavash.data.synthetic import resample_ohlcv
 DEPTH_QTY_QUOTE = Decimal("1e12")  # synthetic depth: effectively unlimited at the touch
 
 
+def frames_from_15m(frames_15m: Mapping[str, pd.DataFrame]) -> dict[str, dict[Timeframe, pd.DataFrame]]:
+    """``{symbol: {15m, 1h, 4h}}`` with 1h / 4h resampled from 15m."""
+    return {
+        s: {Timeframe.M15: df, Timeframe.H1: resample_ohlcv(df, "1h"), Timeframe.H4: resample_ohlcv(df, "4h")}
+        for s, df in frames_15m.items()
+    }
+
+
+def processed_frames(
+    processed_dir: str | Path, symbols: Iterable[str] | None = None
+) -> dict[str, dict[Timeframe, pd.DataFrame]]:
+    """``data/processed/{BASE}_{QUOTE}_15m.parquet`` (+ native 1h if present, else resampled; 4h from 1h)."""
+    from siavash.data.clean import load_processed
+
+    root = Path(processed_dir)
+    frames: dict[str, dict[Timeframe, pd.DataFrame]] = {}
+    wanted = set(symbols) if symbols else None
+    for f in sorted(root.glob("*_15m.parquet")):
+        base, quote, _ = f.stem.split("_", 2)
+        sym = f"{base}/{quote}"
+        if wanted is not None and sym not in wanted:
+            continue
+        m15 = load_processed(f)
+        h1_path = root / f"{base}_{quote}_1h.parquet"
+        h1 = (
+            load_processed(h1_path)
+            if h1_path.exists()
+            else resample_ohlcv(m15.dropna(subset=["close"]), "1h")
+        )
+        frames[sym] = {
+            Timeframe.M15: m15,
+            Timeframe.H1: h1,
+            Timeframe.H4: resample_ohlcv(h1.dropna(subset=["close"]), "4h"),
+        }
+    return frames
+
+
 def default_market(symbol: str) -> MarketInfo:
     """Conservative metadata when no exchange snapshot is available."""
     base, quote = split(symbol)
@@ -110,44 +147,14 @@ class HistoricalMarketData(MarketData):
         cls, frames_15m: Mapping[str, pd.DataFrame], clock: Clock, **kw: object
     ) -> HistoricalMarketData:
         """Build 1h / 4h by resampling the 15m frames."""
-        frames = {
-            s: {
-                Timeframe.M15: df,
-                Timeframe.H1: resample_ohlcv(df, "1h"),
-                Timeframe.H4: resample_ohlcv(df, "4h"),
-            }
-            for s, df in frames_15m.items()
-        }
-        return cls(frames, clock, **kw)  # type: ignore[arg-type]
+        return cls(frames_from_15m(frames_15m), clock, **kw)  # type: ignore[arg-type]
 
     @classmethod
     def from_processed_dir(
         cls, processed_dir: str | Path, clock: Clock, symbols: Iterable[str] | None = None, **kw: object
     ) -> HistoricalMarketData:
         """Load ``data/processed/{BASE}_{QUOTE}_15m.parquet`` (+ native 1h if present, else resampled)."""
-        from siavash.data.clean import load_processed
-
-        root = Path(processed_dir)
-        frames: dict[str, dict[Timeframe, pd.DataFrame]] = {}
-        wanted = set(symbols) if symbols else None
-        for f in sorted(root.glob("*_15m.parquet")):
-            base, quote, _ = f.stem.split("_", 2)
-            sym = f"{base}/{quote}"
-            if wanted is not None and sym not in wanted:
-                continue
-            m15 = load_processed(f)
-            h1_path = root / f"{base}_{quote}_1h.parquet"
-            h1 = (
-                load_processed(h1_path)
-                if h1_path.exists()
-                else resample_ohlcv(m15.dropna(subset=["close"]), "1h")
-            )
-            frames[sym] = {
-                Timeframe.M15: m15,
-                Timeframe.H1: h1,
-                Timeframe.H4: resample_ohlcv(h1.dropna(subset=["close"]), "4h"),
-            }
-        return cls(frames, clock, **kw)  # type: ignore[arg-type]
+        return cls(processed_frames(processed_dir, symbols), clock, **kw)  # type: ignore[arg-type]
 
     # ------------------------------------------------------------------ helpers for the broker
     def time_range(self, tf: Timeframe = Timeframe.M15) -> tuple[datetime, datetime]:
