@@ -44,6 +44,7 @@ CROSS_FEATURES: tuple[str, ...] = (
     "x_btc_ret_4h",
     "x_btc_adx_1h",
     "x_btc_rv_1h",
+    "x_btc_ema_trend_1h",
     "x_breadth_ema50",
     "x_avg_ret_4h",
     "x_rv_percentile_7d",

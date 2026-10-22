@@ -76,6 +76,7 @@ ignore = [
     "UP042",                       # contracts use (str, Enum) on purpose
     "RUF012",
     "SIM108",
+    "E501",                        # line length is enforced by `ruff format`
 ]
 
 [tool.ruff.lint.per-file-ignores]
