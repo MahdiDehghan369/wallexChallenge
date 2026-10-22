@@ -13,12 +13,14 @@ import sys
 from pathlib import Path
 
 import pandas as pd
+from sklearn.metrics import roc_auc_score
 
 from siavash.backtest.market_data import frames_from_15m
 from siavash.config import load_config
 from siavash.data.synthetic import make_synthetic_market
 from siavash.features.feature_set import FEATURE_SET_VERSION
 from siavash.ml.dataset import build_dataset, dataset_path
+from siavash.ml.registry import frame_hash, save_model
 from siavash.ml.threshold import select_threshold, threshold_report
 from siavash.ml.train import walk_forward, walkforward_report
 
@@ -34,6 +36,8 @@ def parse_args(argv: list[str] | None) -> argparse.Namespace:
     ap.add_argument("--config", default="config")
     ap.add_argument("--report", default="reports/ml_walkforward.md")
     ap.add_argument("--oof", default=f"data/ml/oof_{FEATURE_SET_VERSION}.parquet")
+    ap.add_argument("--models", default="models")
+    ap.add_argument("--no-save", dest="save", action="store_false", help="do not write a model version")
     return ap.parse_args(argv)
 
 
@@ -60,6 +64,27 @@ def main(argv: list[str] | None = None) -> int:
     print(f"{len(res.fold_metrics)} folds, {len(res.oof)} OOF samples -> {args.report}, {args.oof}")
     verdict = "recommend ml.enabled=true" if th.recommend_enabled else "recommend ml.enabled=false"
     print(f"threshold: θ={th.theta} ({verdict})")
+    if args.save and res.model is not None:
+        o = res.oof
+        pooled_auc = float(roc_auc_score(o["label"], o["p_raw"])) if o["label"].nunique() == 2 else None
+        version = save_model(
+            res.model,
+            res.features,
+            th.calibrator,
+            {
+                "data_source": "synthetic" if args.synthetic else args.dataset,
+                "data_range": {"start": ds["ts"].min(), "end": ds["ts"].max()},
+                "data_hash": frame_hash(ds),
+                "n_samples": len(ds),
+                "metrics": {"oof_auc": pooled_auc, "folds": len(res.fold_metrics), "oof_samples": len(o)},
+                "threshold": th.theta,
+                "recommend_enabled": th.recommend_enabled,
+                "seed": res.params.get("seed"),
+                "lgbm_params": res.params,
+            },
+            root=args.models,
+        )
+        print(f"saved model {args.models}/{version} (set strategy.yaml ml.model_version to use it)")
     return 0
 
 
