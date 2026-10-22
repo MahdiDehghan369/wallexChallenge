@@ -163,6 +163,7 @@ class StrategiesToggle(_C):
 class UniverseConfig(_C):
     candidates: list[str] = Field(default_factory=list)
     max_markets: int = Field(8, ge=1, le=30)
+    top_volume_n: int = Field(10, ge=1)
     depth_multiple: float = Field(5, ge=0)
     depth_band_pct: float = Field(0.5, gt=0)
     refresh_hours: float = Field(6, gt=0)

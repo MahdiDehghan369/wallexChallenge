@@ -10,6 +10,7 @@ universe:
                BNB/USDT, LTC/USDT, SHIB/USDT, AVAX/USDT, LINK/USDT, DOT/USDT, BCH/USDT]
   # هر نماد قبل از استفاده با SymbolGuard و registry بررسی می‌شود؛ نمادهای ناموجود حذف می‌شوند
   max_markets: 8
+  top_volume_n: 10                # only the N highest 24h-volume TMN markets are considered (section 4.1)
   depth_multiple: 5
   depth_band_pct: 0.5
   refresh_hours: 6
