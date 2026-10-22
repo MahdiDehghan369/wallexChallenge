@@ -1,0 +1,3 @@
+# prompt files are hashed byte-for-byte (agents/prompts/manifest.json): never convert line endings
+src/siavash/agents/prompts/*.md -text
+*.sh text eol=lf
