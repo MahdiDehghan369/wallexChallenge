@@ -1,0 +1,49 @@
+# تنظیمات عمومی — ضمیمه I WALLEX_AGENT_PLAN.md
+mode: paper                       # با env MODE بازنویسی می‌شود
+timezone: Asia/Tehran             # فقط برای مرز «روز معاملاتی»
+paths: {logs: logs, state: state, data: data, models: models, reports: reports}
+loop:
+  price_guard_s: 10
+  main_loop_s: 60
+  poll_seconds: 20
+  book_poll_seconds: 15
+  buffer_bars: 500
+  reconcile_interval_min: 5
+  equity_interval_s: 300
+  watchdog_timeout_s: 180
+  heartbeat_s: 30
+  analyst_interval_min: 60
+exchange:
+  use_proxy: false
+  rate_limit: {public_per_s: 5, public_burst: 10, private_per_s: 2, private_burst: 4}
+  timeout_s: 10
+  max_retries: 4
+  backoff_min_s: 0.5
+  backoff_max_s: 8
+execution:
+  entry_timeout_s: 90
+  aggressive_timeout_s: 30
+  max_slippage_pct: 0.15
+  exit_max_slippage_pct: 0.3
+  exit_max_attempts: 3
+  order_poll_seconds: 5
+  submit_lookup_attempts: 3
+  submit_lookup_interval_s: 2
+paper:
+  fill_check_seconds: 5
+  initial_balances: {TMN: 5000000}
+bt:
+  assumed_spread_pct: {default: 0.15, BTC/TMN: 0.05, ETH/TMN: 0.08, USDT/TMN: 0.03}
+  extra_slippage_pct: 0.05
+llm:
+  analyst: {enabled: true}
+  reviewer: {enabled: true, allow_tools: false, timeout_s: 20}
+  timeout_s: 20
+  max_retries: 2
+  max_tool_calls: 3
+  tools_backend: auto             # auto | mcp | native
+  use_proxy: true
+  cache_mode: live                # live | replay | record_only
+alerts:
+  backend: log_only               # log_only | webhook
+  min_interval_s: 3

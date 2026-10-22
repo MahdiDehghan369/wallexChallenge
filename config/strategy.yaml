@@ -1,0 +1,68 @@
+# پارامترهای استراتژی — ضمیمه I و بخش ۴ WALLEX_AGENT_PLAN.md
+# همه اعداد مقادیر اولیه‌اند و باید با walk-forward (T-904) تأیید شوند؛ هر تغییر در CHANGELOG.
+strategies:
+  enabled: [S1_TREND_BREAKOUT, S2_MEAN_REVERSION, S3_IMPLIED_DEV]
+fee_multiple: 2.5                 # expected_move >= fee_multiple * round_trip_fee
+universe:
+  candidates: [BTC/TMN, ETH/TMN, USDT/TMN, SOL/TMN, XRP/TMN, DOGE/TMN, TRX/TMN, ADA/TMN,
+               BNB/TMN, LTC/TMN, SHIB/TMN, AVAX/TMN, LINK/TMN, DOT/TMN, BCH/TMN,
+               BTC/USDT, ETH/USDT, SOL/USDT, XRP/USDT, DOGE/USDT, TRX/USDT, ADA/USDT,
+               BNB/USDT, LTC/USDT, SHIB/USDT, AVAX/USDT, LINK/USDT, DOT/USDT, BCH/USDT]
+  # هر نماد قبل از استفاده با SymbolGuard و registry بررسی می‌شود؛ نمادهای ناموجود حذف می‌شوند
+  max_markets: 8
+  depth_multiple: 5
+  depth_band_pct: 0.5
+  refresh_hours: 6
+  always_keep: [BTC/TMN, USDT/TMN]
+regime:
+  rules:
+    panic_btc_ret_1h_pct: -3.0
+    panic_btc_ret_4h_pct: -5.0
+    high_vol_rv_percentile: 90
+    trend_adx_min: 20
+    trend_breadth_min: 55
+  enabled_strategies:
+    TREND_UP: [S1_TREND_BREAKOUT, S3_IMPLIED_DEV]
+    RANGE: [S2_MEAN_REVERSION, S3_IMPLIED_DEV]
+    HIGH_VOL: [S3_IMPLIED_DEV]
+    PANIC: []
+  panic_exit_min_profit_pct: 0.3
+s1:   # Trend Breakout
+  donchian_n: 20
+  adx_min: 20
+  vol_z_min: 1.0
+  sl_atr: 1.5
+  tp1_atr: 2.0
+  tp1_fraction: 0.5
+  tp_atr: 4.0
+  trail_atr: 1.5
+  time_stop_min: 720
+s2:   # Mean Reversion
+  bb_n: 20
+  bb_k: 2.0
+  rsi_max: 30
+  adx_max: 20
+  min_4h_ema200_dist_pct: -2.0
+  sl_atr: 1.2
+  time_stop_min: 360
+s3:   # Implied Deviation
+  z_window_bars: 96
+  z_entry: 2.0
+  min_usdt_ret_1h_pct: -1.5
+  tp_pct: 1.5
+  sl_pct: 1.2
+  time_stop_min: 180
+ml:
+  enabled: false                  # تا T-404 بعد از walk-forward روشن شود
+  model_version: null
+  threshold: 0.55
+  train_days: 45
+  test_days: 7
+  embargo_hours: 12
+  min_trades_per_day: 3
+  lgbm: {num_leaves: 15, max_depth: 5, learning_rate: 0.05, n_estimators: 300,
+         min_child_samples: 40, subsample: 0.8, subsample_freq: 1, colsample_bytree: 0.8,
+         reg_lambda: 1.0, seed: 42, deterministic: true, num_threads: 1}
+reviewer_key_features: [15m_rsi14, 15m_atr14_pct, 15m_bb_pos, 15m_vol_z20, 15m_ret_4,
+  1h_adx14, 1h_ema20_slope, 1h_ret_4, 4h_ema200_dist, 4h_rsi14, x_implied_z,
+  x_btc_ret_1h, x_btc_ret_4h, x_breadth_ema50, x_rv_percentile_7d, ob_spread_pct, ob_imbalance_5]

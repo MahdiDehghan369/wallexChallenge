@@ -1,0 +1,32 @@
+# پارامترهای ریسک — ضمیمه B و بخش ۵ WALLEX_AGENT_PLAN.md
+# هشدار: مقادیر سقف را بالاتر از بخش ۵ نبرید (فقط انسان، با CHANGELOG).
+capital_base_tmn: 5000000
+risk_per_trade_pct: 0.5
+max_position_pct: 20
+max_total_exposure_pct: 50
+max_concurrent_positions: 3
+max_positions_per_market: 1
+daily_loss_limit_pct: 2.0
+kill_switch_drawdown_pct: 5.0
+cooldown_after_consecutive_losses: {losses: 2, minutes: 60}
+cooldown_after_exit_minutes: 30
+max_trades_per_hour: 4
+max_trades_per_day: 25
+max_spread_pct: 0.3
+regime_multipliers: {TREND_UP: 1.0, RANGE: 0.7, HIGH_VOL: 0.5, PANIC: 0.0}
+llm_size_multiplier_range: [0.25, 1.0]
+initial_live_risk_scale: 0.5        # ضریب کلی در روز اول لایو
+cash_buffer_fraction: 0.98          # حداکثر سهم نقد قابل استفاده در یک سفارش (T-701)
+endgame:
+  competition_end_utc: null         # "YYYY-MM-DDTHH:MM:00Z" — از برگزارکننده؛ بدون آن لایو شروع نمی‌شود
+  no_new_entries_hours_before: 6
+  start_unwind_hours_before: 3
+  force_liquidate_hours_before: 1
+breakers:
+  api_errors_window_min: 5
+  api_errors_threshold: 5
+  api_errors_clear_min: 15
+  stale_data_seconds: 180
+fees:
+  maker_pct: 0.35    # مقدار بدبینانه؛ بعد از T-101 با کارمزد واقعی حساب جایگزین شود
+  taker_pct: 0.35
