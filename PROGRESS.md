@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T11:51:28Z
-- DONE: 66 / 84
+- آخرین به‌روزرسانی: 2026-10-22T11:55:41Z
+- DONE: 67 / 84
 - منتظر انسان: T-109, T-108
 - مسدود: —
 
@@ -80,7 +80,7 @@
 | 66 | T-406 | ML Scorer | B | AGENT | T-405 | DONE | 2b82698 |  |
 | 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | DONE | da88349 | agent part done; HUMAN: read reports/backtest/walkforward/REPORT.md (real data) and decide final params (+CHANGELOG) |
 | 68 | T-1106 | نسخه‌گذاری دیپلوی | A | AGENT | T-004, T-003 | DONE | fbd0e1f | bash -n ok; shellcheck not installable offline; --dry-run verified in a clean clone |
-| 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | TODO |  |  |
+| 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | DONE |  | network section is a placeholder until T-109 |
 | 70 | T-1003 | مقایسه Backtest ↔ Shadow ↔ Live | B | AGENT | T-901, T-903 | TODO |  |  |
 | 71 | T-1002 | اجرای Shadow | B | HUMAN | T-1106, T-1105, T-602 | TODO |  |  |
 | 72 | T-1201 | گزارش متریک‌های داوری | B | AGENT | T-903, T-805 | TODO |  |  |

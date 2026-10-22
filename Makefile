@@ -39,7 +39,7 @@ backtest:
 	$(PYTHON) scripts/run_backtest.py $(ARGS)
 
 walkforward:
-	$(call not_implemented,T-904)
+	$(PYTHON) scripts/run_walkforward.py $(ARGS)
 
 paper:
 	$(SIAVASH) run --mode paper
