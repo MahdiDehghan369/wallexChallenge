@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T06:17:49Z
-- DONE: 28 / 84
+- آخرین به‌روزرسانی: 2026-10-22T06:42:45Z
+- DONE: 41 / 84
 - منتظر انسان: T-101, T-109
 - مسدود: —
 
@@ -35,26 +35,26 @@
 | 21 | T-106 | SymbolGuard | A | AGENT | T-105 | DONE | 56780c8 | allowed_quotes و allow_usdt_liquidation به risk.yaml اضافه شد؛ USDT/TMN فقط SELL در endgame |
 | 22 | T-109 | بررسی شبکه و محل اجرا | A | HUMAN | — | WAITING_HUMAN |  | انسان: VPS نهایی را انتخاب کنید و از همان سرور دسترسی و latency به API والکس (curl https://api.wallex.ir/v1/markets) و API مدل LLM (مستقیم یا با HTTPS_PROXY) را بررسی کنید؛ نتیجه را در docs/RUNBOOK.md بخش «شبکه» بنویسید |
 | 23 | T-108 | Smoke test حساب واقعی | A | AGENT+HUMAN | T-106, T-605, T-109 | TODO |  | منتظر T-109 (HUMAN)؛ بخش Agent بعد از T-109 انجام می‌شود |
-| 24 | T-201 | دانلودر داده تاریخی | B | AGENT+HUMAN | T-104 | DONE | e1587da | بخش انسان هم انجام شد: Agent داده عمومی ۱۲۰ روز (15m,1h) ۲۹ نماد را با endpointهای عمومی دانلود کرد (بدون کلید) — reports/data_coverage.md؛ روی سرور نهایی هم make download-data اجرا شود |
+| 24 | T-201 | دانلودر داده تاریخی | B | AGENT+HUMAN | T-104 | DONE | b5153a7 | بخش انسان هم انجام شد: Agent داده عمومی ۱۲۰ روز (15m,1h) ۲۹ نماد را با endpointهای عمومی دانلود کرد (بدون کلید) — reports/data_coverage.md؛ روی سرور نهایی هم make download-data اجرا شود |
 | 25 | T-202 | اعتبارسنجی و پاک‌سازی داده | B | AGENT | T-201 | DONE | 7f2deb1 | روی داده واقعی اجرا شد: reports/data_quality.md (گپ مشترک صرافی 2026-09-22 12:45) |
 | 26 | T-203 | سرویس داده لایو | A | AGENT | T-104, T-008 | DONE | 4ae26b8 | باکت‌های گم‌شده (بازار کم‌معامله) فقط بعد از رسیدن کندل بعدی ffill می‌شوند |
 | 27 | T-204 | انتخاب Universe | B | AGENT | T-203, T-106 | DONE | 0f8de8c | top_volume_n به strategy.yaml اضافه شد |
 | 28 | T-302 | ویژگی‌های دفتر سفارش | B | AGENT | T-303 | DONE | d471c8f |  |
 | 29 | T-806 | LiveBroker و تست قراردادی Broker | A | AGENT | T-106, T-008 | DONE | 493f84c | tests/fakes/wallex_server.py: سرور جعلی stateful برای contract |
 | 30 | T-1001 | PaperBroker (شبیه‌سازی با دفتر سفارش واقعی) | A | AGENT | T-806, T-203 | DONE | 12f9b06 | prepare_order مشترک (guard+گرد کردن+حداقل) در exchange/account.py |
-| 31 | T-801 | Order Router | A | AGENT | T-806, T-103 | TODO |  |  |
-| 32 | T-802 | Idempotency و بازیابی سفارش | A | AGENT | T-801 | TODO |  |  |
-| 33 | T-803 | رهگیری سفارش و fillها | A | AGENT | T-802, T-605 | TODO |  |  |
-| 34 | T-603 | Position Manager | A | AGENT | T-803 | TODO |  |  |
-| 35 | T-604 | منطق خروج | A | AGENT | T-603 | TODO |  |  |
-| 36 | T-1101 | State ماندگار | A | AGENT | T-603 | TODO |  |  |
-| 37 | T-701 | اندازه پوزیشن | A | AGENT | T-103, T-007 | TODO |  |  |
-| 38 | T-702 | چک‌های پیش از معامله و RiskManager | A | AGENT | T-701, T-106 | TODO |  |  |
-| 39 | T-1202 | ردیاب Equity و Drawdown | A | AGENT | T-1101, T-203 | TODO |  |  |
-| 40 | T-703 | Circuit Breakerها | A | AGENT | T-1202, T-102 | TODO |  |  |
-| 41 | T-704 | Endgame Liquidator | A | AGENT | T-801, T-1202 | TODO |  |  |
-| 42 | T-705 | تست‌های جامع ریسک | A | AGENT | T-702, T-703, T-704 | TODO |  |  |
-| 43 | T-804 | Reconciliation | A | AGENT | T-1101, T-803 | TODO |  |  |
+| 31 | T-801 | Order Router | A | AGENT | T-806, T-103 | DONE | 2a3870d | exit حالا روی sell() عمومی (برای endgame) بنا شده |
+| 32 | T-802 | Idempotency و بازیابی سفارش | A | AGENT | T-801 | DONE | 2d03a13 |  |
+| 33 | T-803 | رهگیری سفارش و fillها | A | AGENT | T-802, T-605 | DONE | ef3f8ec |  |
+| 34 | T-603 | Position Manager | A | AGENT | T-803 | DONE | 467df5c | اینترفیس PositionStore؛ realized_pnl خالص همه کارمزدها |
+| 35 | T-604 | منطق خروج | A | AGENT | T-603 | DONE | f635892 |  |
+| 36 | T-1101 | State ماندگار | A | AGENT | T-603 | DONE | 5e20c32 |  |
+| 37 | T-701 | اندازه پوزیشن | A | AGENT | T-103, T-007 | DONE | b09eedf |  |
+| 38 | T-702 | چک‌های پیش از معامله و RiskManager | A | AGENT | T-701, T-106 | DONE | 5ce7840 | وضعیت cooldown و شمارنده ورود در risk/limits.py |
+| 39 | T-1202 | ردیاب Equity و Drawdown | A | AGENT | T-1101, T-203 | DONE | 3b2e94f |  |
+| 40 | T-703 | Circuit Breakerها | A | AGENT | T-1202, T-102 | DONE | dcf4e56 |  |
+| 41 | T-704 | Endgame Liquidator | A | AGENT | T-801, T-1202 | DONE | ec06d30 | unwind_passive_timeout_s به risk.yaml اضافه شد |
+| 42 | T-705 | تست‌های جامع ریسک | A | AGENT | T-702, T-703, T-704 | DONE | 7221dcd |  |
+| 43 | T-804 | Reconciliation | A | AGENT | T-1101, T-803 | DONE | 76cbbf4 | رکورد اصلاح: outcome_action=INFO, type=OPERATOR_COMMAND, extra.kind=reconcile (قرارداد نوع RECONCILE ندارد) |
 | 44 | T-601 | Orchestrator | A | AGENT | T-203, T-604, T-703, T-704, T-804, T-1001, T-1101 | TODO |  |  |
 | 45 | T-501 | لایه انتزاعی LLM | B | AGENT | T-002, T-003 | TODO |  |  |
 | 46 | T-502 | کش و Replay پاسخ‌های LLM | B | AGENT | T-501 | TODO |  |  |
