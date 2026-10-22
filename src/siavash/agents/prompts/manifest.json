@@ -1,0 +1,17 @@
+{
+  "analyst_v1": {
+    "prompt_version": "analyst_v1",
+    "purpose": "MarketAnalyst — classify the market regime and choose which strategies may run",
+    "sha256": "sha256:6efece831b2be03f822cfbacd49abf578481072fdb034fff5890ed954b42acfd"
+  },
+  "reflector_v1": {
+    "prompt_version": "reflector_v1",
+    "purpose": "DailyReflector — daily review of decisions and trades with parameter suggestions for humans",
+    "sha256": "sha256:6187648a56f525cc801b4883eb249bcdea1f15fc0e9e4c030bed42d52ebc53b8"
+  },
+  "reviewer_v1": {
+    "prompt_version": "reviewer_v1",
+    "purpose": "TradeReviewer — approve/reject one quantitative trade candidate and optionally shrink its size",
+    "sha256": "sha256:026771e95a821c0b0bca1f97538aaa296a518854a80b26fad557046cea09f838"
+  }
+}
