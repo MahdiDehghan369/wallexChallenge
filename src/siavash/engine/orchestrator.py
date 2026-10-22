@@ -345,8 +345,9 @@ class Orchestrator:
     async def _write_heartbeat(self) -> None:
         if self.app.heartbeat_path is None:
             return
-        self.app.heartbeat_path.parent.mkdir(parents=True, exist_ok=True)
-        self.app.heartbeat_path.write_text(self.clock.now().isoformat(), encoding="utf-8")
+        from siavash.engine.watchdog import write_heartbeat
+
+        write_heartbeat(self.app.heartbeat_path, self.clock.now().isoformat())
 
     async def _loop(self, interval: float, fn: Callable[[], Awaitable[None]], name: str) -> None:
         while not self.stop_event.is_set():
@@ -425,7 +426,16 @@ class Orchestrator:
         ]
         if hasattr(a.broker, "run"):
             self._jobs.append(asyncio.ensure_future(a.broker.run(self.stop_event)))
+        watchdog = None
+        if a.heartbeat_path is not None and a.mode in ("paper", "live"):
+            from siavash.engine.watchdog import Watchdog
+
+            await self._write_heartbeat()
+            watchdog = Watchdog(a.heartbeat_path, loop.watchdog_timeout_s)
+            watchdog.start()
         await self.stop_event.wait()
+        if watchdog is not None:
+            watchdog.stop()
         await self._teardown()
 
     async def shutdown(self) -> None:
