@@ -223,6 +223,14 @@ class Orchestrator:
                     pnl_tmn=str(p.realized_pnl_tmn),
                     reason=p.exit_reason.value if p.exit_reason else None,
                 )
+                self.app.alert(
+                    "exit",
+                    {
+                        "symbol": p.symbol,
+                        "pnl_tmn": str(round(p.realized_pnl_tmn)),
+                        "reason": p.exit_reason.value if p.exit_reason else None,
+                    },
+                )
 
     async def _on_terminal(self, order: Order, meta: TrackMeta | None) -> None:
         await self.app.store.save_order(
@@ -433,6 +441,7 @@ class Orchestrator:
             config_hash=rt.config_hash,
             universe=a.universe,
         )
+        a.alert("startup", {"mode": a.mode, "git_sha": rt.git_sha, "version_tag": rt.version_tag})
         a.live_data.set_symbols(self._data_symbols())
         await a.live_data.bootstrap()
         await a.equity.update()
