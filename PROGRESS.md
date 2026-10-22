@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T06:42:45Z
-- DONE: 41 / 84
+- آخرین به‌روزرسانی: 2026-10-22T07:12:57Z
+- DONE: 52 / 84
 - منتظر انسان: T-101, T-109
 - مسدود: —
 
@@ -55,17 +55,17 @@
 | 41 | T-704 | Endgame Liquidator | A | AGENT | T-801, T-1202 | DONE | ec06d30 | unwind_passive_timeout_s به risk.yaml اضافه شد |
 | 42 | T-705 | تست‌های جامع ریسک | A | AGENT | T-702, T-703, T-704 | DONE | 7221dcd |  |
 | 43 | T-804 | Reconciliation | A | AGENT | T-1101, T-803 | DONE | 76cbbf4 | رکورد اصلاح: outcome_action=INFO, type=OPERATOR_COMMAND, extra.kind=reconcile (قرارداد نوع RECONCILE ندارد) |
-| 44 | T-601 | Orchestrator | A | AGENT | T-203, T-604, T-703, T-704, T-804, T-1001, T-1101 | TODO |  |  |
-| 45 | T-501 | لایه انتزاعی LLM | B | AGENT | T-002, T-003 | TODO |  |  |
-| 46 | T-502 | کش و Replay پاسخ‌های LLM | B | AGENT | T-501 | TODO |  |  |
-| 47 | T-503 | اسکیماها، اعتبارسنجی و fallback قطعی | B | AGENT | T-502 | TODO |  |  |
-| 48 | T-507 | پرامپت‌های نسخه‌دار | B | AGENT | T-503 | TODO |  |  |
-| 49 | T-107 | یکپارچه‌سازی Wallex MCP | B | AGENT | T-104, T-501 | TODO |  |  |
-| 50 | T-505 | TradeReviewer Agent | B | AGENT | T-507, T-107 (نرم) | TODO |  |  |
-| 51 | T-504 | MarketAnalyst Agent | B | AGENT | T-507, T-304, T-107 (نرم) | TODO |  |  |
-| 52 | T-602 | Decision Pipeline | B | AGENT | T-601, T-505, T-702, T-306, T-406 (نرم) | TODO |  |  |
-| 53 | T-1104 | CLI | A | AGENT | T-601 | TODO |  |  |
-| 54 | T-1102 | Supervisor و Heartbeat | A | AGENT | T-601 | TODO |  |  |
+| 44 | T-601 | Orchestrator | A | AGENT | T-203, T-604, T-703, T-704, T-804, T-1001, T-1101 | DONE | d9ba885 | SimClock (رویدادمحور) برای بک‌تست؛ fillها از طریق tracker به positions؛ تست ۲ روز شبیه‌سازی سبز |
+| 45 | T-501 | لایه انتزاعی LLM | B | AGENT | T-002, T-003 | DONE | 2705e33 |  |
+| 46 | T-502 | کش و Replay پاسخ‌های LLM | B | AGENT | T-501 | DONE | 5f54ddd |  |
+| 47 | T-503 | اسکیماها، اعتبارسنجی و fallback قطعی | B | AGENT | T-502 | DONE | 39dea22 | پارامترهای fallback در llm.fallback_* (base.yaml) |
+| 48 | T-507 | پرامپت‌های نسخه‌دار | B | AGENT | T-503 | DONE | 4986707 | manifest با python -m siavash.agents.prompts --update-manifest |
+| 49 | T-107 | یکپارچه‌سازی Wallex MCP | B | AGENT | T-104, T-501 | DONE | 1613277 | docs/vendor/wallex_mcp خالی → backend=native؛ MCP با server.json فعال می‌شود |
+| 50 | T-505 | TradeReviewer Agent | B | AGENT | T-507, T-107 (نرم) | DONE | 38d48ca |  |
+| 51 | T-504 | MarketAnalyst Agent | B | AGENT | T-507, T-304, T-107 (نرم) | DONE | ada8a01 |  |
+| 52 | T-602 | Decision Pipeline | B | AGENT | T-601, T-505, T-702, T-306, T-406 (نرم) | DONE | 93bcdb6 |  |
+| 53 | T-1104 | CLI | A | AGENT | T-601 | DONE | 9f05f5c | report/replay/reflect/export تا تسک‌های مربوط not implemented |
+| 54 | T-1102 | Supervisor و Heartbeat | A | AGENT | T-601 | DONE | 30ac530 |  |
 | 55 | T-805 | متریک‌های سرعت | A | AGENT | T-602 | TODO |  |  |
 | 56 | T-1103 | هشدارها | A | AGENT | T-703 | TODO |  |  |
 | 57 | T-902 | BacktestBroker، مدل fill، کارمزد و لغزش | B | AGENT | T-806, T-202 | TODO |  |  |
