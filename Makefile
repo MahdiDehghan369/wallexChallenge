@@ -74,7 +74,7 @@ export-submission:
 	$(PYTHON) scripts/export_submission.py $(ARGS)
 
 dashboard:
-	$(call not_implemented,T-1204)
+	$(PYTHON) -m siavash.reporting.dashboard $(ARGS)
 
 docker-build:
 	$(COMPOSE) build --build-arg GIT_SHA=$(GIT_SHA)
