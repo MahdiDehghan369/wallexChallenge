@@ -27,7 +27,7 @@ test-live:
 	pytest tests/integration -m live
 
 download-data:
-	$(call not_implemented,T-201)
+	$(PYTHON) scripts/download_data.py $(ARGS)
 
 validate-data:
 	$(call not_implemented,T-202)
