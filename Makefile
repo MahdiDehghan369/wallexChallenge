@@ -68,7 +68,7 @@ status:
 	$(SIAVASH) status
 
 shadow-report:
-	$(call not_implemented,T-1003)
+	$(PYTHON) scripts/consistency_report.py $(ARGS)
 
 export-submission:
 	$(call not_implemented,T-1303)
