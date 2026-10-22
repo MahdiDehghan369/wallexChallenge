@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T10:53:15Z
-- DONE: 58 / 84
+- آخرین به‌روزرسانی: 2026-10-22T10:55:30Z
+- DONE: 59 / 84
 - منتظر انسان: T-109
 - مسدود: —
 
@@ -71,8 +71,8 @@
 | 57 | T-902 | BacktestBroker، مدل fill، کارمزد و لغزش | B | AGENT | T-806, T-202 | DONE | cf84afb |  |
 | 58 | T-903 | متریک‌های عملکرد | B | AGENT | T-902 | DONE | cc38fd5 |  |
 | 59 | T-901 | موتور بک‌تست | B | AGENT | T-601, T-602, T-902, T-903 | DONE | fc81e9f | default fees 0.35/0.35: all synthetic candidates FEE_TOO_HIGH; test uses lower fees |
-| 60 | T-905 | گزارش‌ساز بک‌تست | B | AGENT | T-901 | DONE |  |  |
-| 61 | T-401 | برچسب‌گذاری Triple-Barrier | B | AGENT | T-305, T-306 | TODO |  |  |
+| 60 | T-905 | گزارش‌ساز بک‌تست | B | AGENT | T-901 | DONE | af3da69 |  |
+| 61 | T-401 | برچسب‌گذاری Triple-Barrier | B | AGENT | T-305, T-306 | DONE |  |  |
 | 62 | T-402 | ساخت دیتاست | B | AGENT | T-401, T-202 | TODO |  |  |
 | 63 | T-403 | آموزش Walk-forward | B | AGENT | T-402 | TODO |  |  |
 | 64 | T-404 | کالیبراسیون و انتخاب آستانه | B | AGENT | T-403 | TODO |  |  |
