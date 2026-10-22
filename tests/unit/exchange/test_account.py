@@ -15,9 +15,10 @@ from siavash.core.types import OrderStatus, OrderType, Side
 from siavash.exchange import endpoints as ep
 from siavash.exchange.account import OrderIdMap, WallexAccount
 from siavash.exchange.client import WallexHttp
-from siavash.exchange.errors import BadRequest, BelowMinimum
+from siavash.exchange.errors import BadRequest, BelowMinimum, SymbolNotAllowed
+from siavash.exchange.guard import SymbolGuard
 from siavash.exchange.markets import MarketRegistry
-from tests.unit.exchange.conftest import load
+from tests.unit.exchange.conftest import DENYLIST, load
 
 BASE = "https://wallex.test"
 COID = "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1"
@@ -46,7 +47,19 @@ def _req(**kw: object) -> OrderRequest:
 def account() -> WallexAccount:
     http = WallexHttp(BASE, "k", public_rate=(1000, 1000), private_rate=(1000, 1000), sleep_fn=_nosleep)
     reg = MarketRegistry.from_markets(ep.parse_markets(load("markets")))
-    return WallexAccount(http, reg, OrderIdMap(":memory:"))
+    guard = SymbolGuard(DENYLIST, reg, allowed_quotes=["TMN"], allow_usdt_liquidation=True)
+    return WallexAccount(http, reg, OrderIdMap(":memory:"), guard)
+
+
+@respx.mock(base_url=BASE, assert_all_called=False)
+async def test_guard_blocks_before_http(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+    route = respx_mock.post(ep.Paths.ORDERS).mock(return_value=httpx.Response(200, json=load("order")))
+    for sym in ("TON/TMN", "NEAR/TMN", "BTC/USDT", "XRP/TMN"):
+        with pytest.raises(SymbolNotAllowed):
+            await account.place_order(_req(symbol=sym, price=Decimal("500000"), qty=Decimal("1")))
+    with pytest.raises(SymbolNotAllowed):
+        await account.place_order(_req(symbol="USDT/TMN", price=Decimal("102500"), qty=Decimal("10")))
+    assert route.call_count == 0
 
 
 @respx.mock(base_url=BASE)

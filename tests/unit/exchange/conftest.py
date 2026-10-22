@@ -10,6 +10,7 @@ from typing import Any
 import pytest
 
 FIXTURES = Path(__file__).resolve().parents[2] / "fixtures" / "wallex"
+DENYLIST = Path(__file__).resolve().parents[3] / "config" / "denylist.txt"
 
 
 def load(name: str) -> Any:

@@ -90,7 +90,7 @@ class WallexAccount:
         http: WallexHttp,
         registry: MarketRegistry,
         id_map: OrderIdMap,
-        guard: GuardLike | None = None,
+        guard: GuardLike,
         clock: Clock | None = None,
     ) -> None:
         self.http = http
@@ -112,8 +112,7 @@ class WallexAccount:
         """Guard + rounding + minimum checks (no I/O). Raises before anything is sent."""
         if not req.decision_id:
             raise BadRequest("order without decision_id")
-        if self.guard is not None:
-            self.guard.assert_tradable(req.symbol, req.side)
+        self.guard.assert_tradable(req.symbol, req.side)  # mandatory SymbolGuard (rule 4)
         qty = self.registry.round_qty(req.symbol, req.qty)
         price = req.price
         if req.type is OrderType.LIMIT:

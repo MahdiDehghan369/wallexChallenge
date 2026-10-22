@@ -17,6 +17,8 @@ regime_multipliers: {TREND_UP: 1.0, RANGE: 0.7, HIGH_VOL: 0.5, PANIC: 0.0}
 llm_size_multiplier_range: [0.25, 1.0]
 initial_live_risk_scale: 0.5        # ضریب کلی در روز اول لایو
 cash_buffer_fraction: 0.98          # حداکثر سهم نقد قابل استفاده در یک سفارش (T-701)
+allowed_quotes: [TMN]               # فقط بازارهای تومانی معامله می‌شوند؛ USDT فقط منبع داده
+allow_usdt_liquidation: true        # فقط SELL روی USDT/TMN (تبدیل USDT به تومان در endgame)
 endgame:
   competition_end_utc: null         # "YYYY-MM-DDTHH:MM:00Z" — از برگزارکننده؛ بدون آن لایو شروع نمی‌شود
   no_new_entries_hours_before: 6

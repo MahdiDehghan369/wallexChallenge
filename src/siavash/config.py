@@ -311,6 +311,8 @@ class RiskConfig(_C):
     llm_size_multiplier_range: tuple[float, float] = (0.25, 1.0)
     initial_live_risk_scale: float = Field(0.5, ge=0, le=1)
     cash_buffer_fraction: float = Field(0.98, gt=0, le=1)
+    allowed_quotes: list[str] = Field(default_factory=lambda: ["TMN"])
+    allow_usdt_liquidation: bool = True
     endgame: EndgameConfig = EndgameConfig()
     breakers: BreakersConfig = BreakersConfig()
     fees: FeesConfig = FeesConfig()
