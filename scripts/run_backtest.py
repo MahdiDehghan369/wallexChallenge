@@ -87,12 +87,9 @@ def main(argv: list[str] | None = None) -> int:
         warmup_days=warmup,
     )
     if not args.no_report:
-        try:
-            from siavash.backtest.report import write_report
+        from siavash.backtest.report import write_report
 
-            write_report(res)
-        except ImportError:
-            pass
+        print(f"report: {write_report(res)}", file=sys.stderr)
     m = res.metrics
     keys = [
         "net_return_pct",

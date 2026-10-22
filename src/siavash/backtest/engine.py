@@ -159,13 +159,17 @@ async def run_backtest_async(
     await orch.shutdown()
     await asyncio.wait_for(task, timeout=60)
     metrics, trades = metrics_from_logs(logs, float(bcfg.risk.capital_base_tmn))
+    extra = {
+        "config": bcfg,
+        "md": md,
+        "runtime": get_runtime().as_dict(),
+        "model_version": getattr(getattr(pipeline, "scorer", None), "model_version", None),
+    }
     init_runtime(mode=prev_rt.mode, config_hash=prev_rt.config_hash)
     log.info(
         "backtest_done", run_id=run_id, net_return_pct=metrics["net_return_pct"], trades=metrics["n_trades"]
     )
-    return BacktestResult(
-        run_id, out, start, end, uni, metrics, trades, llm_mode, data_source, {"config": bcfg, "md": md}
-    )
+    return BacktestResult(run_id, out, start, end, uni, metrics, trades, llm_mode, data_source, extra)
 
 
 def run_backtest(

@@ -4,8 +4,8 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T10:41:32Z
-- DONE: 57 / 84
+- آخرین به‌روزرسانی: 2026-10-22T10:53:15Z
+- DONE: 58 / 84
 - منتظر انسان: T-109
 - مسدود: —
 
@@ -56,7 +56,7 @@
 | 42 | T-705 | تست‌های جامع ریسک | A | AGENT | T-702, T-703, T-704 | DONE | 7221dcd |  |
 | 43 | T-804 | Reconciliation | A | AGENT | T-1101, T-803 | DONE | 76cbbf4 | رکورد اصلاح: outcome_action=INFO, type=OPERATOR_COMMAND, extra.kind=reconcile (قرارداد نوع RECONCILE ندارد) |
 | 44 | T-601 | Orchestrator | A | AGENT | T-203, T-604, T-703, T-704, T-804, T-1001, T-1101 | DONE | d9ba885 | SimClock (رویدادمحور) برای بک‌تست؛ fillها از طریق tracker به positions؛ تست ۲ روز شبیه‌سازی سبز |
-| 45 | T-501 | لایه انتزاعی LLM | B | AGENT | T-002, T-003 | DONE | 2705e33 | rev: BoxAPI defaults, budget guard (llm.budget), siavash llm-check -> state/llm_capabilities.json |
+| 45 | T-501 | لایه انتزاعی LLM | B | AGENT | T-002, T-003 | DONE | 1fb5842 | rev: BoxAPI defaults, budget guard (llm.budget), siavash llm-check -> state/llm_capabilities.json |
 | 46 | T-502 | کش و Replay پاسخ‌های LLM | B | AGENT | T-501 | DONE | 5f54ddd |  |
 | 47 | T-503 | اسکیماها، اعتبارسنجی و fallback قطعی | B | AGENT | T-502 | DONE | 39dea22 | پارامترهای fallback در llm.fallback_* (base.yaml) |
 | 48 | T-507 | پرامپت‌های نسخه‌دار | B | AGENT | T-503 | DONE | 4986707 | manifest با python -m siavash.agents.prompts --update-manifest |
@@ -71,7 +71,7 @@
 | 57 | T-902 | BacktestBroker، مدل fill، کارمزد و لغزش | B | AGENT | T-806, T-202 | DONE | cf84afb |  |
 | 58 | T-903 | متریک‌های عملکرد | B | AGENT | T-902 | DONE | cc38fd5 |  |
 | 59 | T-901 | موتور بک‌تست | B | AGENT | T-601, T-602, T-902, T-903 | DONE | fc81e9f | default fees 0.35/0.35: all synthetic candidates FEE_TOO_HIGH; test uses lower fees |
-| 60 | T-905 | گزارش‌ساز بک‌تست | B | AGENT | T-901 | TODO |  |  |
+| 60 | T-905 | گزارش‌ساز بک‌تست | B | AGENT | T-901 | DONE |  |  |
 | 61 | T-401 | برچسب‌گذاری Triple-Barrier | B | AGENT | T-305, T-306 | TODO |  |  |
 | 62 | T-402 | ساخت دیتاست | B | AGENT | T-401, T-202 | TODO |  |  |
 | 63 | T-403 | آموزش Walk-forward | B | AGENT | T-402 | TODO |  |  |
