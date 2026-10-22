@@ -262,6 +262,7 @@ class EndgameConfig(_C):
     no_new_entries_hours_before: float = Field(6, ge=0)
     start_unwind_hours_before: float = Field(3, ge=0)
     force_liquidate_hours_before: float = Field(1, ge=0)
+    unwind_passive_timeout_s: float = Field(30, gt=0)
 
     @field_validator("competition_end_utc", mode="before")
     @classmethod

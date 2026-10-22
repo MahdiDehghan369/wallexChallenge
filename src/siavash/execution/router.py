@@ -198,23 +198,44 @@ class OrderRouter:
         decision_id: str | None = None,
         target_price: Decimal | None = None,
     ) -> list[Order]:
-        """Sell ``qty`` for ``reason``. Returns all orders sent (final states)."""
-        did = decision_id or position.entry_decision_id
-        sym = position.symbol
+        """Sell ``qty`` of a position for ``reason``. Returns all orders sent (final states)."""
+        if target_price is None and reason is ExitReason.TAKE_PROFIT:
+            target_price = position.take_profit
+        return await self.sell(
+            position.symbol,
+            qty,
+            decision_id or position.entry_decision_id,
+            reason,
+            book,
+            urgent=reason in URGENT_EXITS,
+            target_price=target_price,
+        )
+
+    async def sell(
+        self,
+        symbol: str,
+        qty: Decimal,
+        decision_id: str,
+        reason: ExitReason,
+        book: OrderBook,
+        urgent: bool = True,
+        target_price: Decimal | None = None,
+        passive_timeout_s: float | None = None,
+    ) -> list[Order]:
+        """Sell ``qty`` of ``symbol``: optional passive attempt at ``max(best_ask, target)``, then up to
+        ``exit_max_attempts`` aggressive LIMITs at ``best_bid × (1 − exit_max_slippage_pct%)``."""
+        did, sym = decision_id, symbol
         leg = EXIT_LEG.get(reason, "X")
         purpose = EXIT_PURPOSE.get(reason, "exit")
         orders: list[Order] = []
         remaining = qty
-        if reason not in URGENT_EXITS and book.best_ask is not None:
-            target = (
-                target_price
-                if target_price is not None
-                else (position.take_profit if reason is ExitReason.TAKE_PROFIT else book.best_ask)
-            )
-            passive = max(book.best_ask, target)
+        if not urgent and book.best_ask is not None:
+            passive = max(book.best_ask, target_price) if target_price is not None else book.best_ask
             o = await self._place(sym, Side.SELL, remaining, passive, did, leg, purpose)
             if o is not None:
-                o = await self._wait(o, self.ex.entry_timeout_s)
+                o = await self._wait(
+                    o, passive_timeout_s if passive_timeout_s is not None else self.ex.entry_timeout_s
+                )
                 o = await self._cancel_rest(o)
                 orders.append(o)
                 remaining -= o.filled_qty

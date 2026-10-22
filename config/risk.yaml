@@ -24,6 +24,7 @@ endgame:
   no_new_entries_hours_before: 6
   start_unwind_hours_before: 3
   force_liquidate_hours_before: 1
+  unwind_passive_timeout_s: 30      # UNWIND: سفارش فروش passive کوتاه، سپس تهاجمی
 breakers:
   api_errors_window_min: 5
   api_errors_threshold: 5
