@@ -20,6 +20,15 @@ from tests.fakes.clock import FakeClock
 
 CFG = load_config(Path(__file__).resolve().parents[3] / "config", env_file=None)
 T0 = datetime(2026, 1, 1, 10, 0, tzinfo=UTC)  # 13:30 Tehran
+OPEN_STORES: list[SqliteStore] = []
+
+
+@pytest.fixture(autouse=True)
+async def _close_stores() -> Any:
+    yield
+    for s in OPEN_STORES:
+        await s.close()
+    OPEN_STORES.clear()
 
 
 def snap(dd: float = 0.0, daily: float = 0.0) -> PortfolioSnapshot:
@@ -45,6 +54,7 @@ async def _ctl(
     alerts: list[dict[str, Any]] = []
     logger = MemoryDecisionLogger()
     store = SqliteStore(tmp_path / "state.sqlite")
+    OPEN_STORES.append(store)
     ctl = BreakerController(store, CFG, clock, alert=lambda k, d: alerts.append(d), decision_logger=logger)
     await ctl.load()
     return ctl, alerts, logger
