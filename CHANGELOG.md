@@ -9,6 +9,14 @@ and an entry under "Versions".
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.
+- T-904 report review: the walk-forward report now shows per-strategy trade counts per sensitivity cell,
+  flags parameters that cannot affect any trade (`inert`, e.g. `s3.z_entry` when the S3 TP cap
+  `s3.tp_pct` < the fee-filter move), labels the summed-return drawdown `sum_dd_pct` and adds a compounded
+  `equity_dd_pct` (`max_position_pct` per trade), marks the ML θ table and the `+ML` variants IN-SAMPLE
+  when the model's training range overlaps the period (decision source: `reports/diagnostics/SUMMARY.md`;
+  no more "consider enabling ML"), counts analyst / reviewer LLM statuses and cache rows per variant, and
+  flags variants below `ml.min_trades_per_day`. New `--reuse-runs` re-reads existing engine logs. No
+  strategy / risk config change.
 - T-901: backtest engine (`siavash.backtest.engine`, `scripts/run_backtest.py`, `make backtest`).
 - T-101 (F5): Wallex endpoints re-done from the official Swagger; `endpoints.VERIFIED = True`.
   Differences from the earlier appendix-H / mock assumptions:

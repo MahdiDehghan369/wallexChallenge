@@ -89,7 +89,7 @@
 | 64 | T-404 | کالیبراسیون و انتخاب آستانه | B | AGENT | T-403 | DONE | caf8700 | real data: θ=0.675 but all θ lose money with 0.35/0.35 fees -> ml.enabled=false |
 | 65 | T-405 | رجیستری مدل و SHAP | B | AGENT | T-404 | DONE | 5c29835 | models/lgbm_v1 from real data (recommend_enabled=false) |
 | 66 | T-406 | ML Scorer | B | AGENT | T-405 | DONE | 2b82698 |  |
-| 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | DONE | da88349 | agent part done; HUMAN: read reports/backtest/walkforward/REPORT.md (real data) and decide final params (+CHANGELOG) |
+| 67 | T-904 | Walk-forward، حساسیت پارامتر و مقایسه نسخه‌ها | B | AGENT+HUMAN | T-905, T-406 | DONE | da88349 | agent part done; report fixed after review (z_entry inert: S3 TP cap 1.5 % < fee-filter 1.75 %; ML θ/+ML IN-SAMPLE; LLM cache empty → +ML+LLM = +ML; +ML 1 trade/84 d fails activity); HUMAN: read reports/backtest/walkforward/REPORT.md + reports/diagnostics/SUMMARY.md and decide final params (+CHANGELOG) |
 | 68 | T-1106 | نسخه‌گذاری دیپلوی | A | AGENT | T-004, T-003 | DONE | fbd0e1f | bash -n ok; shellcheck not installable offline; --dry-run verified in a clean clone |
 | 69 | T-1105 | RUNBOOK | A | AGENT | T-1104, T-1106 | DONE | 83b4cae | network section is a placeholder until T-109 |
 | 70 | T-1003 | مقایسه Backtest ↔ Shadow ↔ Live | B | AGENT | T-901, T-903 | DONE | a1ba73a |  |

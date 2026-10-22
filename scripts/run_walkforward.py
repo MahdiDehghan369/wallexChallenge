@@ -35,6 +35,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--model", default=None, help="model version for the +ML variants (e.g. lgbm_v1)")
     ap.add_argument("--models-root", default=None)
     ap.add_argument("--fee-pct", type=float, default=None, help="what-if maker=taker fee in percent")
+    ap.add_argument(
+        "--reuse-runs",
+        action="store_true",
+        help="re-read engine metrics from existing <out>/runs/*/logs instead of re-running the engine",
+    )
     ap.add_argument("--config", default="config")
     ap.add_argument("--out", default="reports/backtest/walkforward")
     args = ap.parse_args(argv)
@@ -69,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
             args.model,
             args.models_root,
             warmup,
+            args.reuse_runs,
         )
     )
     if args.fee_pct is not None:
