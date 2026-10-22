@@ -1,14 +1,15 @@
 {
   "success": true,
-  "message": "MOCK SCHEMA (not in appendix H) — replace with a real sample",
+  "message": "fixture in the Swagger schema resources.OrderListResponseV1 (result key is not documented)",
   "result": {
     "orders": [
-      {"orderId": "987654321", "clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1", "symbol": "BTCTMN", "type": "LIMIT",
-       "side": "BUY", "price": "7349000000", "origQty": "0.000136", "executedQty": "0", "status": "NEW",
-       "created_at": "2026-11-05T09:15:01Z"},
-      {"orderId": "555", "clientOrderId": "", "symbol": "ETHTMN", "type": "LIMIT",
-       "side": "SELL", "price": "270000000", "origQty": "0.01", "executedQty": "0", "status": "NEW",
-       "created_at": "2026-11-05T08:00:00Z"}
+      {"clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1", "symbol": "BTCTMN", "type": "LIMIT", "side": "BUY",
+       "price": "7349000000", "origQty": "0.000136", "executedQty": "0", "status": "NEW", "active": true,
+       "created_at": "2026-11-05T09:15:01Z", "fills": []},
+      {"clientOrderId": "manual-555", "symbol": "ETHTMN", "type": "LIMIT", "side": "SELL",
+       "price": "270000000", "origQty": "0.01", "executedQty": "0", "status": "NEW", "active": true,
+       "created_at": "2026-11-05T08:00:00Z", "fills": []}
     ]
-  }
+  },
+  "result_info": {}
 }

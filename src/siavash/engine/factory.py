@@ -159,7 +159,12 @@ def build_app(
         assert_endgame_configured(cfg)
     error_counter = ErrorCounter()
     http = WallexHttp.from_config(cfg, error_counter)
-    md = market_data or WallexMarketData(http, clock, ticker_cache_s=cfg.base.exchange.ticker_cache_s)
+    md = market_data or WallexMarketData(
+        http,
+        clock,
+        ticker_cache_s=cfg.base.exchange.ticker_cache_s,
+        min_notional=cfg.base.exchange.min_notional,
+    )
     registry = MarketRegistry(md.list_markets, clock, cfg.strategy.universe.refresh_hours)
     guard = SymbolGuard.from_config(cfg, registry, config_dir)
     store = store or SqliteStore(Path(paths.state) / "state.sqlite")

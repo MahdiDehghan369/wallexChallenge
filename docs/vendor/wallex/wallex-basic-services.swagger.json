@@ -1,0 +1,1576 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the API server for basic-services",
+    "title": "Spot",
+    "version": "1.0",
+    "contact": {}
+  },
+  "host": "api.wallex.com",
+  "basePath": "/",
+  "schemes": ["https"],
+  "paths": {
+    "/v1/account/wallets/{symbol}": {
+      "get": {
+        "operationId": "getAccountWalletBySymbol",
+        "summary": "دریافت آدرس کیف‌پول کاربر برای نماد مشخص",
+        "description": "این API آدرس کیف‌پول مربوط به ارز مورد نظر را بر اساس شبکه انتخاب‌شده (مانند ERC20) بازمی‌گرداند. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "example": "eth",
+            "description": "نماد ارز دیجیتال مورد نظر (مانند ETH)"
+          },
+          {
+            "name": "network",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "example": "erc20",
+            "description": "شبکه مورد نظر برای دریافت آدرس (مثلاً ERC20 یا TRC20)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/AccountWalletResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": {
+                  "coin_type": {
+                    "key": "ETH",
+                    "name": "اتریوم",
+                    "name_en": "Ethereum",
+                    "type": "CRYPTO",
+                    "deposit_availability": "ENABLE",
+                    "withdrawal_availability": "ENABLE",
+                    "deposit_unavailability_reason": null,
+                    "withdrawal_unavailability_reason": null
+                  },
+                  "wallets": {
+                    "ERC20": {
+                      "network": {
+                        "id": 4,
+                        "name": "ERC20",
+                        "message": null,
+                        "type": "ADDRESS",
+                        "deposit_availability": "ENABLE",
+                        "withdrawal_availability": "ENABLE",
+                        "deposit_unavailability_reason": null,
+                        "withdrawal_unavailability_reason": null
+                      },
+                      "address": "0xa1b2c3d4e5f6g7h8i9j0k1l2m3n4o***********",
+                      "memo": null,
+                      "expire_at": "2026-02-21 08:44:47",
+                      "min_confirmation": 10,
+                      "transaction_fee": 0.003,
+                      "min_withdrawal_value": "0.005",
+                      "min_deposit_value": 0.001
+                    }
+                  }
+                },
+                "message": "The operation was successful",
+                "success": true,
+                "provider": "trade"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/v1/account/ibans": {
+      "post": {
+        "operationId": "addAccountIban",
+        "summary": "افزودن شماره شبا جدید به حساب",
+        "description": "این API برای ثبت یک شماره شبا جدید در حساب کاربر استفاده می‌شود. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/AddIbanRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/AddIbanResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": {
+                  "id": 4479113,
+                  "withdraw_daily_amount": null,
+                  "withdraw_available_amount": null,
+                  "iban": "IR5601700000002302857*****",
+                  "owners": ["نام صاحب حساب"],
+                  "bank_name": "بانک ملی ایران",
+                  "status": "PENDING",
+                  "is_default": 0,
+                  "bank_details": {
+                    "code": "MELIIR",
+                    "label": "بانک ملی",
+                    "is_available": 1
+                  }
+                },
+                "message": "The operation was successful",
+                "success": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+
+      "get": {
+        "operationId": "getAccountIbans",
+        "summary": "دریافت لیست شماره شباهای حساب",
+        "description": "این API لیست شماره شباهای بانکی کاربر را به همراه وضعیت، مالک و بانک مربوطه بازمی‌گرداند. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "per_page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "example": 10,
+            "description": "تعداد آیتم‌ها در هر صفحه"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "example": 1,
+            "description": "شماره صفحه مورد نظر"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/AccountIbansResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": [
+                  {
+                    "id": 4479199,
+                    "withdraw_daily_amount": 100000000,
+                    "withdraw_available_amount": 100000000,
+                    "iban": "IR23017000000023028*******",
+                    "owners": ["نام صاحب حساب"],
+                    "bank_name": "MELLI",
+                    "status": "ACCEPTED",
+                    "is_default": 0,
+                    "bank_details": {
+                      "code": "MELIIR",
+                      "label": "بانک ملی",
+                      "is_available": 1
+                    }
+                  }
+                ],
+                "message": "The operation was successful",
+                "success": true,
+                "result_info": {
+                  "page": 1,
+                  "per_page": 5,
+                  "count": 5,
+                  "total_count": 5
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/v1/account/money-withdrawal": {
+      "post": {
+        "operationId": "createMoneyWithdrawal",
+        "summary": "درخواست برداشت وجه از حساب",
+        "description": "این API برای ثبت درخواست برداشت وجه از حساب کاربر استفاده می‌شود. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/MoneyWithdrawalRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "درخواست برداشت با موفقیت ثبت شد",
+            "schema": {
+              "$ref": "#/definitions/MoneyWithdrawalResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": {
+                  "amount": 20000,
+                  "fee": 200,
+                  "tracking_code": "abc12Xx",
+                  "created_at": "2025-10-27T07:24:21Z",
+                  "status": "pending",
+                  "iban": {
+                    "id": 3767240,
+                    "withdraw_daily_amount": null,
+                    "withdraw_available_amount": null,
+                    "iban": "IR56056061182800562*******",
+                    "owners": ["نام صاحب حساب"],
+                    "bank_name": "SAMAN",
+                    "status": "ACCEPTED",
+                    "is_default": 0,
+                    "bank_details": {
+                      "code": "SABCIR",
+                      "label": "بانک سامان",
+                      "is_available": 1
+                    }
+                  },
+                  "details": [
+                    {
+                      "value": 19800,
+                      "status": "pending"
+                    }
+                  ]
+                },
+                "message": "درخواست برداشت ثبت شد",
+                "success": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/v1/account/card-numbers": {
+      "get": {
+        "operationId": "getAccountCardNumbers",
+        "summary": "دریافت شماره کارت‌های بانکی حساب",
+        "description": "این API لیست کارت‌های بانکی کاربر را به همراه وضعیت، مالک و بانک مربوطه بازمی‌گرداند. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/AccountCardNumbersResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": [
+                  {
+                    "id": "شناسه یکتا",
+                    "card_number": "6219861*******32",
+                    "owners": ["نام صاحب حساب"],
+                    "status": "ACCEPTED",
+                    "is_default": 0,
+                    "bank_details": {
+                      "code": "bankCode",
+                      "label": "بانک سامان"
+                    }
+                  }
+                ],
+                "message": "The operation was successful",
+                "success": true,
+                "result_info": {
+                  "page": 1,
+                  "per_page": 4,
+                  "count": 4,
+                  "total_count": 4
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/account/fee": {
+      "get": {
+        "operationId": "getAccountFees",
+        "summary": "دریافت کارمزدهای حساب",
+        "description": "این API نرخ‌های کارمزد میکر و تیکر را برای هر بازار به همراه مجموع حجم معاملات چند روز اخیر باز می‌گرداند. نیازمند API Key در هدر است.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/AccountFeeResponse"
+            },
+            "examples": {
+              "application/json": {
+                "success": true,
+                "message": "عملیات با موفقیت انجام شد",
+                "result": {
+                  "BTCTMN": {
+                    "makerFeeRate": "0.00200000",
+                    "takerFeeRate": "0.00200000",
+                    "recent_days_sum": 250000000.0
+                  },
+                  "BTCUSDT": {
+                    "makerFeeRate": "0.00200000",
+                    "takerFeeRate": "0.00200000",
+                    "recent_days_sum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/v1/trades": {
+      "get": {
+        "operationId": "getLatestTrades",
+        "summary": "دریافت معاملات اخیر",
+        "description": "این API آخرین معاملات انجام‌شده برای نماد مشخص‌شده را برمی‌گرداند.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "example": "USDCUSDT",
+            "description": "نماد معاملاتی مورد نظر"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/LatestTradesResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": {
+                  "latestTrades": [
+                    {
+                      "symbol": "USDCUSDT",
+                      "quantity": "500.0000000000000000",
+                      "price": "1.0000000000000000",
+                      "sum": "500.0000000000000000",
+                      "isBuyOrder": false,
+                      "timestamp": "2025-06-09T13:40:05Z"
+                    },
+                    {
+                      "symbol": "USDCUSDT",
+                      "quantity": "13.6300000000000000",
+                      "price": "0.9944000000000000",
+                      "sum": "13.5536720000000000",
+                      "isBuyOrder": true,
+                      "timestamp": "2025-06-09T10:22:12Z"
+                    }
+                  ]
+                },
+                "message": "The operation was successful",
+                "success": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/hector/web/v1/markets": {
+      "get": {
+        "operationId": "getMarkets",
+        "description": "Retrieve  all markets",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["basic-services"],
+        "summary": "Get all markets ",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/resources.allMarkets"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/depth": {
+      "get": {
+        "operationId": "getMarketDepth",
+        "summary": "دریافت عمق بازار",
+        "description": "این API، لیست سفارشات خرید (bid) و فروش (ask) را برای یک نماد خاص برمی‌گرداند.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "example": "USDCUSDT",
+            "description": "نماد معاملاتی مورد نظر"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "پاسخ موفق",
+            "schema": {
+              "$ref": "#/definitions/MarketDepthResponse"
+            },
+            "examples": {
+              "application/json": {
+                "result": {
+                  "ask": [
+                    {
+                      "price": 1,
+                      "quantity": 24.79,
+                      "sum": "24.79"
+                    },
+                    {
+                      "price": 1.0045,
+                      "quantity": 314.37,
+                      "sum": "315.784665"
+                    }
+                  ],
+                  "bid": [
+                    {
+                      "price": 0.9944,
+                      "quantity": 317.57,
+                      "sum": "315.791608"
+                    },
+                    {
+                      "price": 0.9869,
+                      "quantity": 479.97,
+                      "sum": "473.682393"
+                    }
+                  ]
+                },
+                "message": "عملیات موفقیت‌آمیز بود.",
+                "success": true
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+
+    "/v1/account/balances": {
+      "get": {
+        "operationId": "getAccountBalances",
+        "summary": "Get account balances",
+        "description": "Retrieve the list of all account balances. Requires API key.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/AccountBalancesResponse"
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/v1/udf/history": {
+      "get": {
+        "operationId": "candleHistory",
+        "summary": "Get historical market data (candles)",
+        "description": "Retrieve historical OHLCV data for a symbol. Useful for charting and analysis.",
+        "tags": ["basic-services"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "symbol",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "example": "BTCTMN",
+            "description": "The symbol to retrieve historical data for"
+          },
+          {
+            "name": "resolution",
+            "in": "query",
+            "required": true,
+            "type": "string",
+            "example": "60",
+            "description": "Candle resolution (e.g. 1, 5, 15, 60, D)"
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "example": 1733425200,
+            "description": "Start of time range (Unix timestamp)"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "type": "integer",
+            "format": "int64",
+            "example": 1733428800,
+            "description": "End of time range (Unix timestamp)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "$ref": "#/definitions/MarketHistoryResponse"
+            },
+            "examples": {
+              "application/json": {
+                "s": "ok",
+                "t": [1733425200, 1733428800],
+                "c": [
+                  "7209722048.0000000000000000",
+                  "7235725819.0000000000000000"
+                ],
+                "o": [
+                  "7286137604.0000000000000000",
+                  "7200151050.0000000000000000"
+                ],
+                "h": [
+                  "7286137604.0000000000000000",
+                  "7235725819.0000000000000000"
+                ],
+                "l": [
+                  "7209722048.0000000000000000",
+                  "7150000001.0000000000000000"
+                ],
+                "v": ["0.2544820000000000", "1.0201680000000000"]
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "AccountWalletResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/WalletResult"
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "provider": {
+          "type": "string",
+          "example": "trade"
+        }
+      }
+    },
+
+    "WalletResult": {
+      "type": "object",
+      "properties": {
+        "coin_type": {
+          "$ref": "#/definitions/CoinType"
+        },
+        "wallets": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/WalletDetails"
+          }
+        }
+      }
+    },
+
+    "CoinType": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string",
+          "example": "ETH"
+        },
+        "name": {
+          "type": "string",
+          "example": "اتریوم"
+        },
+        "name_en": {
+          "type": "string",
+          "example": "Ethereum"
+        },
+        "type": {
+          "type": "string",
+          "example": "CRYPTO"
+        },
+        "deposit_availability": {
+          "type": "string",
+          "example": "ENABLE"
+        },
+        "withdrawal_availability": {
+          "type": "string",
+          "example": "ENABLE"
+        },
+        "deposit_unavailability_reason": {
+          "type": ["string", "null"],
+          "example": null
+        },
+        "withdrawal_unavailability_reason": {
+          "type": ["string", "null"],
+          "example": null
+        }
+      }
+    },
+
+    "WalletDetails": {
+      "type": "object",
+      "properties": {
+        "network": {
+          "$ref": "#/definitions/WalletNetwork"
+        },
+        "address": {
+          "type": "string",
+          "example": "0xa1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0"
+        },
+        "memo": {
+          "type": ["string", "null"],
+          "example": null
+        },
+        "expire_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2026-02-21 08:44:47"
+        },
+        "min_confirmation": {
+          "type": "integer",
+          "example": 10
+        },
+        "transaction_fee": {
+          "type": "number",
+          "format": "float",
+          "example": 0.003
+        },
+        "min_withdrawal_value": {
+          "type": "string",
+          "example": "0.005"
+        },
+        "min_deposit_value": {
+          "type": "number",
+          "example": 0.001
+        }
+      }
+    },
+
+    "WalletNetwork": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 4
+        },
+        "name": {
+          "type": "string",
+          "example": "ERC20"
+        },
+        "message": {
+          "type": ["string", "null"],
+          "example": null
+        },
+        "type": {
+          "type": "string",
+          "example": "ADDRESS"
+        },
+        "deposit_availability": {
+          "type": "string",
+          "example": "ENABLE"
+        },
+        "withdrawal_availability": {
+          "type": "string",
+          "example": "ENABLE"
+        },
+        "deposit_unavailability_reason": {
+          "type": ["string", "null"],
+          "example": null
+        },
+        "withdrawal_unavailability_reason": {
+          "type": ["string", "null"],
+          "example": null
+        }
+      }
+    },
+
+    "AddIbanRequest": {
+      "type": "object",
+      "required": ["iban"],
+      "properties": {
+        "iban": {
+          "type": "string",
+          "example": "230170000000230285711000",
+          "description": "شماره شبا بدون پیشوند IR"
+        }
+      }
+    },
+
+    "AddIbanResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/IbanResponseItem"
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+
+    "IbanResponseItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 4479993
+        },
+        "withdraw_daily_amount": {
+          "type": ["number", "null"],
+          "example": 10000000000
+        },
+        "withdraw_available_amount": {
+          "type": ["number", "null"],
+          "example": 10000000000
+        },
+        "iban": {
+          "type": "string",
+          "example": "IR560170000000230285711000"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["نام صاحب حساب"]
+        },
+        "bank_name": {
+          "type": "string",
+          "example": "بانک ملی ایران"
+        },
+        "status": {
+          "type": "string",
+          "example": "PENDING"
+        },
+        "is_default": {
+          "type": "integer",
+          "example": 0
+        },
+        "bank_details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "MELIIR"
+            },
+            "label": {
+              "type": "string",
+              "example": "بانک ملی"
+            },
+            "is_available": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      }
+    },
+    "AccountIbansResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/IbanItem"
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "result_info": {
+          "type": "object",
+          "properties": {
+            "page": {
+              "type": "integer",
+              "example": 1
+            },
+            "per_page": {
+              "type": "integer",
+              "example": 5
+            },
+            "count": {
+              "type": "integer",
+              "example": 5
+            },
+            "total_count": {
+              "type": "integer",
+              "example": 5
+            }
+          }
+        }
+      }
+    },
+
+    "IbanItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 4479113
+        },
+        "withdraw_daily_amount": {
+          "type": ["number", "null"],
+          "example": 100000000
+        },
+        "withdraw_available_amount": {
+          "type": ["number", "null"],
+          "example": 100000000
+        },
+        "iban": {
+          "type": "string",
+          "example": "IR2301700000002302857*****"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["صاحب حساب"]
+        },
+        "bank_name": {
+          "type": "string",
+          "example": "MELLI"
+        },
+        "status": {
+          "type": "string",
+          "example": "ACCEPTED"
+        },
+        "is_default": {
+          "type": "integer",
+          "example": 0
+        },
+        "bank_details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "MELIIR"
+            },
+            "label": {
+              "type": "string",
+              "example": "بانک ملی"
+            },
+            "is_available": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      }
+    },
+
+    "MoneyWithdrawalRequest": {
+      "type": "object",
+      "required": ["iban", "value"],
+      "properties": {
+        "iban": {
+          "type": "integer",
+          "example": 3799240,
+          "description": "شناسه IBAN مورد نظر برای برداشت"
+        },
+        "value": {
+          "type": "number",
+          "example": 20000,
+          "description": "مقدار برداشت (به ریال)"
+        }
+      }
+    },
+
+    "MoneyWithdrawalResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "$ref": "#/definitions/MoneyWithdrawalResult"
+        },
+        "message": {
+          "type": "string",
+          "example": "درخواست برداشت ثبت شد"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+
+    "MoneyWithdrawalResult": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number",
+          "example": 20000
+        },
+        "fee": {
+          "type": "number",
+          "example": 200
+        },
+        "tracking_code": {
+          "type": "string",
+          "example": "abc123x"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-10-27T07:24:21Z"
+        },
+        "status": {
+          "type": "string",
+          "example": "pending"
+        },
+        "iban": {
+          "$ref": "#/definitions/IbanInfo"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/WithdrawalDetail"
+          }
+        }
+      }
+    },
+
+    "IbanInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 3799240
+        },
+        "iban": {
+          "type": "string",
+          "example": "IR560560611828005*****8401"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["نام صاحب حساب"]
+        },
+        "bank_name": {
+          "type": "string",
+          "example": "SAMAN"
+        },
+        "status": {
+          "type": "string",
+          "example": "ACCEPTED"
+        },
+        "is_default": {
+          "type": "integer",
+          "example": 0
+        },
+        "bank_details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "SABCIR"
+            },
+            "label": {
+              "type": "string",
+              "example": "بانک سامان"
+            },
+            "is_available": {
+              "type": "integer",
+              "example": 1
+            }
+          }
+        }
+      }
+    },
+
+    "WithdrawalDetail": {
+      "type": "object",
+      "properties": {
+        "value": {
+          "type": "number",
+          "example": 19800
+        },
+        "status": {
+          "type": "string",
+          "example": "pending"
+        }
+      }
+    },
+
+    "AccountCardNumbersResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CardNumberItem"
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "result_info": {
+          "type": "object",
+          "properties": {
+            "page": {
+              "type": "integer",
+              "example": 1
+            },
+            "per_page": {
+              "type": "integer",
+              "example": 4
+            },
+            "count": {
+              "type": "integer",
+              "example": 4
+            },
+            "total_count": {
+              "type": "integer",
+              "example": 4
+            }
+          }
+        }
+      }
+    },
+    "CardNumberItem": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "example": 100001
+        },
+        "card_number": {
+          "type": "string",
+          "example": "62198610********"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["نام صاحب حساب"]
+        },
+        "status": {
+          "type": "string",
+          "example": "ACCEPTED"
+        },
+        "is_default": {
+          "type": "integer",
+          "example": 1
+        },
+        "bank_details": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "example": "SABCIR"
+            },
+            "label": {
+              "type": "string",
+              "example": "بانک سامان"
+            }
+          }
+        }
+      }
+    },
+    "AccountFeeResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "عملیات با موفقیت انجام شد"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/FeeItem"
+          }
+        }
+      }
+    },
+    "FeeItem": {
+      "type": "object",
+      "properties": {
+        "makerFeeRate": {
+          "type": "string",
+          "example": "0.00200000"
+        },
+        "takerFeeRate": {
+          "type": "string",
+          "example": "0.00200000"
+        },
+        "recent_days_sum": {
+          "type": "number",
+          "format": "double",
+          "example": 250000000.0
+        }
+      }
+    },
+
+    "LatestTradesResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "latestTrades": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/TradeEntry"
+              }
+            }
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "TradeEntry": {
+      "type": "object",
+      "properties": {
+        "symbol": {
+          "type": "string",
+          "example": "USDCUSDT"
+        },
+        "quantity": {
+          "type": "string",
+          "example": "500.0000000000000000"
+        },
+        "price": {
+          "type": "string",
+          "example": "1.0000000000000000"
+        },
+        "sum": {
+          "type": "string",
+          "example": "500.0000000000000000"
+        },
+        "isBuyOrder": {
+          "type": "boolean",
+          "example": false
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "example": "2025-06-09T13:40:05Z"
+        }
+      }
+    },
+
+    "MarketDepthResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "ask": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OrderBookEntry"
+              }
+            },
+            "bid": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/OrderBookEntry"
+              }
+            }
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "عملیات موفقیت‌آمیز بود."
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "OrderBookEntry": {
+      "type": "object",
+      "properties": {
+        "price": {
+          "type": "number",
+          "example": 1.0045
+        },
+        "quantity": {
+          "type": "number",
+          "example": 314.37
+        },
+        "sum": {
+          "type": "string",
+          "example": "315.784665"
+        }
+      }
+    },
+
+    "resources.allMarkets": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "markets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string"
+                  },
+                  "base_asset": {
+                    "type": "string"
+                  },
+                  "quote_asset": {
+                    "type": "string"
+                  },
+                  "fa_base_asset": {
+                    "type": "string"
+                  },
+                  "fa_quote_asset": {
+                    "type": "string"
+                  },
+                  "en_base_asset": {
+                    "type": "string"
+                  },
+                  "en_quote_asset": {
+                    "type": "string"
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "price": {
+                    "type": "string"
+                  },
+                  "change_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "volume_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "change_7D": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "quote_volume_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "spot_is_new": {
+                    "type": "boolean"
+                  },
+                  "otc_is_new": {
+                    "type": "boolean"
+                  },
+                  "is_new": {
+                    "type": "boolean"
+                  },
+                  "is_spot": {
+                    "type": "boolean"
+                  },
+                  "is_otc": {
+                    "type": "boolean"
+                  },
+                  "is_margin": {
+                    "type": "boolean"
+                  },
+                  "is_tmn_based": {
+                    "type": "boolean"
+                  },
+                  "is_usdt_based": {
+                    "type": "boolean"
+                  },
+                  "is_zero_fee": {
+                    "type": "boolean"
+                  },
+                  "leverage_step": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "max_leverage": {
+                    "type": "number"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amount_precision": {
+                    "type": "integer"
+                  },
+                  "price_precision": {
+                    "type": "integer"
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "AccountBalanceItem": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "string",
+          "example": "1BBABYDOGE"
+        },
+        "asset_png_icon": {
+          "type": "string",
+          "format": "uri"
+        },
+        "asset_svg_icon": {
+          "type": "string",
+          "format": "uri"
+        },
+        "faName": {
+          "type": "string",
+          "example": "۱میلیارد بیبی دوج"
+        },
+        "fiat": {
+          "type": "boolean"
+        },
+        "value": {
+          "type": "string",
+          "example": "13.97200000"
+        },
+        "locked": {
+          "type": "string",
+          "example": "0.00000000"
+        },
+        "is_dust": {
+          "type": "boolean"
+        },
+        "is_digital_gold": {
+          "type": "boolean"
+        }
+      }
+    },
+    "AccountBalancesResponse": {
+      "type": "object",
+      "properties": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "balances": {
+              "type": "object",
+              "additionalProperties": {
+                "$ref": "#/definitions/AccountBalanceItem"
+              }
+            }
+          }
+        },
+        "message": {
+          "type": "string",
+          "example": "عملیات با موفقیت انجام شد"
+        },
+        "success": {
+          "type": "boolean",
+          "example": true
+        }
+      }
+    },
+    "MarketHistoryResponse": {
+      "type": "object",
+      "properties": {
+        "s": {
+          "type": "string",
+          "example": "ok"
+        },
+        "t": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "example": [1733425200, 1733428800]
+        },
+        "c": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "7209722048.0000000000000000",
+            "7235725819.0000000000000000"
+          ]
+        },
+        "o": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "7286137604.0000000000000000",
+            "7200151050.0000000000000000"
+          ]
+        },
+        "h": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "7286137604.0000000000000000",
+            "7235725819.0000000000000000"
+          ]
+        },
+        "l": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "7209722048.0000000000000000",
+            "7150000001.0000000000000000"
+          ]
+        },
+        "v": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": ["0.2544820000000000", "1.0201680000000000"]
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "x-api-key",
+      "description": "Use your API key to authenticate requests."
+    }
+  }
+}

@@ -1,6 +1,8 @@
 {
   "success": false,
-  "code": 400,
-  "message": "Insufficient balance (MOCK SCHEMA)",
-  "result": {}
+  "code": 422,
+  "message": "The given data was invalid.",
+  "result": {
+    "quantity": ["Insufficient balance"]
+  }
 }

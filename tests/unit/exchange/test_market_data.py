@@ -105,6 +105,8 @@ async def test_orderbook_trades_markets(respx_mock: respx.MockRouter, md: Wallex
     t1 = await md.get_ticker("BTC/TMN")
     t2 = await md.get_ticker("ETH/TMN")
     assert t1.last == Decimal("7350000000") and t2.symbol == "ETH/TMN"
+    assert t1.bid == Decimal("7349000000") and t1.ask == Decimal("7351000000")  # from /v1/depth
+    assert (await md.get_tickers())["BTC/TMN"].bid is None
     assert mk.call_count == 1  # ticker served from the 5 s cache
     md.clock.advance(6)  # type: ignore[union-attr]
     await md.get_ticker("BTC/TMN")

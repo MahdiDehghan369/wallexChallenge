@@ -1,0 +1,8 @@
+{
+  "success": true,
+  "message": "Swagger example of GET /v1/account/fee",
+  "result": {
+    "BTCTMN": {"makerFeeRate": "0.00200000", "takerFeeRate": "0.00200000", "recent_days_sum": 250000000.0},
+    "BTCUSDT": {"makerFeeRate": "0.00200000", "takerFeeRate": "0.00200000", "recent_days_sum": 0}
+  }
+}

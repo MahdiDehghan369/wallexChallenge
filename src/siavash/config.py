@@ -67,6 +67,10 @@ class ExchangeConfig(_C):
     backoff_min_s: float = Field(0.5, gt=0)
     backoff_max_s: float = Field(8, gt=0)
     ticker_cache_s: float = Field(5, ge=0)
+    # the documented markets endpoint has no spot minimums: conservative per-quote minimum order value
+    min_notional: dict[str, Decimal] = Field(
+        default_factory=lambda: {"TMN": Decimal("100000"), "USDT": Decimal("5")}
+    )
 
 
 class ExecutionConfig(_C):

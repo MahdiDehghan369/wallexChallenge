@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import Any
 
 from siavash.core.interfaces import Clock, MarketData
 from siavash.core.models import Candle, MarketInfo, OrderBook, PublicTrade, Ticker
-from siavash.core.symbols import to_exchange
 from siavash.core.types import Timeframe
 from siavash.exchange import endpoints as ep
 from siavash.exchange.client import WallexHttp
@@ -23,11 +24,13 @@ class WallexMarketData(MarketData):
         clock: Clock | None = None,
         max_bars: int | None = None,
         ticker_cache_s: float = 5.0,
+        min_notional: Mapping[str, Decimal] | None = None,
     ) -> None:
         self.http = http
         self.clock = clock
         self.max_bars = max_bars
         self.ticker_cache_s = ticker_cache_s
+        self.min_notional = min_notional
         self._markets_cache: tuple[datetime, Any] | None = None
 
     def _now(self) -> datetime:
@@ -42,19 +45,23 @@ class WallexMarketData(MarketData):
         return raw
 
     async def list_markets(self) -> list[MarketInfo]:
-        return ep.parse_markets(await self._markets_raw(0))
+        return ep.parse_markets(await self._markets_raw(0), self.min_notional)
 
     async def get_ticker(self, symbol: str) -> Ticker:
-        raw = await self._markets_raw(self.ticker_cache_s)
-        root = ep._result(raw)[ep.F["markets_root"]]
-        key = to_exchange(symbol)
-        if key not in root:
+        """Last price / volume from the markets call (cached) + best bid/ask from ``/v1/depth``."""
+        tickers = await self.get_tickers()
+        if symbol not in tickers:
             raise UnknownMarket(symbol)
-        return ep.parse_ticker(key, root[key], self._now())
+        book = await self.get_orderbook(symbol, depth=1)
+        return tickers[symbol].model_copy(update={"bid": book.best_bid, "ask": book.best_ask})
 
     async def get_tickers(self) -> dict[str, Ticker]:
-        """All tickers from one markets call."""
+        """All tickers from one markets call (no top-of-book: ``bid``/``ask`` are None)."""
         return ep.parse_tickers(await self._markets_raw(self.ticker_cache_s), self._now())
+
+    async def get_all_orderbooks(self) -> dict[str, OrderBook]:
+        """Every market's book from one ``/depth/all`` call."""
+        return ep.parse_all_orderbooks(await self.http.get(ep.Paths.DEPTH_ALL), self._now())
 
     async def get_candles(self, symbol: str, tf: Timeframe, start: datetime, end: datetime) -> list[Candle]:
         """Candles with ``start <= ts_open < end``.

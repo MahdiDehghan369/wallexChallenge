@@ -4,9 +4,9 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T07:12:57Z
-- DONE: 52 / 84
-- منتظر انسان: T-101, T-109
+- آخرین به‌روزرسانی: 2026-10-22T10:33:48Z
+- DONE: 57 / 84
+- منتظر انسان: T-109
 - مسدود: —
 
 ## جدول
@@ -27,7 +27,7 @@
 | 13 | T-304 | ویژگی‌های رژیم و رژیم‌یاب قاعده‌ای | B | AGENT | T-303 | DONE | 46ba3e8 | ویژگی x_btc_ema_trend_1h و نگاشت regime.enabled_strategies در strategy.yaml اضافه شد |
 | 14 | T-305 | Signal Generatorها | B | AGENT | T-304, T-205 | DONE | 4e8b415 | ویژگی کمکی x_implied_dev_mean_pct برای TP در z=0 اضافه شد |
 | 15 | T-306 | فیلتر کارمزد | B | AGENT | T-305 | DONE | 92129cb | با کارمزد بدبینانه 0.35/0.35 حداقل حرکت 1.75٪ است و همه کاندیدهای S3 (سقف TP=1.5٪) رد می‌شوند — کارمزد واقعی لازم است |
-| 16 | T-101 | کشف و مستندسازی API والکس | A | AGENT+HUMAN | T-001 | DONE (UNVERIFIED) | a2d3365 | WAITING_HUMAN: مستندات رسمی API در docs/vendor/wallex/، MCP در docs/vendor/wallex_mcp/، کارمزد maker/taker در docs/vendor/wallex/fees.txt و نمونه پاسخ‌های واقعی در docs/vendor/wallex/samples/ بگذارید؛ بعد پرامپت F5. بخش‌های balances/orders/trades/errors فعلاً MOCK SCHEMA هستند |
+| 16 | T-101 | کشف و مستندسازی API والکس | A | AGENT+HUMAN | T-001 | DONE | a2d3365 | F5 done from official Swagger (VERIFIED=True). UNKNOWN until T-108: spot min order, side/type case, status strings, client_id max len, base host api.wallex.ir vs .com |
 | 17 | T-102 | کلاینت HTTP پایه | A | AGENT | T-101, T-003 | DONE | 58837ac |  |
 | 18 | T-103 | متادیتای بازار و گرد کردن | A | AGENT | T-102 | DONE | 1e27baf |  |
 | 19 | T-104 | endpointهای داده بازار | A | AGENT | T-103 | DONE | 346e8f4 | ticker_cache_s به base.yaml اضافه شد |
@@ -66,11 +66,11 @@
 | 52 | T-602 | Decision Pipeline | B | AGENT | T-601, T-505, T-702, T-306, T-406 (نرم) | DONE | 93bcdb6 |  |
 | 53 | T-1104 | CLI | A | AGENT | T-601 | DONE | 9f05f5c | report/replay/reflect/export تا تسک‌های مربوط not implemented |
 | 54 | T-1102 | Supervisor و Heartbeat | A | AGENT | T-601 | DONE | 30ac530 |  |
-| 55 | T-805 | متریک‌های سرعت | A | AGENT | T-602 | TODO |  |  |
-| 56 | T-1103 | هشدارها | A | AGENT | T-703 | TODO |  |  |
-| 57 | T-902 | BacktestBroker، مدل fill، کارمزد و لغزش | B | AGENT | T-806, T-202 | TODO |  |  |
-| 58 | T-903 | متریک‌های عملکرد | B | AGENT | T-902 | TODO |  |  |
-| 59 | T-901 | موتور بک‌تست | B | AGENT | T-601, T-602, T-902, T-903 | TODO |  |  |
+| 55 | T-805 | متریک‌های سرعت | A | AGENT | T-602 | DONE | 8e095d1 |  |
+| 56 | T-1103 | هشدارها | A | AGENT | T-703 | DONE | 3a97dcf |  |
+| 57 | T-902 | BacktestBroker، مدل fill، کارمزد و لغزش | B | AGENT | T-806, T-202 | DONE | cf84afb |  |
+| 58 | T-903 | متریک‌های عملکرد | B | AGENT | T-902 | DONE | cc38fd5 |  |
+| 59 | T-901 | موتور بک‌تست | B | AGENT | T-601, T-602, T-902, T-903 | DONE | fc81e9f | default fees 0.35/0.35: all synthetic candidates FEE_TOO_HIGH; test uses lower fees |
 | 60 | T-905 | گزارش‌ساز بک‌تست | B | AGENT | T-901 | TODO |  |  |
 | 61 | T-401 | برچسب‌گذاری Triple-Barrier | B | AGENT | T-305, T-306 | TODO |  |  |
 | 62 | T-402 | ساخت دیتاست | B | AGENT | T-401, T-202 | TODO |  |  |

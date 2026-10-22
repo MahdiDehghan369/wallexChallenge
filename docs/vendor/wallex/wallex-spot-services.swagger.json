@@ -1,0 +1,891 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "This is the API server for Spot",
+    "title": "Spot",
+    "contact": {},
+    "version": "1.0"
+  },
+  "host": "api.wallex.com",
+  "basePath": "/",
+  "paths": {
+    "/hector/web/v1/markets": {
+      "get": {
+        "operationId": "getMarkets",
+        "description": "Retrieve  all markets",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Get all markets ",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/resources.allMarkets"
+            }
+          }
+        }
+      }
+    },
+
+    "/depth/all": {
+      "get": {
+        "operationId": "getDepth",
+        "description": "Retrieve market depth for all markets",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Get all markets depth",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/resources.AllMarketDepthResponse"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/account/openOrders": {
+      "get": {
+        "operationId": "getOpenOrder",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get a list of currently active orders",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "List active orders",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Market symbol",
+            "name": "symbol",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Page number (default: 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Items per page",
+            "name": "per_page",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderListResponseV1"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/account/orders": {
+      "get": {
+        "operationId": "getOrders",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get a paginated list of orders with optional filters",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "List orders",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Market symbol",
+            "name": "market",
+            "in": "query"
+          },
+          {
+            "enum": ["STOP_LIMIT", "STOP_MARKET", "LIMIT", "MARKET"],
+            "type": "string",
+            "description": "Order type (STOP_LIMIT, STOP_MARKET, LIMIT, MARKET)",
+            "name": "type",
+            "in": "query"
+          },
+          {
+            "enum": ["BUY", "SELL"],
+            "type": "string",
+            "description": "Order side (BUY, SELL)",
+            "name": "side",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Page number (default: 1)",
+            "name": "page",
+            "in": "query"
+          },
+          {
+            "type": "integer",
+            "description": "Items per page (default: 25, max: 100)",
+            "name": "per_page",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "Start date (format: YYYY-MM-DD)",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "End date (format: YYYY-MM-DD)",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderPaginateResponseV1"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postAccountOrders",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Create a new order for trading with specified parameters",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Submit a new trading order",
+        "parameters": [
+          {
+            "description": "Order details",
+            "name": "order",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/requests.CreateOrderRequest"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Order created successfully",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteAccountOrders",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Cancel a trading order by its client ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Cancel an existing order",
+        "parameters": [
+          {
+            "description": "Order cancellation details",
+            "name": "order",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/requests.CancelOrderRequest"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order cancelled successfully",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/v1/account/orders/{client_id}": {
+      "get": {
+        "operationId": "getOrdersClient",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Get detailed information about a specific order",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Get order details",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Client Order ID",
+            "name": "client_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order details retrieved successfully",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "Order not found",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteOrdersClient",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "description": "Cancel a trading order using the client ID in the URL path",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "tags": ["spot"],
+        "summary": "Cancel an order by path parameter",
+        "parameters": [
+          {
+            "type": "string",
+            "description": "Client Order ID",
+            "name": "client_id",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order cancelled successfully",
+            "schema": {
+              "$ref": "#/definitions/resources.OrderResponse"
+            }
+          },
+          "400": {
+            "description": "Invalid request parameters",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          },
+          "422": {
+            "description": "Validation error",
+            "schema": {
+              "$ref": "#/definitions/resources.ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "requests.CancelOrderRequest": {
+      "type": "object",
+      "required": ["clientOrderId"],
+      "properties": {
+        "clientOrderId": {
+          "type": "string"
+        }
+      }
+    },
+    "requests.CancelSubAccountOrderRequest": {
+      "type": "object",
+      "required": ["client_order_id", "subAccount_client_id"],
+      "properties": {
+        "client_order_id": {
+          "type": "string"
+        },
+        "subAccount_client_id": {
+          "type": "string"
+        }
+      }
+    },
+    "requests.CreateOrderRequest": {
+      "type": "object",
+      "required": ["side", "symbol", "type"],
+      "properties": {
+        "client_id": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string"
+        },
+        "stop_Price": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "requests.CreateSubAccountOrderRequest": {
+      "type": "object",
+      "required": ["side", "symbol", "type"],
+      "properties": {
+        "client_id": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string"
+        },
+        "stop_Price": {
+          "type": "string"
+        },
+        "subAccount_client_id": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      }
+    },
+    "resources.AllMarketDepthResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/resources.MarketDepthResource"
+          }
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.DepthTupleResource": {
+      "type": "object",
+      "properties": {
+        "price": {
+          "type": "number"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "sum": {
+          "type": "number"
+        }
+      }
+    },
+    "resources.ErrorResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer"
+        },
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {}
+          }
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.MarketDepthResource": {
+      "type": "object",
+      "properties": {
+        "ask": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resources.DepthTupleResource"
+          }
+        },
+        "bid": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resources.DepthTupleResource"
+          }
+        }
+      }
+    },
+    "resources.OrderListResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resources.OrderResource"
+          }
+        },
+        "result_info": {},
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.OrderListResponseV1": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/resources.OrderResource"
+            }
+          }
+        },
+        "result_info": {},
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.OrderPaginateResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resources.OrderResource"
+          }
+        },
+        "result_info": {},
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.OrderPaginateResponseV1": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/resources.OrderResource"
+            }
+          }
+        },
+        "result_info": {},
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.OrderResource": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "clientOrderId": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "executedPercent": {
+          "type": "integer"
+        },
+        "executedPrice": {
+          "type": "string"
+        },
+        "executedQty": {
+          "type": "string"
+        },
+        "executedSum": {
+          "type": "string"
+        },
+        "fee": {
+          "type": "string"
+        },
+        "fills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/resources.TradeResource"
+          }
+        },
+        "origQty": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "side": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "stopPrice": {
+          "type": "string"
+        },
+        "stopPriceCondition": {
+          "type": "string"
+        },
+        "sum": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "transactTime": {
+          "type": "integer"
+        },
+        "type": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "resources.OrderResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/definitions/resources.OrderResource"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.SingleMarketDepthResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        },
+        "result": {
+          "$ref": "#/definitions/resources.MarketDepthResource"
+        },
+        "success": {
+          "type": "boolean"
+        }
+      }
+    },
+    "resources.TradeResource": {
+      "type": "object",
+      "properties": {
+        "fee": {
+          "type": "string"
+        },
+        "feeAsset": {
+          "type": "string"
+        },
+        "feeCoefficient": {
+          "type": "string"
+        },
+        "isBuyer": {
+          "type": "boolean"
+        },
+        "makerFeeCoefficient": {
+          "type": "string"
+        },
+        "price": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "string"
+        },
+        "sum": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "takerFeeCoefficient": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "string"
+        }
+      }
+    },
+    "resources.allMarkets": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean",
+          "example": true
+        },
+        "message": {
+          "type": "string",
+          "example": "The operation was successful"
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "markets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "symbol": {
+                    "type": "string"
+                  },
+                  "base_asset": {
+                    "type": "string"
+                  },
+                  "quote_asset": {
+                    "type": "string"
+                  },
+                  "fa_base_asset": {
+                    "type": "string"
+                  },
+                  "fa_quote_asset": {
+                    "type": "string"
+                  },
+                  "en_base_asset": {
+                    "type": "string"
+                  },
+                  "en_quote_asset": {
+                    "type": "string"
+                  },
+                  "categories": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  },
+                  "price": {
+                    "type": "string"
+                  },
+                  "change_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "volume_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "change_7D": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "quote_volume_24h": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "spot_is_new": {
+                    "type": "boolean"
+                  },
+                  "otc_is_new": {
+                    "type": "boolean"
+                  },
+                  "is_new": {
+                    "type": "boolean"
+                  },
+                  "is_spot": {
+                    "type": "boolean"
+                  },
+                  "is_otc": {
+                    "type": "boolean"
+                  },
+                  "is_margin": {
+                    "type": "boolean"
+                  },
+                  "is_tmn_based": {
+                    "type": "boolean"
+                  },
+                  "is_usdt_based": {
+                    "type": "boolean"
+                  },
+                  "is_zero_fee": {
+                    "type": "boolean"
+                  },
+                  "leverage_step": {
+                    "type": "number",
+                    "format": "float"
+                  },
+                  "max_leverage": {
+                    "type": "number"
+                  },
+                  "created_at": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "amount_precision": {
+                    "type": "integer"
+                  },
+                  "price_precision": {
+                    "type": "integer"
+                  },
+                  "flags": {
+                    "type": "array",
+                    "items": {}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "ApiKeyAuth": {
+      "type": "apiKey",
+      "in": "header",
+      "name": "x-api-key",
+      "description": "Use your API key to authenticate requests."
+    }
+  }
+}

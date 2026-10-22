@@ -2,15 +2,16 @@
 
 Every order is rounded with the ``MarketRegistry``, checked against minimums and passed through
 the ``SymbolGuard`` **before** any HTTP request. Order placement is never retried here (T-802).
-Because client-order-id support is unverified, the ``order_id ↔ client_order_id`` mapping is kept
-locally in ``OrderIdMap`` (SQLite under ``state/``).
+Wallex identifies orders by the ``client_id`` we send (Swagger), so status / cancel use it directly;
+``OrderIdMap`` (SQLite under ``state/``) still records every client id we submitted.
 """
 
 from __future__ import annotations
 
 import sqlite3
 import threading
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Any, Protocol
 
@@ -138,6 +139,10 @@ class WallexAccount:
     async def get_balances(self) -> dict[str, Balance]:
         return ep.parse_balance(await self.http.get(ep.Paths.BALANCES, private=True))
 
+    async def get_fees(self) -> dict[str, tuple[Decimal, Decimal]]:
+        """``{symbol: (maker_pct, taker_pct)}`` for this account (read-only)."""
+        return ep.parse_fees(await self.http.get(ep.Paths.FEE, private=True))
+
     async def place_order(self, req: OrderRequest) -> Order:
         """Validate, then POST once (no automatic retry)."""
         req = self.prepare(req)
@@ -156,36 +161,37 @@ class WallexAccount:
         )
         return order
 
+    def _client_id(self, client_order_id: str | None, order_id: str | None) -> str:
+        """Wallex keys orders by the client id; an ``order_id`` is mapped back through the id map."""
+        cid = client_order_id or (self.id_map.client_id_for(order_id) if order_id else None) or order_id
+        if not cid:
+            raise OrderNotFound("order_id or client_order_id required")
+        return cid
+
     async def cancel_order(
         self, symbol: str, client_order_id: str | None = None, order_id: str | None = None
     ) -> Order:
-        """Cancel by exchange id (looked up from the id map) or by client id."""
-        if order_id is None and client_order_id:
-            order_id = self.id_map.order_id_for(client_order_id)
-        if order_id is None and client_order_id is None:
-            raise OrderNotFound("order_id or client_order_id required")
-        raw = await self.http.delete(ep.Paths.ORDERS, json=ep.cancel_body(order_id, client_order_id))
+        """``DELETE /v1/account/orders/{client_id}``."""
+        cid = self._client_id(client_order_id, order_id)
+        raw = await self.http.delete(ep.order_path(cid))
         result = ep._result(raw)
         if isinstance(result, dict) and ep.F["ord_symbol"] in result:
-            return self._with_client_id(ep.parse_order(raw), client_order_id)
-        got = await self.get_order(symbol, client_order_id or "", order_id=order_id)
+            return ep.parse_order(raw, fallback_client_order_id=cid)
+        got = await self.get_order(symbol, cid)
         if got is None:
-            raise OrderNotFound(f"{client_order_id or order_id}")
+            raise OrderNotFound(cid)
         return got
 
     async def get_order(self, symbol: str, client_order_id: str, order_id: str | None = None) -> Order | None:
-        """Order by exchange id (from the id map); falls back to scanning open orders by client id."""
-        order_id = order_id or self.id_map.order_id_for(client_order_id)
-        if order_id:
-            try:
-                raw = await self.http.get(ep.Paths.ORDER.format(order_id=order_id), private=True)
-            except OrderNotFound:
-                return None
-            return self._with_client_id(ep.parse_order(raw), client_order_id or None)
-        for o in await self.get_open_orders(symbol):
-            if o.client_order_id == client_order_id:
-                return o
-        return None
+        """``GET /v1/account/orders/{client_id}``; None if the exchange does not know it."""
+        raw = await self._order_raw(self._client_id(client_order_id or None, order_id))
+        return None if raw is None else ep.parse_order(raw)
+
+    async def _order_raw(self, client_order_id: str) -> Any:
+        try:
+            return await self.http.get(ep.order_path(client_order_id), private=True)
+        except OrderNotFound:
+            return None
 
     async def get_open_orders(self, symbol: str | None = None) -> list[Order]:
         params: dict[str, Any] | None = ep.symbol_params(symbol) if symbol else None
@@ -193,15 +199,30 @@ class WallexAccount:
         return [self._with_client_id(o) for o in ep.parse_open_orders(raw)]
 
     async def get_my_trades(self, since: datetime, symbol: str | None = None) -> list[Fill]:
+        """Fills since ``since``. There is no user-trades endpoint: fills come from ``fills[]`` of the
+        order history (paged) and of open orders; an order with executed quantity but no ``fills[]`` in
+        the list is re-read by client id. De-duplicated by ``fill_id``."""
+        # the history filter is a UTC date; start one day early so no fill near midnight is missed
+        start = since - timedelta(days=1)
+        rows: list[dict[str, Any]] = []
+        for page in range(1, ep.ORDERS_MAX_PAGES + 1):
+            raw = await self.http.get(
+                ep.Paths.ORDERS, params=ep.orders_history_params(start, page, symbol), private=True
+            )
+            rows.extend(ep._rows(ep._result(raw)))
+            if ep.page_size(raw) < ep.ORDERS_PER_PAGE:
+                break
         params: dict[str, Any] | None = ep.symbol_params(symbol) if symbol else None
-        raw = await self.http.get(ep.Paths.MY_TRADES, params=params, private=True)
-        out = []
-        for f in ep.parse_fills(raw):
-            if f.ts < since:
-                continue
-            if not f.client_order_id and f.order_id:
-                cid = self.id_map.client_id_for(f.order_id)
-                if cid:
-                    f = f.model_copy(update={"client_order_id": cid})
-            out.append(f)
-        return out
+        rows.extend(
+            ep._rows(ep._result(await self.http.get(ep.Paths.OPEN_ORDERS, params=params, private=True)))
+        )
+        seen: dict[str, Fill] = {}
+        for row in rows:
+            fills = ep.parse_order_fills(row)
+            if not fills and Decimal(str(row.get(ep.F["ord_filled"]) or 0)) > 0:
+                detail = await self._order_raw(str(row.get(ep.F["ord_client_id"]) or ""))
+                fills = ep.parse_order_fills(detail) if detail is not None else []
+            for f in fills:
+                if f.ts >= since:
+                    seen.setdefault(f.fill_id, f)
+        return sorted(seen.values(), key=lambda f: f.ts)

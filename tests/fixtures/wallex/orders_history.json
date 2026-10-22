@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "message": "fixture in the Swagger schema resources.OrderPaginateResponseV1 (result key is not documented)",
+  "result": {
+    "orders": [
+      {"clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-E1", "symbol": "BTCTMN", "type": "LIMIT", "side": "BUY",
+       "price": "7349000000", "origQty": "0.000136", "executedQty": "0.000136", "executedPrice": "7349000000",
+       "status": "FILLED", "active": false, "created_at": "2026-11-05T09:15:01Z", "updated_at": "2026-11-05T09:16:10Z",
+       "fills": [
+         {"symbol": "BTCTMN", "price": "7349000000", "quantity": "0.000086", "sum": "632014", "fee": "0.000000301",
+          "feeAsset": "BTC", "isBuyer": true, "timestamp": "2026-11-05T09:16:10Z"},
+         {"symbol": "BTCTMN", "price": "7349000000", "quantity": "0.000050", "sum": "367450", "fee": "0.000000175",
+          "feeAsset": "BTC", "isBuyer": true, "timestamp": "2026-11-05T09:15:30Z"}
+       ]},
+      {"clientOrderId": "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-X1", "symbol": "BTCTMN", "type": "MARKET", "side": "SELL",
+       "price": null, "origQty": "0.000136", "executedQty": "0.000136", "executedPrice": "7400000000",
+       "status": "FILLED", "active": false, "created_at": "2026-11-05T11:00:00Z", "fills": []}
+    ]
+  },
+  "result_info": {}
+}

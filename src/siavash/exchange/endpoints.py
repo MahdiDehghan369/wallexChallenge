@@ -1,19 +1,18 @@
 """Wallex REST endpoints, field names and response parsers (T-101).
 
-⚠️ VERIFIED = False — built from appendix H of WALLEX_AGENT_PLAN.md (public, possibly stale info).
-No official docs were present in ``docs/vendor/wallex/``.
-
-PUBLIC endpoints (markets, depth, trades, udf/history) were OBSERVED with read-only requests on
-2026-10-22; real samples are in ``tests/fixtures/wallex/real/``. Private endpoints (balances,
-order and user-trade payloads, error bodies) still use a **MOCK SCHEMA** defined only here so the
-rest of the code can be built and tested. When official docs arrive, only this file,
-``docs/wallex_api_notes.md`` and ``tests/fixtures/wallex/*.json`` must change.
+✅ VERIFIED = True — paths, request bodies and response schemas come from the official Swagger files in
+``docs/vendor/wallex/`` (``wallex-spot-services.swagger.json``, ``wallex-basic-services.swagger.json``).
+Public endpoints were also OBSERVED with read-only requests on 2026-10-22 (samples in
+``tests/fixtures/wallex/real/``). Where Swagger is silent, the item is marked UNKNOWN below and is
+resolved by the human smoke test (T-108); the code then uses a conservative default.
 
 This is the ONLY module that knows Wallex URLs, paths or field names.
 """
 
 from __future__ import annotations
 
+import hashlib
+from collections.abc import Mapping
 from datetime import UTC, datetime
 from decimal import Decimal, InvalidOperation
 from typing import Any
@@ -33,32 +32,32 @@ from siavash.core.models import (
 from siavash.core.symbols import to_canonical, to_exchange
 from siavash.core.types import OrderStatus, OrderType, Side, Timeframe
 
-VERIFIED = False
+VERIFIED = True
 
+# Swagger host is api.wallex.com, the MCP server is on api.wallex.ir; the public API answered on
+# api.wallex.ir (2026-10-22). Override with env WALLEX_BASE_URL; T-108 picks the final one.
 BASE_URL = "https://api.wallex.ir"
-AUTH_HEADER = "X-API-Key"  # appendix H
+AUTH_HEADER = "x-api-key"  # Swagger securityDefinitions.ApiKeyAuth
 
 
 class Paths:
-    """REST paths (appendix H)."""
+    """REST paths (Swagger). Only spot trading + read-only account endpoints are defined here."""
 
-    MARKETS = "/v1/markets"
+    MARKETS = "/hector/web/v1/markets"
     DEPTH = "/v1/depth"
+    DEPTH_ALL = "/depth/all"
     TRADES = "/v1/trades"
     CANDLES = "/v1/udf/history"
     BALANCES = "/v1/account/balances"
-    ORDERS = "/v1/account/orders"  # POST place, DELETE cancel
-    ORDER = "/v1/account/orders/{order_id}"  # GET status
+    FEE = "/v1/account/fee"
+    ORDERS = "/v1/account/orders"  # POST place, GET paginated history
+    ORDER = "/v1/account/orders/{client_id}"  # GET status, DELETE cancel
     OPEN_ORDERS = "/v1/account/openOrders"
-    MY_TRADES = "/v1/account/trades"
-    FEE = "/v1/account/fee"  # "احتمالی" in appendix H
 
 
-PRIVATE_PATHS = frozenset(
-    {Paths.BALANCES, Paths.ORDERS, Paths.ORDER, Paths.OPEN_ORDERS, Paths.MY_TRADES, Paths.FEE}
-)
+PRIVATE_PATHS = frozenset({Paths.BALANCES, Paths.FEE, Paths.ORDERS, Paths.ORDER, Paths.OPEN_ORDERS})
 
-# UDF resolutions — OBSERVED 2026-10-22 (not documented):
+# UDF resolutions — Swagger says "e.g. 1, 5, 15, 60, D", but OBSERVED 2026-10-22:
 #   "15" -> 1-minute bars (sparse: minutes without trades are missing), history >= 120 days
 #   "60", "240", "720" -> 1-hour bars;  "1D" -> daily;  "1" -> no_data;
 #   "5", "30", "120", "180", "360", "1W" -> {"s": "error", "errmsg": "Invalid resolution!"}
@@ -82,32 +81,30 @@ CANDLE_SOURCES: dict[Timeframe, CandleSource] = {
     Timeframe.H4: CandleSource("60", 3600, 600),
 }
 RESOLUTIONS: dict[Timeframe, str] = {tf: s.resolution for tf, s in CANDLE_SOURCES.items()}
-TRADES_MAX = 100  # UNVERIFIED
 
-# client order id support — UNKNOWN (appendix H: body field "client_id" is "احتمالی")
-SUPPORTS_CLIENT_ORDER_ID: bool | None = None
-CLIENT_ID_MAX_LEN: int | None = None
-# spot stop orders — UNKNOWN; stop-loss is enforced client side (section 4.5)
-SUPPORTS_SPOT_STOP: bool | None = None
+ORDERS_PER_PAGE = 100  # Swagger: per_page max 100
+ORDERS_MAX_PAGES = 50  # safety stop for history paging
+
+# Orders are identified by the client id we send (``client_id``); Swagger has no exchange order id.
+SUPPORTS_CLIENT_ORDER_ID = True
+CLIENT_ID_MAX_LEN: int | None = None  # UNKNOWN (T-108)
+# Swagger defines STOP_LIMIT / STOP_MARKET, but the bot only uses LIMIT and MARKET;
+# stop-loss stays client side (section 4.5).
+SUPPORTS_SPOT_STOP = False
 
 # ---------------------------------------------------------------------------- field names
-# Public endpoints: names from appendix H. Fields marked MOCK are placeholders (not documented).
 F: dict[str, str] = {
-    # markets  (result.symbols{SYMBOL: {...}})
-    "markets_root": "symbols",
-    "base": "baseAsset",
-    "quote": "quoteAsset",
-    "stats": "stats",
-    "stat_bid": "bidPrice",  # MOCK name (H: "bid")
-    "stat_ask": "askPrice",  # MOCK name (H: "ask")
-    "stat_last": "lastPrice",  # MOCK name (H: "last")
-    "stat_vol_quote": "24h_quoteVolume",  # MOCK name (H: "24h volume")
-    "min_qty": "minQty",  # H: "احتمالاً"
-    "min_notional": "minNotional",  # H: "احتمالاً"
-    "qty_precision": "stepSize",  # MOCK: number of decimals for quantity
-    "price_precision": "tickSize",  # MOCK: number of decimals for price
-    "is_active": "isActive",  # MOCK (missing -> treated as active)
-    # depth (result.ask[] / result.bid[])
+    # markets  (result.markets[])
+    "markets_root": "markets",
+    "mkt_symbol": "symbol",
+    "base": "base_asset",
+    "quote": "quote_asset",
+    "price_precision": "price_precision",  # number of decimals -> tick = 10^-n
+    "qty_precision": "amount_precision",  # number of decimals -> step = 10^-n
+    "is_spot": "is_spot",
+    "mkt_price": "price",
+    "mkt_vol_quote": "quote_volume_24h",
+    # depth (result.ask[] / result.bid[]);  depth/all: result{SYMBOL: {ask, bid}}
     "depth_ask": "ask",
     "depth_bid": "bid",
     "lvl_price": "price",
@@ -126,19 +123,22 @@ F: dict[str, str] = {
     "udf_l": "l",
     "udf_c": "c",
     "udf_v": "v",
-    # balances — MOCK SCHEMA: result.balances{ASSET: {asset, value, locked}}
+    # balances: result.balances{ASSET: {asset, value (total), locked}}
     "balances_root": "balances",
     "bal_asset": "asset",
     "bal_total": "value",
     "bal_locked": "locked",
-    # order — MOCK SCHEMA (request body names from appendix H)
+    # fee: result{SYMBOL: {makerFeeRate, takerFeeRate}} (fractions, 0.002 = 0.2 %)
+    "fee_maker": "makerFeeRate",
+    "fee_taker": "takerFeeRate",
+    # order request (requests.CreateOrderRequest; all values are strings)
     "req_symbol": "symbol",
     "req_side": "side",
     "req_type": "type",
     "req_price": "price",
     "req_qty": "quantity",
     "req_client_id": "client_id",
-    "ord_id": "orderId",
+    # order (resources.OrderResource)
     "ord_client_id": "clientOrderId",
     "ord_symbol": "symbol",
     "ord_side": "side",
@@ -148,39 +148,49 @@ F: dict[str, str] = {
     "ord_filled": "executedQty",
     "ord_avg_price": "executedPrice",
     "ord_status": "status",
+    "ord_active": "active",
     "ord_created": "created_at",
     "ord_updated": "updated_at",
-    "open_orders_root": "orders",
-    # user trades — MOCK SCHEMA: result.AccountLatestTrades[]
-    "my_trades_root": "AccountLatestTrades",
-    "fill_id": "id",
-    "fill_order_id": "orderId",
-    "fill_client_id": "clientOrderId",
-    "fill_symbol": "symbol",
-    "fill_side": "side",
+    "ord_transact_time": "transactTime",
+    "ord_fills": "fills",
+    # fill (resources.TradeResource inside OrderResource.fills[])
     "fill_price": "price",
     "fill_qty": "quantity",
     "fill_fee": "fee",
     "fill_fee_asset": "feeAsset",
+    "fill_is_buyer": "isBuyer",
     "fill_ts": "timestamp",
-    "fill_is_maker": "isMaker",
-    # errors — MOCK SCHEMA: {"success": false, "code": int, "message": str}
+    # order history query (GET /v1/account/orders)
+    "q_market": "market",
+    "q_page": "page",
+    "q_per_page": "per_page",
+    "q_from": "from",
+    "q_to": "to",
+    # errors (resources.ErrorResponse): {success, code, message, result{field: [messages]}}
     "err_code": "code",
     "err_message": "message",
 }
 
-# MOCK status strings -> OrderStatus
+# Request enums: Swagger lists BUY/SELL and LIMIT/MARKET (upper case) for the order filters;
+# the case accepted in the POST body is UNKNOWN until T-108.
+SIDE_VALUES: dict[Side, str] = {Side.BUY: "BUY", Side.SELL: "SELL"}
+TYPE_VALUES: dict[OrderType, str] = {OrderType.LIMIT: "LIMIT", OrderType.MARKET: "MARKET"}
+
+# Status strings are UNKNOWN (Swagger: "status: string"); common spellings are mapped and anything
+# else is derived from ``active`` + executed quantity (see ``_status``).
 STATUS_MAP: dict[str, OrderStatus] = {
     "NEW": OrderStatus.NEW,
+    "OPEN": OrderStatus.NEW,
     "PARTIALLY_FILLED": OrderStatus.PARTIALLY_FILLED,
     "FILLED": OrderStatus.FILLED,
+    "DONE": OrderStatus.FILLED,
     "CANCELED": OrderStatus.CANCELED,
     "CANCELLED": OrderStatus.CANCELED,
     "REJECTED": OrderStatus.REJECTED,
     "EXPIRED": OrderStatus.EXPIRED,
 }
 
-# Error kinds understood by siavash.exchange.errors (mapping is UNVERIFIED, mostly HTTP-status based)
+# Error kinds understood by siavash.exchange.errors (codes are UNKNOWN: mapping by HTTP status + text)
 ERR_AUTH = "auth"
 ERR_RATE_LIMITED = "rate_limited"
 ERR_INSUFFICIENT_BALANCE = "insufficient_balance"
@@ -191,7 +201,7 @@ ERR_ORDER_NOT_FOUND = "order_not_found"
 ERR_SERVER = "server"
 ERR_BAD_REQUEST = "bad_request"
 
-_MESSAGE_HINTS: tuple[tuple[str, str], ...] = (  # MOCK keyword hints on the error message
+_MESSAGE_HINTS: tuple[tuple[str, str], ...] = (  # keyword hints on the error message (UNVERIFIED)
     ("insufficient", ERR_INSUFFICIENT_BALANCE),
     ("balance", ERR_INSUFFICIENT_BALANCE),
     ("precision", ERR_INVALID_PRECISION),
@@ -242,12 +252,25 @@ def _ts(v: Any) -> datetime:
 
 
 def _step(decimals: Any, default: str) -> Decimal:
+    """Number of decimals -> step (``8`` -> ``0.00000001``)."""
     if decimals is None or decimals == "":
         return Decimal(default)
-    d = Decimal(str(decimals))
-    if d >= 1 or d == 0:  # number of decimals
-        return Decimal(1).scaleb(-int(d))
-    return d  # already a step size
+    return Decimal(1).scaleb(-int(decimals))
+
+
+def _rows(result: Any) -> list[dict[str, Any]]:
+    """Order lists: Swagger types ``result`` as ``{key: [OrderResource]}`` (key UNKNOWN) or a list."""
+    if isinstance(result, list):
+        return [x for x in result if isinstance(x, dict)]
+    if isinstance(result, dict):
+        if F["ord_symbol"] in result:  # a single order
+            return [result]
+        out: list[dict[str, Any]] = []
+        for v in result.values():
+            if isinstance(v, list):
+                out.extend(x for x in v if isinstance(x, dict))
+        return out
+    return []
 
 
 # ---------------------------------------------------------------------------- request builders
@@ -268,12 +291,17 @@ def symbol_params(symbol: str) -> dict[str, str]:
     return {"symbol": to_exchange(symbol)}
 
 
+def order_path(client_order_id: str) -> str:
+    """``/v1/account/orders/{client_id}`` (GET status, DELETE cancel)."""
+    return Paths.ORDER.format(client_id=client_order_id)
+
+
 def order_body(req: OrderRequest) -> dict[str, Any]:
-    """POST body for ``Paths.ORDERS`` (names from appendix H; ``client_id`` support unknown)."""
+    """POST body for ``Paths.ORDERS`` (``requests.CreateOrderRequest``: every value is a string)."""
     body: dict[str, Any] = {
         F["req_symbol"]: to_exchange(req.symbol),
-        F["req_side"]: req.side.value,
-        F["req_type"]: req.type.value,
+        F["req_side"]: SIDE_VALUES[req.side],
+        F["req_type"]: TYPE_VALUES[req.type],
         F["req_qty"]: str(req.qty),
         F["req_client_id"]: req.client_order_id,
     }
@@ -282,69 +310,75 @@ def order_body(req: OrderRequest) -> dict[str, Any]:
     return body
 
 
-def cancel_body(order_id: str | None = None, client_order_id: str | None = None) -> dict[str, Any]:
-    """DELETE body for ``Paths.ORDERS`` (MOCK field names)."""
-    if order_id:
-        return {F["ord_id"]: order_id}
-    if client_order_id:
-        return {F["ord_client_id"]: client_order_id}
-    raise ValueError("order_id or client_order_id required")
+def orders_history_params(
+    since: datetime, page: int, symbol: str | None = None, until: datetime | None = None
+) -> dict[str, Any]:
+    """Query for ``GET Paths.ORDERS``; ``from``/``to`` are dates (``YYYY-MM-DD``, inclusive)."""
+    p: dict[str, Any] = {
+        F["q_from"]: since.astimezone(UTC).date().isoformat(),
+        F["q_page"]: page,
+        F["q_per_page"]: ORDERS_PER_PAGE,
+    }
+    if until is not None:
+        p[F["q_to"]] = until.astimezone(UTC).date().isoformat()
+    if symbol:
+        p[F["q_market"]] = to_exchange(symbol)
+    return p
 
 
 # ---------------------------------------------------------------------------- parsers
 
 
-def parse_market(exchange_symbol: str, raw: dict[str, Any]) -> MarketInfo:
-    """One entry of ``result.symbols``."""
+def parse_market(raw: dict[str, Any], min_notional: Mapping[str, Decimal] | None = None) -> MarketInfo:
+    """One entry of ``result.markets``. Swagger has no spot minimums: ``min_qty`` = one quantity step,
+    ``min_notional`` from ``min_notional[quote]`` (config ``exchange.min_notional``)."""
+    exchange_symbol = str(raw.get(F["mkt_symbol"]) or "")
     base = str(raw.get(F["base"]) or "").upper()
     quote = str(raw.get(F["quote"]) or "").upper()
     symbol = f"{base}/{quote}" if base and quote else to_canonical(exchange_symbol)
-    active = raw.get(F["is_active"])
+    base, quote = symbol.split("/")
+    qty_step = _step(raw.get(F["qty_precision"]), "0.000001")
+    spot = bool(raw.get(F["is_spot"], True))
+    mins = DEFAULT_MIN_NOTIONAL if min_notional is None else min_notional
     return MarketInfo(
         symbol=symbol,
-        exchange_symbol=exchange_symbol,
-        base=symbol.split("/")[0],
-        quote=symbol.split("/")[1],
+        exchange_symbol=exchange_symbol or to_exchange(symbol),
+        base=base,
+        quote=quote,
         price_tick=_step(raw.get(F["price_precision"]), "1"),
-        qty_step=_step(raw.get(F["qty_precision"]), "0.000001"),
-        min_qty=_dec(raw.get(F["min_qty"]), Decimal("0")),
-        min_notional=_dec(raw.get(F["min_notional"]), Decimal("0")),
-        is_active=True if active is None else bool(active),
-        is_spot=True,
+        qty_step=qty_step,
+        min_qty=qty_step,
+        min_notional=Decimal(str(mins.get(quote, 0))),
+        is_active=spot,
+        is_spot=spot,
     )
 
 
-def parse_markets(resp: Any) -> list[MarketInfo]:
-    """``GET /v1/markets`` -> markets."""
-    root = _result(resp)[F["markets_root"]]
-    items = root.items() if isinstance(root, dict) else ((r.get("symbol", ""), r) for r in root)
-    return [parse_market(k, v) for k, v in items]
+# Used only when no config is passed (tests, scripts); runtime passes ``cfg.base.exchange.min_notional``.
+DEFAULT_MIN_NOTIONAL: dict[str, Decimal] = {"TMN": Decimal("100000"), "USDT": Decimal("5")}
 
 
-def parse_ticker(exchange_symbol: str, raw: dict[str, Any], ts: datetime) -> Ticker:
-    """Ticker from the ``stats`` block of a market entry."""
-    st = raw.get(F["stats"]) or {}
-    m = parse_market(exchange_symbol, raw)
-    return Ticker(
-        symbol=m.symbol,
-        ts=ts,
-        last=_dec(st.get(F["stat_last"])),
-        bid=_opt_dec(st.get(F["stat_bid"])),
-        ask=_opt_dec(st.get(F["stat_ask"])),
-        volume_24h_quote=_dec(st.get(F["stat_vol_quote"]), Decimal("0")),
-    )
+def parse_markets(resp: Any, min_notional: Mapping[str, Decimal] | None = None) -> list[MarketInfo]:
+    """``GET /hector/web/v1/markets`` -> markets (non-spot entries come back with ``is_spot=False``)."""
+    return [parse_market(r, min_notional) for r in _result(resp)[F["markets_root"]]]
 
 
 def parse_tickers(resp: Any, ts: datetime) -> dict[str, Ticker]:
-    """All tickers from ``GET /v1/markets``."""
-    root = _result(resp)[F["markets_root"]]
+    """Last price and 24h quote volume for every market (no top-of-book in this endpoint: bid/ask None)."""
     out: dict[str, Ticker] = {}
-    for k, v in root.items():
+    for r in _result(resp)[F["markets_root"]]:
         try:
-            t = parse_ticker(k, v, ts)
-        except ValueError:
+            m = parse_market(r)
+            out[m.symbol] = Ticker(
+                symbol=m.symbol,
+                ts=ts,
+                last=_dec(r.get(F["mkt_price"])),
+                bid=None,
+                ask=None,
+                volume_24h_quote=_dec(r.get(F["mkt_vol_quote"]), Decimal("0")),
+            )
+        except (ValueError, KeyError):
             continue
-        out[t.symbol] = t
     return out
 
 
@@ -404,16 +438,27 @@ def parse_candles(resp: Any, symbol: str, tf: Timeframe) -> list[Candle]:
     return aggregate_bars(parse_udf_bars(resp), symbol, tf)
 
 
-def parse_orderbook(resp: Any, symbol: str, ts: datetime) -> OrderBook:
-    """``GET /v1/depth`` -> book (bids descending, asks ascending)."""
-    r = _result(resp)
-
+def _book(r: dict[str, Any], symbol: str, ts: datetime) -> OrderBook:
     def levels(rows: list[dict[str, Any]]) -> list[OrderBookLevel]:
         return [OrderBookLevel(price=_dec(x[F["lvl_price"]]), qty=_dec(x[F["lvl_qty"]])) for x in rows or []]
 
     bids = sorted(levels(r.get(F["depth_bid"], [])), key=lambda lv: lv.price, reverse=True)
     asks = sorted(levels(r.get(F["depth_ask"], [])), key=lambda lv: lv.price)
     return OrderBook(symbol=symbol, ts=ts, bids=bids, asks=asks)
+
+
+def parse_orderbook(resp: Any, symbol: str, ts: datetime) -> OrderBook:
+    """``GET /v1/depth`` -> book (bids descending, asks ascending)."""
+    return _book(_result(resp), symbol, ts)
+
+
+def parse_all_orderbooks(resp: Any, ts: datetime) -> dict[str, OrderBook]:
+    """``GET /depth/all`` -> ``{canonical symbol: book}``."""
+    out: dict[str, OrderBook] = {}
+    for key, r in (_result(resp) or {}).items():
+        sym = to_canonical(str(key))
+        out[sym] = _book(r or {}, sym, ts)
+    return out
 
 
 def parse_trades(resp: Any, symbol: str) -> list[PublicTrade]:
@@ -435,80 +480,140 @@ def parse_trades(resp: Any, symbol: str) -> list[PublicTrade]:
 
 
 def parse_balance(resp: Any) -> dict[str, Balance]:
-    """MOCK SCHEMA balances -> ``{asset: Balance}`` with ``free = total − locked``."""
+    """``GET /v1/account/balances`` -> ``{asset: Balance}`` with ``free = value − locked``."""
     root = _result(resp)[F["balances_root"]]
-    items = root.values() if isinstance(root, dict) else root
+    items = root.items() if isinstance(root, dict) else ((x.get(F["bal_asset"]), x) for x in root)
     out: dict[str, Balance] = {}
-    for x in items:
-        asset = str(x[F["bal_asset"]]).upper()
+    for key, x in items:
+        asset = str(x.get(F["bal_asset"]) or key).upper()
         total = _dec(x.get(F["bal_total"]), Decimal("0"))
         locked = _dec(x.get(F["bal_locked"]), Decimal("0"))
         out[asset] = Balance(asset=asset, free=total - locked, locked=locked)
     return out
 
 
+def parse_fees(resp: Any) -> dict[str, tuple[Decimal, Decimal]]:
+    """``GET /v1/account/fee`` -> ``{canonical symbol: (maker_pct, taker_pct)}`` in **percent**."""
+    out: dict[str, tuple[Decimal, Decimal]] = {}
+    for key, x in (_result(resp) or {}).items():
+        if not isinstance(x, dict):
+            continue
+        maker = _dec(x.get(F["fee_maker"])) * 100
+        taker = _dec(x.get(F["fee_taker"])) * 100
+        out[to_canonical(str(key))] = (maker.normalize(), taker.normalize())
+    return out
+
+
+def _status(x: dict[str, Any], qty: Decimal, filled: Decimal) -> OrderStatus:
+    raw = str(x.get(F["ord_status"]) or "").upper()
+    if raw in STATUS_MAP:
+        return STATUS_MAP[raw]
+    active = x.get(F["ord_active"])
+    if active is None or active:
+        return OrderStatus.PARTIALLY_FILLED if filled > 0 else OrderStatus.NEW
+    return OrderStatus.FILLED if qty > 0 and filled >= qty else OrderStatus.CANCELED
+
+
 def parse_order(raw: Any, fallback_client_order_id: str | None = None) -> Order:
-    """MOCK SCHEMA order -> ``Order``."""
+    """``resources.OrderResource`` -> ``Order``. ``order_id`` = the client id (Wallex's order key)."""
     x = _result(raw)
-    status_raw = str(x.get(F["ord_status"], "NEW")).upper()
-    created = _ts(x[F["ord_created"]]) if x.get(F["ord_created"]) else datetime.now(UTC)
+    cid = str(x.get(F["ord_client_id"]) or fallback_client_order_id or "")
+    if x.get(F["ord_created"]):
+        created = _ts(x[F["ord_created"]])
+    elif x.get(F["ord_transact_time"]):
+        created = _ts(x[F["ord_transact_time"]])
+    else:
+        created = datetime.now(UTC)
     updated = _ts(x[F["ord_updated"]]) if x.get(F["ord_updated"]) else created
-    order_id = x.get(F["ord_id"])
+    qty = _dec(x.get(F["ord_qty"]), Decimal("0"))
+    filled = _dec(x.get(F["ord_filled"]), Decimal("0"))
+    avg = _opt_dec(x.get(F["ord_avg_price"]))
+    price = _opt_dec(x.get(F["ord_price"]))
     return Order(
-        order_id=None if order_id is None else str(order_id),
-        client_order_id=str(x.get(F["ord_client_id"]) or fallback_client_order_id or ""),
+        order_id=cid or None,
+        client_order_id=cid,
         symbol=to_canonical(str(x[F["ord_symbol"]])),
         side=Side(str(x[F["ord_side"]]).lower()),
         type=OrderType(str(x[F["ord_type"]]).lower()),
-        price=_opt_dec(x.get(F["ord_price"])),
-        qty=_dec(x[F["ord_qty"]]),
-        filled_qty=_dec(x.get(F["ord_filled"]), Decimal("0")),
-        avg_fill_price=_opt_dec(x.get(F["ord_avg_price"])) or None,
-        status=STATUS_MAP.get(status_raw, OrderStatus.NEW),
+        price=price if price else None,
+        qty=qty,
+        filled_qty=filled,
+        avg_fill_price=avg if avg and filled > 0 else None,
+        status=_status(x, qty, filled),
         created_at=created,
         updated_at=updated,
     )
 
 
-def parse_open_orders(resp: Any) -> list[Order]:
-    """MOCK SCHEMA open orders list."""
-    r = _result(resp)
-    rows = r.get(F["open_orders_root"], []) if isinstance(r, dict) else r
-    return [parse_order(x) for x in rows]
+def parse_orders(resp: Any) -> list[Order]:
+    """Open orders / order history -> orders."""
+    return [parse_order(x) for x in _rows(_result(resp))]
 
 
-def parse_fill(raw: dict[str, Any]) -> Fill:
-    """MOCK SCHEMA user trade -> ``Fill``."""
-    symbol = to_canonical(str(raw[F["fill_symbol"]]))
-    fee_asset = raw.get(F["fill_fee_asset"]) or symbol.split("/")[1]
-    order_id = raw.get(F["fill_order_id"])
-    is_maker = raw.get(F["fill_is_maker"])
-    return Fill(
-        fill_id=str(raw[F["fill_id"]]),
-        order_id=None if order_id is None else str(order_id),
-        client_order_id=str(raw.get(F["fill_client_id"]) or ""),
-        symbol=symbol,
-        side=Side(str(raw[F["fill_side"]]).lower()),
-        price=_dec(raw[F["fill_price"]]),
-        qty=_dec(raw[F["fill_qty"]]),
-        fee=_dec(raw.get(F["fill_fee"]), Decimal("0")),
-        fee_asset=str(fee_asset).upper(),
-        ts=_ts(raw[F["fill_ts"]]),
-        is_maker=None if is_maker is None else bool(is_maker),
-    )
+parse_open_orders = parse_orders
+
+
+def fill_id(client_order_id: str, ts: str, price: str, qty: str) -> str:
+    """Fills have no id: ``sha1(clientOrderId|timestamp|price|quantity)``."""
+    return hashlib.sha1(f"{client_order_id}|{ts}|{price}|{qty}".encode()).hexdigest()
+
+
+def parse_order_fills(raw: Any) -> list[Fill]:
+    """``OrderResource.fills[]`` -> ``Fill`` list (oldest first)."""
+    x = _result(raw)
+    cid = str(x.get(F["ord_client_id"]) or "")
+    symbol = to_canonical(str(x[F["ord_symbol"]]))
+    order_side = str(x.get(F["ord_side"]) or "").lower()
+    out = []
+    for t in x.get(F["ord_fills"]) or []:
+        if order_side in ("buy", "sell"):
+            side = Side(order_side)
+        else:
+            side = Side.BUY if t.get(F["fill_is_buyer"]) else Side.SELL
+        ts_raw, price_raw, qty_raw = (str(t.get(F[k]) or "") for k in ("fill_ts", "fill_price", "fill_qty"))
+        default_fee_asset = symbol.split("/")[0] if side is Side.BUY else symbol.split("/")[1]
+        out.append(
+            Fill(
+                fill_id=fill_id(cid, ts_raw, price_raw, qty_raw),
+                order_id=cid or None,
+                client_order_id=cid,
+                symbol=symbol,
+                side=side,
+                price=_dec(price_raw),
+                qty=_dec(qty_raw),
+                fee=_dec(t.get(F["fill_fee"]), Decimal("0")),
+                fee_asset=str(t.get(F["fill_fee_asset"]) or default_fee_asset).upper(),
+                ts=_ts(ts_raw),
+                is_maker=None,  # Swagger exposes fee coefficients only; maker/taker flag UNKNOWN
+            )
+        )
+    return sorted(out, key=lambda f: f.ts)
 
 
 def parse_fills(resp: Any) -> list[Fill]:
-    """MOCK SCHEMA user trades list."""
-    rows = _result(resp).get(F["my_trades_root"], [])
-    return sorted((parse_fill(x) for x in rows), key=lambda f: f.ts)
+    """All fills of every order in a list response, de-duplicated by ``fill_id``."""
+    seen: dict[str, Fill] = {}
+    for row in _rows(_result(resp)):
+        for f in parse_order_fills(row):
+            seen.setdefault(f.fill_id, f)
+    return sorted(seen.values(), key=lambda f: f.ts)
+
+
+def page_size(resp: Any) -> int:
+    """Number of orders in one list page (paging stops on a short page)."""
+    return len(_rows(_result(resp)))
 
 
 def parse_error(status: int, body: Any) -> tuple[str, str]:
     """Map an HTTP error to ``(kind, message)``; ``kind`` is one of the ``ERR_*`` constants."""
     message = ""
     if isinstance(body, dict):
-        message = str(body.get(F["err_message"]) or body.get("error") or "")
+        parts = [str(body.get(F["err_message"]) or body.get("error") or "")]
+        details = body.get("result")
+        if isinstance(details, dict):  # validation errors: {field: [messages]}
+            for msgs in details.values():
+                parts.extend(str(m) for m in (msgs if isinstance(msgs, list) else [msgs]))
+        message = "; ".join(p for p in parts if p)
     elif body is not None:
         message = str(body)
     low = message.lower()

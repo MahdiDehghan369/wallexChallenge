@@ -71,15 +71,15 @@ async def test_balances(respx_mock: respx.MockRouter, account: WallexAccount) ->
 
 @respx.mock(base_url=BASE)
 async def test_place_order_rounds_and_maps(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
-    route = respx_mock.post(ep.Paths.ORDERS).mock(return_value=httpx.Response(200, json=load("order")))
+    route = respx_mock.post(ep.Paths.ORDERS).mock(return_value=httpx.Response(201, json=load("order")))
     order = await account.place_order(_req())
     sent = json.loads(route.calls.last.request.content)
     assert sent["quantity"] == "0.000136"  # rounded down to step
     assert sent["price"] == "7349000000"  # BUY rounded down to tick
     assert sent["client_id"] == COID and sent["symbol"] == "BTCTMN"
+    assert sent["side"] == "BUY" and sent["type"] == "LIMIT"
     assert order.client_order_id == COID and order.status is OrderStatus.PARTIALLY_FILLED
-    assert account.id_map.order_id_for(COID) == "987654321"
-    assert account.id_map.client_id_for("987654321") == COID
+    assert COID in account.id_map.known_client_ids()
 
 
 @respx.mock(base_url=BASE, assert_all_called=False)
@@ -97,34 +97,96 @@ async def test_below_minimum_rejected_before_http(
 
 
 @respx.mock(base_url=BASE)
-async def test_get_and_cancel_via_id_map(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
-    account.id_map.put(COID, "987654321", "BTC/TMN")
-    respx_mock.get("/v1/account/orders/987654321").mock(return_value=httpx.Response(200, json=load("order")))
+async def test_get_and_cancel_by_client_id(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+    respx_mock.get(ep.order_path(COID)).mock(return_value=httpx.Response(200, json=load("order")))
     o = await account.get_order("BTC/TMN", COID)
-    assert o is not None and o.order_id == "987654321"
+    assert o is not None and o.client_order_id == COID and o.order_id == COID
     canceled = dict(load("order"))
-    canceled["result"] = {**canceled["result"], "status": "CANCELED"}
-    route = respx_mock.delete(ep.Paths.ORDERS).mock(return_value=httpx.Response(200, json=canceled))
+    canceled["result"] = {**canceled["result"], "status": "CANCELED", "active": False}
+    route = respx_mock.delete(ep.order_path(COID)).mock(return_value=httpx.Response(200, json=canceled))
     c = await account.cancel_order("BTC/TMN", client_order_id=COID)
-    assert c.status is OrderStatus.CANCELED
-    assert json.loads(route.calls.last.request.content) == {"orderId": "987654321"}
+    assert c.status is OrderStatus.CANCELED and route.call_count == 1
+    assert route.calls.last.request.headers[ep.AUTH_HEADER] == "k"
 
 
 @respx.mock(base_url=BASE)
-async def test_get_order_fallback_open_orders(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+async def test_get_order_unknown_and_open_orders(
+    respx_mock: respx.MockRouter, account: WallexAccount
+) -> None:
+    respx_mock.get(ep.order_path("SIAV-unknown-E1")).mock(
+        return_value=httpx.Response(
+            404, json={"success": False, "code": 404, "message": "Order not found", "result": {}}
+        )
+    )
     respx_mock.get(ep.Paths.OPEN_ORDERS).mock(return_value=httpx.Response(200, json=load("open_orders")))
-    o = await account.get_order("BTC/TMN", COID)
-    assert o is not None and o.order_id == "987654321"
     assert await account.get_order("BTC/TMN", "SIAV-unknown-E1") is None
     opens = await account.get_open_orders()
-    assert len(opens) == 2
+    assert len(opens) == 2 and opens[0].client_order_id == COID
 
 
 @respx.mock(base_url=BASE)
-async def test_my_trades_since(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
-    respx_mock.get(ep.Paths.MY_TRADES).mock(return_value=httpx.Response(200, json=load("my_trades")))
-    fills = await account.get_my_trades(datetime(2026, 11, 5, 9, 16, tzinfo=UTC))
-    assert [f.fill_id for f in fills] == ["t-1002"]
+async def test_my_trades_from_order_fills(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+    history = respx_mock.get(ep.Paths.ORDERS).mock(
+        return_value=httpx.Response(200, json=load("orders_history"))
+    )
+    respx_mock.get(ep.Paths.OPEN_ORDERS).mock(return_value=httpx.Response(200, json=load("open_orders")))
+    sell_cid = "SIAV-01JBXYZABCDEFGHJKMNPQRSTVW-X1"
+    detail = {
+        "success": True,
+        "result": {
+            "clientOrderId": sell_cid,
+            "symbol": "BTCTMN",
+            "type": "MARKET",
+            "side": "SELL",
+            "origQty": "0.000136",
+            "executedQty": "0.000136",
+            "status": "FILLED",
+            "active": False,
+            "fills": [
+                {
+                    "price": "7400000000",
+                    "quantity": "0.000136",
+                    "fee": "3522",
+                    "feeAsset": "TMN",
+                    "isBuyer": False,
+                    "timestamp": "2026-11-05T11:00:01Z",
+                }
+            ],
+        },
+    }
+    respx_mock.get(ep.order_path(sell_cid)).mock(return_value=httpx.Response(200, json=detail))
+    since = datetime(2026, 11, 5, 9, 16, tzinfo=UTC)
+    fills = await account.get_my_trades(since)
+    assert [f.qty for f in fills] == [Decimal("0.000086"), Decimal("0.000136")]
+    assert fills[1].side is Side.SELL and fills[1].fee_asset == "TMN"
+    params = history.calls.last.request.url.params
+    assert params["from"] == "2026-11-04" and params["per_page"] == "100" and params["page"] == "1"
+    again = await account.get_my_trades(since)  # dedupe is stable across calls
+    assert [f.fill_id for f in again] == [f.fill_id for f in fills]
+
+
+@respx.mock(base_url=BASE)
+async def test_my_trades_pages_until_short_page(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+    one = load("orders_history")["result"]["orders"][0]
+    full = {"success": True, "result": {"orders": [one] * ep.ORDERS_PER_PAGE}}
+    pages = iter(
+        [
+            httpx.Response(200, json=full),
+            httpx.Response(200, json={"success": True, "result": {"orders": []}}),
+        ]
+    )
+    history = respx_mock.get(ep.Paths.ORDERS).mock(side_effect=lambda req: next(pages))
+    respx_mock.get(ep.Paths.OPEN_ORDERS).mock(
+        return_value=httpx.Response(200, json={"success": True, "result": {}})
+    )
+    fills = await account.get_my_trades(datetime(2026, 11, 5, tzinfo=UTC))
+    assert history.call_count == 2 and len(fills) == 2  # 100 copies of the same order -> 2 unique fills
+
+
+@respx.mock(base_url=BASE)
+async def test_fees(respx_mock: respx.MockRouter, account: WallexAccount) -> None:
+    respx_mock.get(ep.Paths.FEE).mock(return_value=httpx.Response(200, json=load("fee")))
+    assert (await account.get_fees())["BTC/TMN"] == (Decimal("0.2"), Decimal("0.2"))
 
 
 def test_id_map_persists(tmp_path) -> None:  # type: ignore[no-untyped-def]

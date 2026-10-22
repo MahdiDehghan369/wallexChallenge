@@ -44,7 +44,9 @@ async def _run(args: argparse.Namespace) -> int:
     symbols = args.symbols or default_symbols(cfg)
     tfs = [Timeframe(t) for t in args.tfs]
     async with WallexHttp.from_config(cfg) as http:
-        md = WallexMarketData(http, ticker_cache_s=cfg.base.exchange.ticker_cache_s)
+        md = WallexMarketData(
+            http, ticker_cache_s=cfg.base.exchange.ticker_cache_s, min_notional=cfg.base.exchange.min_notional
+        )
         rows = await download(md, symbols, tfs, args.days, args.out, report_path=None)
     if args.aux_source:
         rows += load_binance_aux(args.aux_dir, f"{args.out}/aux")

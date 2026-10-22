@@ -20,7 +20,10 @@ exchange:
   max_retries: 4
   backoff_min_s: 0.5
   backoff_max_s: 8
-  ticker_cache_s: 5               # /v1/markets is shared by all tickers; cache it briefly
+  ticker_cache_s: 5               # one markets call serves all tickers; cache it briefly
+  # Swagger's markets endpoint has no spot min order -> conservative minimum order value per quote
+  # (the undocumented /v1/markets showed minNotional 50000 for BTCTMN on 2026-10-22); confirm in T-108
+  min_notional: {TMN: 100000, USDT: 5}
 execution:
   entry_timeout_s: 90
   aggressive_timeout_s: 30
