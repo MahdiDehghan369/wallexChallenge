@@ -19,6 +19,7 @@ from siavash.config import load_config
 from siavash.data.synthetic import make_synthetic_market
 from siavash.features.feature_set import FEATURE_SET_VERSION
 from siavash.ml.dataset import build_dataset, dataset_path
+from siavash.ml.threshold import select_threshold, threshold_report
 from siavash.ml.train import walk_forward, walkforward_report
 
 
@@ -50,11 +51,15 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         ds = pd.read_parquet(args.dataset)
     res = walk_forward(ds, cfg)
+    th = select_threshold(res.oof, cfg.strategy.ml.min_trades_per_day)
     for p in (args.report, args.oof):
         Path(p).parent.mkdir(parents=True, exist_ok=True)
     res.oof.to_parquet(args.oof, index=False)
-    Path(args.report).write_text(walkforward_report(res, cfg.strategy.ml.threshold), encoding="utf-8")
+    report = walkforward_report(res, cfg.strategy.ml.threshold) + "\n" + threshold_report(th)
+    Path(args.report).write_text(report, encoding="utf-8")
     print(f"{len(res.fold_metrics)} folds, {len(res.oof)} OOF samples -> {args.report}, {args.oof}")
+    verdict = "recommend ml.enabled=true" if th.recommend_enabled else "recommend ml.enabled=false"
+    print(f"threshold: θ={th.theta} ({verdict})")
     return 0
 
 
