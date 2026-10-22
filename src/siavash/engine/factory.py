@@ -26,6 +26,7 @@ from siavash.execution.router import OrderRouter
 from siavash.execution.safe_submit import SafeSubmitter
 from siavash.execution.tracker import OrderTracker
 from siavash.reporting.equity import EquityTracker
+from siavash.reporting.latency import LatencyRecorder
 from siavash.risk.breakers import BreakerController
 from siavash.risk.endgame import EndgameLiquidator, assert_endgame_configured, endgame_phase
 from siavash.risk.limits import CooldownTracker, EntryCounter
@@ -110,6 +111,7 @@ def assemble(
         error_counter=error_counter,
         universe=list(universe or []),
         heartbeat_path=heartbeat_path,
+        latency=LatencyRecorder(logs / "latency.jsonl"),
     )
 
 

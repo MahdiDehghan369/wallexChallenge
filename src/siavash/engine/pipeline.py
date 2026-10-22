@@ -227,6 +227,10 @@ class DecisionPipeline:
         entered = False
         for c in candidates:
             entered |= await self._evaluate(c, row, regime, book, entered)
+        if candidates and a.latency is not None:
+            a.latency.record(
+                "candle_close_to_decision", (a.clock.now() - ts).total_seconds() * 1000, symbol=symbol
+            )
         return len(candidates)
 
     async def _evaluate(

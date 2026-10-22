@@ -12,6 +12,7 @@ All client order ids come from ``core.ids.client_order_id``; slippage vs the ref
 
 from __future__ import annotations
 
+import time
 from collections.abc import Awaitable, Callable
 from decimal import Decimal
 from typing import Any
@@ -64,6 +65,7 @@ class OrderRouter:
         self._attempts: dict[tuple[str, str], int] = {}
         # called after every accepted order: (order, decision_id, leg) — used to start fill tracking
         self.on_order: Callable[[Order, str, str], Awaitable[None] | None] | None = None
+        self.latency: Any = None  # reporting.latency.LatencyRecorder
 
     # ------------------------------------------------------------------ helpers
     def _next_coid(self, decision_id: str, leg: str) -> str:
@@ -125,7 +127,12 @@ class OrderRouter:
             decision_id=decision_id,
             purpose=purpose,  # type: ignore[arg-type]
         )
+        t0 = time.perf_counter()
         order = await self.submit(self.broker, req)
+        if self.latency is not None:
+            self.latency.record(
+                "order_sent_to_ack", (time.perf_counter() - t0) * 1000, symbol=symbol, purpose=purpose
+            )
         if self.on_order is not None:
             res = self.on_order(order, decision_id, leg)
             if res is not None:

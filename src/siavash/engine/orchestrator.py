@@ -74,6 +74,7 @@ class App:
     universe: list[str] = field(default_factory=list)
     heartbeat_path: Path | None = None
     regime: RegimeAssessment | None = None
+    latency: Any = None  # reporting.latency.LatencyRecorder
 
 
 class Orchestrator:
@@ -93,6 +94,10 @@ class Orchestrator:
         self._flattened = False
         self._paused = False
         self.started = False
+        self._decision_ts: dict[str, datetime] = {}
+        self._exit_trigger: dict[str, datetime] = {}
+        self._first_fill_seen: set[str] = set()
+        app.router.latency = app.latency
         app.router.on_order = self._on_order
         app.tracker.on_fill.append(self._on_fill)
         app.tracker.on_order_terminal.append(self._on_terminal)
@@ -172,6 +177,11 @@ class Orchestrator:
             strategy = self.app.positions.get(pid).strategy.value
         meta = TrackMeta(decision_id, pid, strategy)
         self.app.tracker.track(order, meta)
+        t0 = self._decision_ts.pop(decision_id, None)
+        if t0 is not None and self.app.latency is not None:
+            self.app.latency.record(
+                "decision_to_order_sent", (self.clock.now() - t0).total_seconds() * 1000, symbol=order.symbol
+            )
         await self.app.store.save_order(order, {"decision_id": decision_id, "position_id": pid, "leg": leg})
 
     async def _on_fill(self, fill: Fill, fee_tmn: Decimal, meta: TrackMeta | None) -> None:
@@ -180,6 +190,19 @@ class Orchestrator:
             log.info("fill_without_position", client_order_id=fill.client_order_id)
             return
         p = pm.get(meta.position_id)
+        lat = self.app.latency
+        if lat is not None and fill.client_order_id not in self._first_fill_seen:
+            self._first_fill_seen.add(fill.client_order_id)
+            order = self.app.tracker.tracked.get(fill.client_order_id)
+            if order is not None:
+                lat.record(
+                    "order_sent_to_first_fill",
+                    (fill.ts - order.created_at).total_seconds() * 1000,
+                    symbol=fill.symbol,
+                )
+        if lat is not None and fill.side is Side.SELL and p.position_id in self._exit_trigger:
+            t0 = self._exit_trigger.pop(p.position_id)
+            lat.record("exit_trigger_to_exit_fill", (fill.ts - t0).total_seconds() * 1000, symbol=fill.symbol)
         min_qty = self.app.registry.get(p.symbol).min_qty if p.symbol in self.app.registry else ZERO
         if fill.side is Side.BUY:
             await pm.apply_entry_fill(p.position_id, fill, fee_tmn)
@@ -212,6 +235,7 @@ class Orchestrator:
         """Start the entry for a ``PENDING_ENTRY`` position in a background task."""
         a = self.app
         self.decision_positions[position.entry_decision_id] = position.position_id
+        self._decision_ts[position.entry_decision_id] = self.clock.now()
         a.entries.record(self.clock.now())
         self.spawn(a.store.kv_set("entries", a.entries.to_list()), "persist_entries")
 
@@ -242,6 +266,7 @@ class Orchestrator:
             if reason is ExitReason.TP1_PARTIAL:
                 reason = ExitReason.TAKE_PROFIT
         self.decision_positions[decision_id] = p.position_id
+        self._exit_trigger[p.position_id] = self.clock.now()
 
         async def run() -> None:
             await a.positions.start_exit(p.position_id, reason)
