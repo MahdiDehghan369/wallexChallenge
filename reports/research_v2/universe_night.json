@@ -1,0 +1,368 @@
+{
+ "period": [
+  "2026-06-24 06:00:00+00:00",
+  "2026-07-04 06:00:00+00:00",
+  "2026-10-22 06:00:00+00:00"
+ ],
+ "dev": [
+  "BTC/TMN",
+  "ETH/TMN",
+  "LINK/TMN"
+ ],
+ "holdout": [
+  "USOON/TMN",
+  "XAUT/TMN"
+ ],
+ "rows": [
+  {
+   "symbol": "ADA/TMN",
+   "split": "dev",
+   "spread": 0.7406,
+   "coverage": 1.0,
+   "vol24h": 7522331494.2,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.741 % > 0.15"
+  },
+  {
+   "symbol": "AVAX/TMN",
+   "split": "dev",
+   "spread": 0.5316,
+   "coverage": 0.998,
+   "vol24h": 3844441041.77835,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.532 % > 0.15"
+  },
+  {
+   "symbol": "BCH/TMN",
+   "split": "dev",
+   "spread": 0.1915,
+   "coverage": 1.0,
+   "vol24h": 2314698283.26918,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.192 % > 0.15"
+  },
+  {
+   "symbol": "BNB/TMN",
+   "split": "dev",
+   "spread": 0.3995,
+   "coverage": 1.0,
+   "vol24h": 55170377059.9176,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.400 % > 0.15"
+  },
+  {
+   "symbol": "BTC/TMN",
+   "split": "dev",
+   "spread": 0.0548,
+   "coverage": 1.0,
+   "vol24h": 113806557822.70375,
+   "usdt_pair": true,
+   "ok": true,
+   "why": ""
+  },
+  {
+   "symbol": "DOGE/TMN",
+   "split": "dev",
+   "spread": 0.1891,
+   "coverage": 1.0,
+   "vol24h": 40510112570.3,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "excluded (H4 list / stablecoin); median spread 0.189 % > 0.15"
+  },
+  {
+   "symbol": "DOT/TMN",
+   "split": "dev",
+   "spread": 0.6866,
+   "coverage": 1.0,
+   "vol24h": 1271848501.04,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.687 % > 0.15"
+  },
+  {
+   "symbol": "ETH/TMN",
+   "split": "dev",
+   "spread": 0.1298,
+   "coverage": 1.0,
+   "vol24h": 76928783138.58643,
+   "usdt_pair": true,
+   "ok": true,
+   "why": ""
+  },
+  {
+   "symbol": "LINK/TMN",
+   "split": "dev",
+   "spread": 0.1086,
+   "coverage": 0.998,
+   "vol24h": 2910294757.03,
+   "usdt_pair": true,
+   "ok": true,
+   "why": ""
+  },
+  {
+   "symbol": "LTC/TMN",
+   "split": "dev",
+   "spread": 0.5054,
+   "coverage": 0.999,
+   "vol24h": 8213057034.95655,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.505 % > 0.15"
+  },
+  {
+   "symbol": "SHIB/TMN",
+   "split": "dev",
+   "spread": 0.4715,
+   "coverage": 1.0,
+   "vol24h": 5531549076.7298,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.471 % > 0.15"
+  },
+  {
+   "symbol": "SOL/TMN",
+   "split": "dev",
+   "spread": 0.2806,
+   "coverage": 1.0,
+   "vol24h": 29055706130.5127,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.281 % > 0.15"
+  },
+  {
+   "symbol": "TRX/TMN",
+   "split": "dev",
+   "spread": 0.3491,
+   "coverage": 1.0,
+   "vol24h": 12635176716,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "excluded (H4 list / stablecoin); median spread 0.349 % > 0.15"
+  },
+  {
+   "symbol": "USDT/TMN",
+   "split": "dev",
+   "spread": 0.0449,
+   "coverage": 0.993,
+   "vol24h": 58944856170.47316,
+   "usdt_pair": false,
+   "ok": false,
+   "why": "excluded (H4 list / stablecoin)"
+  },
+  {
+   "symbol": "XRP/TMN",
+   "split": "dev",
+   "spread": 0.1346,
+   "coverage": 1.0,
+   "vol24h": 36900443968.9,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "excluded (H4 list / stablecoin)"
+  },
+  {
+   "symbol": "AAVE/TMN",
+   "split": "holdout",
+   "spread": 0.5752,
+   "coverage": 0.996,
+   "vol24h": 2115103113.7698,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.575 % > 0.15"
+  },
+  {
+   "symbol": "APE/TMN",
+   "split": "holdout",
+   "spread": 0.6623,
+   "coverage": 0.997,
+   "vol24h": 7857253930.58,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.662 % > 0.15"
+  },
+  {
+   "symbol": "ARB/TMN",
+   "split": "holdout",
+   "spread": 0.5882,
+   "coverage": 1.0,
+   "vol24h": 33828803291.254,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.588 % > 0.15"
+  },
+  {
+   "symbol": "CAKE/TMN",
+   "split": "holdout",
+   "spread": 0.9432,
+   "coverage": 0.999,
+   "vol24h": 2598911439.98,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.943 % > 0.15"
+  },
+  {
+   "symbol": "COPXON/TMN",
+   "split": "holdout",
+   "spread": 2.1655,
+   "coverage": 0.999,
+   "vol24h": 4140444566.8427,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 2.166 % > 0.15"
+  },
+  {
+   "symbol": "DYDX/TMN",
+   "split": "holdout",
+   "spread": 1.8708,
+   "coverage": 0.994,
+   "vol24h": 3579810710.73,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 1.871 % > 0.15"
+  },
+  {
+   "symbol": "ENA/TMN",
+   "split": "holdout",
+   "spread": 0.612,
+   "coverage": 0.996,
+   "vol24h": 2265805834.58,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.612 % > 0.15"
+  },
+  {
+   "symbol": "FIL/TMN",
+   "split": "holdout",
+   "spread": 0.6695,
+   "coverage": 0.999,
+   "vol24h": 5067540515,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.669 % > 0.15"
+  },
+  {
+   "symbol": "GALA/TMN",
+   "split": "holdout",
+   "spread": 1.6991,
+   "coverage": 0.999,
+   "vol24h": 2610862544.4,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 1.699 % > 0.15"
+  },
+  {
+   "symbol": "HBAR/TMN",
+   "split": "holdout",
+   "spread": 0.494,
+   "coverage": 0.998,
+   "vol24h": 2668907118.35,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.494 % > 0.15"
+  },
+  {
+   "symbol": "HYPE/TMN",
+   "split": "holdout",
+   "spread": 0.3079,
+   "coverage": 0.998,
+   "vol24h": 4323276081.608,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.308 % > 0.15"
+  },
+  {
+   "symbol": "PEPE/TMN",
+   "split": "holdout",
+   "spread": 0.4457,
+   "coverage": 1.0,
+   "vol24h": 123493043419.3371,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.446 % > 0.15"
+  },
+  {
+   "symbol": "PUMP/TMN",
+   "split": "holdout",
+   "spread": 0.3195,
+   "coverage": 1.0,
+   "vol24h": 90340356261.2,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.320 % > 0.15"
+  },
+  {
+   "symbol": "S/TMN",
+   "split": "holdout",
+   "spread": 0.3748,
+   "coverage": 1.0,
+   "vol24h": 12822245193.59,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.375 % > 0.15"
+  },
+  {
+   "symbol": "SAND/TMN",
+   "split": "holdout",
+   "spread": 0.3948,
+   "coverage": 0.997,
+   "vol24h": 5084711709,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.395 % > 0.15"
+  },
+  {
+   "symbol": "SLVON/TMN",
+   "split": "holdout",
+   "spread": 0.9851,
+   "coverage": 0.999,
+   "vol24h": 2924519425.771,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.985 % > 0.15"
+  },
+  {
+   "symbol": "SUI/TMN",
+   "split": "holdout",
+   "spread": 1.471,
+   "coverage": 0.998,
+   "vol24h": 8361063373.76,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 1.471 % > 0.15"
+  },
+  {
+   "symbol": "UNI/TMN",
+   "split": "holdout",
+   "spread": 0.7063,
+   "coverage": 1.0,
+   "vol24h": 8104817716.9,
+   "usdt_pair": true,
+   "ok": false,
+   "why": "median spread 0.706 % > 0.15"
+  },
+  {
+   "symbol": "USOON/TMN",
+   "split": "holdout",
+   "spread": 0.0001,
+   "coverage": 1.0,
+   "vol24h": 71908798285.2069,
+   "usdt_pair": true,
+   "ok": true,
+   "why": ""
+  },
+  {
+   "symbol": "XAUT/TMN",
+   "split": "holdout",
+   "spread": 0.1013,
+   "coverage": 1.0,
+   "vol24h": 33510830729.68173,
+   "usdt_pair": true,
+   "ok": true,
+   "why": ""
+  }
+ ]
+}

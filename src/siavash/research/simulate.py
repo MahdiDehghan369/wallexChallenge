@@ -8,7 +8,9 @@ re-running the labelling with that fee.
 Taker mode (same rules as T-401): entry at the next open + slippage; a bar touching both SL and TP
 counts as SL; SL exits at ``min(open, SL)`` − slippage; TP is a limit exit (no slippage); time stop
 exits at the last close − slippage. An optional trailing stop (``trail_dist``, price units) rises
-with each bar's high **after** that bar was checked against the previous stop.
+with each bar's high **after** that bar was checked against the previous stop. An optional signal
+exit (``exit_flags[k]`` = the exit condition holds at the close of bar ``k``) exits at the next
+bar's open − slippage, if that bar is still inside the time-stop window.
 
 Maker mode: a resting buy limit at ``limit``; it fills only if a bar trades **strictly below** it
 within ``entry_ttl_bars`` (queue position unknown), otherwise the setup is ``NOFILL``. TP is a
@@ -25,7 +27,7 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-ExitKind = Literal["TP", "SL", "TRAIL", "TIME", "NOFILL"]
+ExitKind = Literal["TP", "SL", "TRAIL", "TIME", "NOFILL", "SIGNAL"]
 BAR_S = 900
 
 
@@ -97,6 +99,7 @@ def simulate(
     mode: Literal["taker", "maker"] = "taker",
     entry_ttl_bars: int = 2,
     limit: float | None = None,
+    exit_flags: np.ndarray | None = None,
 ) -> SimResult | None:
     w = window(bars, s)
     if w is None:
@@ -108,7 +111,16 @@ def simulate(
     if end <= i0:
         raise ValueError(f"no bars after {s.ts} for {s.symbol}")
     if mode == "taker":
-        return _run(bars, s, i0, end, entry=float(bars.o[i0]), maker=False, first_bar_is_fill=False)
+        return _run(
+            bars,
+            s,
+            i0,
+            end,
+            entry=float(bars.o[i0]),
+            maker=False,
+            first_bar_is_fill=False,
+            exit_flags=exit_flags,
+        )
     px = s.entry_ref if limit is None else limit
     for j in range(i0, min(i0 + entry_ttl_bars, end)):
         if bars.lo[j] < px:
@@ -118,7 +130,14 @@ def simulate(
 
 
 def _run(
-    bars: Bars, s: Setup, i: int, end: int, entry: float, maker: bool, first_bar_is_fill: bool
+    bars: Bars,
+    s: Setup,
+    i: int,
+    end: int,
+    entry: float,
+    maker: bool,
+    first_bar_is_fill: bool,
+    exit_flags: np.ndarray | None = None,
 ) -> SimResult:
     stop, tp = s.stop_loss, s.take_profit
     last_close = entry
@@ -137,6 +156,8 @@ def _run(
             return _res(bars, k, entry, tp, maker, False, "TP", held, exit_slip=False)
         if s.trail_dist is not None:
             stop = max(stop, h - s.trail_dist)
+        if exit_flags is not None and exit_flags[k] and k + 1 < end:
+            return _res(bars, k + 1, entry, float(bars.o[k + 1]), maker, False, "SIGNAL", held + 1)
         last_close = float(bars.c[k])
     return _res(bars, end - 1, entry, last_close, maker, False, "TIME", held)
 
