@@ -232,11 +232,6 @@ def flatten(
     typer.echo("flatten requested; the engine exits all positions on its next main-loop tick")
 
 
-def _not_yet(task: str) -> None:
-    typer.echo(f"not implemented: {task}", err=True)
-    raise typer.Exit(1)
-
-
 @app.command()
 def report(
     mode: str = typer.Option("live", "--mode"),
@@ -341,8 +336,15 @@ def reflect(
 
 @app.command("export-submission")
 def export_submission() -> None:
-    """Package logs and reports for the judges."""
-    _not_yet("T-1303")
+    """Package logs and reports for the judges (masks secrets) → submission/."""
+    import subprocess
+    import sys
+
+    script = Path(__file__).resolve().parents[2] / "scripts" / "export_submission.py"
+    if not script.exists():
+        typer.echo("scripts/export_submission.py not found (run from the repository)", err=True)
+        raise typer.Exit(2)
+    raise typer.Exit(subprocess.call([sys.executable, str(script)]))
 
 
 async def _llm_check(cfg: AppConfig) -> dict[str, Any]:

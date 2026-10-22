@@ -53,6 +53,18 @@ def test_pause_resume_flatten_status(workdir: Path) -> None:
     assert "breaker: NORMAL" in human.output and "last decisions:" in human.output
 
 
-def test_unimplemented_commands_fail_cleanly(workdir: Path) -> None:
-    res = runner.invoke(app, ["export-submission"])
-    assert res.exit_code == 1 and "not implemented" in res.output
+def test_every_command_has_help() -> None:
+    for cmd in (
+        "run",
+        "status",
+        "pause",
+        "resume",
+        "flatten",
+        "report",
+        "replay",
+        "reflect",
+        "export-submission",
+        "llm-check",
+    ):
+        res = runner.invoke(app, [cmd, "--help"])
+        assert res.exit_code == 0, cmd

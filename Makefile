@@ -71,7 +71,7 @@ shadow-report:
 	$(PYTHON) scripts/consistency_report.py $(ARGS)
 
 export-submission:
-	$(call not_implemented,T-1303)
+	$(PYTHON) scripts/export_submission.py $(ARGS)
 
 dashboard:
 	$(call not_implemented,T-1204)
