@@ -94,6 +94,11 @@ class BacktestConfig(_C):
         return self.assumed_spread_pct.get(symbol, self.assumed_spread_pct.get("default", 0.15))
 
 
+class DataConfig(_C):
+    max_ffill_bars: int = Field(3, ge=0)
+    outlier_jump_pct: float = Field(20.0, gt=0)
+
+
 class AlertsConfig(_C):
     backend: Literal["log_only", "webhook"] = "log_only"
     min_interval_s: float = Field(3, ge=0)
@@ -108,6 +113,7 @@ class BaseConfig(_C):
     execution: ExecutionConfig = ExecutionConfig()
     paper: PaperConfig = PaperConfig()
     bt: BacktestConfig = BacktestConfig()
+    data: DataConfig = DataConfig()
     alerts: AlertsConfig = AlertsConfig()
 
 

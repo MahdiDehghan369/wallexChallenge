@@ -30,7 +30,7 @@ download-data:
 	$(PYTHON) scripts/download_data.py $(ARGS)
 
 validate-data:
-	$(call not_implemented,T-202)
+	$(PYTHON) scripts/validate_data.py $(ARGS)
 
 train:
 	$(call not_implemented,T-403)

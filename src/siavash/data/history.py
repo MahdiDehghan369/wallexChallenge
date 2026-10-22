@@ -41,7 +41,7 @@ def raw_path(out: str | Path, symbol: str, tf: Timeframe | str) -> Path:
 def write_parquet(df: pd.DataFrame, path: Path, source: str, symbol: str, tf: Timeframe | str) -> None:
     """Write OHLCV with schema metadata (source, symbol, timeframe)."""
     path.parent.mkdir(parents=True, exist_ok=True)
-    cols = [c for c in df.columns if c in COLUMNS or c == "is_filled"]
+    cols = [c for c in df.columns if c in COLUMNS or c in ("is_filled", "is_outlier")]
     table = pa.Table.from_pandas(df[cols].reset_index(drop=True), preserve_index=False)
     meta = dict(table.schema.metadata or {})
     meta.update(
