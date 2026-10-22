@@ -265,9 +265,34 @@ def replay(
     date_from: str | None = typer.Option(None, "--from"),
     date_to: str | None = typer.Option(None, "--to"),
     logs: str = typer.Option("logs", "--logs"),
+    live_data: str = typer.Option("data/live", "--live-data", help="recorded live candles"),
+    history: str = typer.Option("data/processed", "--history", help="history for indicator warm-up"),
+    out: str = typer.Option("reports", "--out"),
+    config: str = typer.Option("config", "--config"),
 ) -> None:
-    """Replay recorded data + LLM cache and compare decisions."""
-    _not_yet("T-1305")
+    """Replay recorded data + LLM cache (no network) and compare decisions → reports/replay.md."""
+    from siavash.backtest.market_data import processed_frames
+    from siavash.backtest.replay import replay as run_replay
+    from siavash.reporting.consistency import load_live_frames, merge_frames
+
+    cfg = _cfg(config)
+    setup_logging("WARNING", cfg.base.paths.logs)
+    frames = merge_frames(
+        processed_frames(history) if Path(history).exists() else {},
+        load_live_frames(live_data) if Path(live_data).exists() else {},
+    )
+    if not frames:
+        typer.echo(f"no candles in {live_data} or {history}", err=True)
+        raise typer.Exit(2)
+
+    def _d(s: str | None) -> datetime | None:
+        return datetime.fromisoformat(s).replace(tzinfo=UTC) if s else None
+
+    res = asyncio.run(run_replay(cfg, logs, frames, out, _d(date_from), _d(date_to)))
+    typer.echo(
+        f"replayed {res.n_original} candidates: outcome match {res.outcome_match_pct} %, "
+        f"stage match {res.stage_match_pct} % -> {res.report}"
+    )
 
 
 @app.command()

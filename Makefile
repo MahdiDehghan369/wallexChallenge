@@ -53,7 +53,7 @@ report:
 	$(SIAVASH) report $(ARGS)
 
 replay:
-	$(call not_implemented,T-1305)
+	$(SIAVASH) replay $(ARGS)
 
 flatten:
 	$(SIAVASH) flatten --confirm

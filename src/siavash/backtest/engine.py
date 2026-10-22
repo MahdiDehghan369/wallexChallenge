@@ -27,6 +27,7 @@ from siavash.config import AppConfig, config_hash
 from siavash.core.ids import new_ulid
 from siavash.core.models import Candidate, MLScore, PortfolioSnapshot, RegimeAssessment, TradeReview
 from siavash.core.types import Side
+from siavash.data.universe import universe_record
 from siavash.engine.clock import SimClock
 from siavash.engine.factory import assemble, make_pipeline
 from siavash.engine.orchestrator import Orchestrator
@@ -137,6 +138,8 @@ async def run_backtest_async(
     app = assemble(
         bcfg, "backtest", clock, md, broker, registry, guard, InMemoryStore(), logs, out, universe=uni
     )
+    # same record live mode writes; lets replay (T-1305) recover the universe and the start time
+    app.decision_logger.write(universe_record(uni, {"source": data_source}, clock))
     orch = Orchestrator(app)
     pipe_mode = {"off": "off", "cached": "replay", "live_sampled": "live"}[llm_mode]
     pipeline = make_pipeline(app, orch, bcfg, llm_mode=pipe_mode)
