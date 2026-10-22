@@ -54,5 +54,5 @@ def test_pause_resume_flatten_status(workdir: Path) -> None:
 
 
 def test_unimplemented_commands_fail_cleanly(workdir: Path) -> None:
-    res = runner.invoke(app, ["report"])
+    res = runner.invoke(app, ["export-submission"])
     assert res.exit_code == 1 and "not implemented" in res.output

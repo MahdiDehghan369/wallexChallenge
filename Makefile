@@ -50,7 +50,7 @@ live:
 	CONFIRM_LIVE=YES $(SIAVASH) run --mode live
 
 report:
-	$(call not_implemented,T-1201)
+	$(SIAVASH) report $(ARGS)
 
 replay:
 	$(call not_implemented,T-1305)

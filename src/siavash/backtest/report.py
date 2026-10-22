@@ -90,7 +90,8 @@ def _table(rows: dict[str, dict[str, Any]], title: str) -> list[str]:
     return [*out, ""]
 
 
-def _charts(equity: pd.DataFrame, out: Path, capital: float) -> None:
+def write_charts(equity: pd.DataFrame, out: Path, capital: float) -> None:
+    """``equity.png`` and ``drawdown.png`` (shared with the live judge report)."""
     for name, ylabel in (("equity", "equity (TMN)"), ("drawdown", "drawdown (%)")):
         fig, ax = plt.subplots(figsize=(10, 4), dpi=110)
         if equity.empty:
@@ -148,7 +149,7 @@ def write_report(res: Any) -> Path:
     )
 
     equity = load_equity(out / "logs" / "equity.csv")
-    _charts(equity, out, capital)
+    write_charts(equity, out, capital)
 
     p = m.get("pipeline", {})
     wr = m.get("win_rate")

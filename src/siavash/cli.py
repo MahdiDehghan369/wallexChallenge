@@ -243,8 +243,13 @@ def report(
     logs: str = typer.Option("logs", "--logs"),
     out: str = typer.Option("reports/live", "--out"),
 ) -> None:
-    """Judge-metrics report."""
-    _not_yet("T-1201")
+    """Judge-metrics report (REPORT.md, metrics.json, charts) from a logs directory."""
+    from siavash.reporting.judge_report import build_judge_report
+
+    cfg = load_config("config")
+    payload = build_judge_report(logs, out, cfg.base.timezone, mode)
+    typer.echo(json.dumps(payload["judge"], indent=2, default=str))
+    typer.echo(f"report: {Path(out) / 'REPORT.md'}")
 
 
 @app.command()

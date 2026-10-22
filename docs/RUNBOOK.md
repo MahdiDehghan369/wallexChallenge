@@ -111,7 +111,12 @@ docker compose ps
 - Health: the engine writes `state/heartbeat` every `loop.heartbeat_s`; the Docker healthcheck fails when
   it is stale. The watchdog restarts a stuck main loop.
 - Alerts (log or webhook): breaker changes, kill-switch, entries/exits, API errors, LLM budget, startup.
-- Judge metrics report: `make report` (after T-1201) → `reports/live/`.
+- Judge metrics report → `reports/live/REPORT.md` (+ `metrics.json`, charts):
+
+```bash
+make report
+siavash report --logs logs --out reports/live
+```
 
 ## 7. Emergency procedures
 
@@ -137,7 +142,12 @@ docker compose restart
 ## 8. Upgrading the version during the challenge
 
 1. Run the candidate as a shadow (paper mode, separate `logs/`/`state/` directories) next to live.
-2. Compare with `make shadow-report` (after T-1003) and the backtest on the same period.
+2. Compare the shadow with a backtest of the same period (→ `reports/consistency.md`):
+
+```bash
+make shadow-report ARGS="--logs logs-shadow --live-data data/live"
+```
+
 3. Deploy — the script checks a clean tree, runs lint + tests, writes the CHANGELOG "Versions" entry,
    tags `live-vX.Y`, rebuilds with the git sha and restarts:
 
