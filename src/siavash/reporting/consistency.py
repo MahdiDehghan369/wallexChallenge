@@ -274,6 +274,7 @@ async def run_consistency(
     m_ref, _ = metrics_from_logs(ref_logs, float(cfg.risk.capital_base_tmn))
     (out / "shadow").mkdir(parents=True, exist_ok=True)
     (out / "shadow" / "REPORT.md").write_text(metrics_markdown(m_ref, "Shadow / live run"), encoding="utf-8")
+    (out / "shadow" / "metrics.json").write_text(json.dumps(m_ref, indent=2, default=str), encoding="utf-8")
     if ref_c.empty:
         raise ValueError(f"no ENTRY_CANDIDATE records in {ref_logs}")
     start = ref_c["signal_ts"].min().to_pydatetime() - timedelta(minutes=1)

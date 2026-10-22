@@ -4,9 +4,9 @@
 > این فایل را فقط Agentها و اعضای تیم به‌روز می‌کنند. ترتیب ردیف‌ها = ترتیب اجرا (بخش ۹.۴).
 
 ## خلاصه
-- آخرین به‌روزرسانی: 2026-10-22T12:58:32Z
+- آخرین به‌روزرسانی: 2026-10-22T13:08:58Z
 - DONE: 77 / 84
-- منتظر انسان: T-109, T-108, T-1107
+- منتظر انسان: T-109, T-108, T-1107 
 - مسدود: —
 
 ## جدول
@@ -91,8 +91,8 @@
 | 77 | T-206 | Snapshot داده برای داوران | B | AGENT | T-202 | DONE | 56ed683 | 10.6 MB, committed directly (no LFS needed) |
 | 78 | T-006 | CI | A | AGENT | T-001 | DONE | c8db94d | badge added with T-1301 |
 | 79 | T-1301 | README | A | AGENT | T-1104, T-905 | DONE | 0612b1b | video link placeholder until T-1304 |
-| 80 | T-1302 | STRATEGY.md (داکیومنت داوری) | B | AGENT+HUMAN | T-904, T-1203, T-1201 | TODO |  |  |
+| 80 | T-1302 | STRATEGY.md (داکیومنت داوری) | B | AGENT+HUMAN | T-904, T-1203, T-1201 | IN_PROGRESS |  | template + fill script done; docs/STRATEGY.md rendered after the real-data walk-forward report |
 | 81 | T-1303 | بسته لاگ تحویلی | A | AGENT | T-605, T-1201 | DONE | 415aeb1 |  |
-| 82 | T-1204 | داشبورد ساده (اختیاری) | A | AGENT | T-1201 | DONE |  |  |
+| 82 | T-1204 | داشبورد ساده (اختیاری) | A | AGENT | T-1201 | DONE | 7898923 |  |
 | 83 | T-1304 | ویدیو دمو | B | AGENT+HUMAN | T-1201, T-1302 | TODO |  |  |
 | 84 | T-1306 | چک‌لیست نهایی تحویل | A | HUMAN | T-1303, T-1304, T-1302 | TODO |  |  |
