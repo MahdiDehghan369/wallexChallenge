@@ -1,0 +1,55 @@
+# Research v2 (reports/research_v2/PREREGISTRATION.md). Research only — never read by live / paper /
+# backtest. Changing anything here after the pre-registration commit is a protocol deviation and
+# must be listed in reports/research_v2/SUMMARY.md.
+fee_rt_pct: [0.4, 0.5, 0.7]          # round-trip fee grid (maker = taker = rt / 2) + base.bt slippage
+pass_fee_rt_pct: 0.5                 # pass criteria are judged at this fee
+warmup_days: 10                      # indicator warm-up (4h EMA50 ≈ 8.3 days) before setups count
+window_days: 14                      # walk-forward windows (DEV)
+selection_min_trades: 10             # walk-forward pick needs this many past trades
+data_end_utc: "2026-10-22T06:00:00Z" # same period for DEV and HOLD-OUT
+stale_leg_bars: 4                    # implied price needs a real candle of each leg within 4 × 15m
+
+universe:
+  dev: [ADA/TMN, AVAX/TMN, BCH/TMN, BNB/TMN, BTC/TMN, DOGE/TMN, DOT/TMN, ETH/TMN, LINK/TMN,
+        LTC/TMN, SHIB/TMN, SOL/TMN, TRX/TMN, USDT/TMN, XRP/TMN]
+  usdt_tmn: USDT/TMN                 # data only (implied price)
+  exclude: [DOGE/TMN, TRX/TMN, XRP/TMN, USDT/TMN, USDC/TMN]   # H4 + stablecoins
+  max_median_spread_pct: 0.15        # H4
+  spread_snapshots: 12               # GET /depth/all snapshots ...
+  spread_snapshot_interval_s: 60     # ... this far apart
+  holdout_min_quote_volume_24h: 2.0e9  # TMN, from /hector/web/v1/markets
+  holdout_min_bar_coverage: 0.5      # share of 15m bars with a real candle over the period
+
+portfolio:                           # hold-out equity drawdown
+  position_fraction: 0.20
+  max_concurrent: 5
+  max_drawdown_pct: 5.0
+
+pass:
+  oos_mean_net_pct: 0.15
+  oos_windows_positive: 0.60
+  drift_adj_gross_pct: 0.30
+  holdout_mean_net_pct: 0.0
+  min_trades_per_day: 0.8            # "~1 trade per day" across the DEV universe (OOS)
+
+hypotheses:
+  H1:                                # large implied deviation
+    grid: {x_pct: [1.5, 2.0, 2.5], sl_pct: [1.0, 1.5, 2.0]}
+    exit_dev_pct: -0.3
+    time_stop_min: 360
+  H2:                                # capitulation bounce
+    grid: {y_pct: [5, 6, 8], tp_pct: [3, 4], sl_pct: [2, 3]}
+    lookback_bars: [4, 8, 12, 16]    # 1h, 2h, 3h, 4h of 15m bars
+    underperf_pct: 2.0
+    vol_z_min: 2.0
+    vol_z_window: 20
+    vol_z_recent_bars: 4
+    time_stop_min: 720
+  H3:                                # multi-day range breakout (1h)
+    grid: {tp_pct: [4, 6]}
+    sl_pct: 2.0
+    high_lookback_h: 72
+    vol_z_min: 2.0
+    vol_z_window: 20
+    ema_4h: 50
+    time_stop_min: 2880
