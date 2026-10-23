@@ -20,7 +20,7 @@ cash_buffer_fraction: 0.98          # حداکثر سهم نقد قابل است
 allowed_quotes: [TMN]               # فقط بازارهای تومانی معامله می‌شوند؛ USDT فقط منبع داده
 allow_usdt_liquidation: true        # فقط SELL روی USDT/TMN (تبدیل USDT به تومان در endgame)
 endgame:
-  competition_end_utc: null         # "YYYY-MM-DDTHH:MM:00Z" — از برگزارکننده؛ بدون آن لایو شروع نمی‌شود
+  competition_end_utc: "2026-10-XXTHH:MM:00Z"          # "YYYY-MM-DDTHH:MM:00Z" — از برگزارکننده؛ بدون آن لایو شروع نمی‌شود
   no_new_entries_hours_before: 6
   start_unwind_hours_before: 3
   force_liquidate_hours_before: 1
@@ -31,5 +31,5 @@ breakers:
   api_errors_clear_min: 15
   stale_data_seconds: 180
 fees:
-  maker_pct: 0.35    # مقدار بدبینانه؛ بعد از T-101 با کارمزد واقعی حساب جایگزین شود
-  taker_pct: 0.35
+  maker_pct: 0.25     # عدد مرحله ۲ × ۱۰۰
+  taker_pct: 0.25
