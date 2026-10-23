@@ -1,9 +1,15 @@
 {
-  "app": "siavash-wallex",
-  "port": 3000,
+  "app": "siavash-starcoach-wallex",
+  "platform": "docker",
+  "port": 8080,
   "team-id": "6ad5d83307e024287d0a3c95",
   "build": {
     "location": "germany"
   },
-  "disks": []
+  "disks": [
+    {
+      "name": "siavash-data",
+      "mountTo": "/app/persist"
+    }
+  ]
 }
