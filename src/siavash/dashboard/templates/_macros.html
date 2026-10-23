@@ -1,2 +1,36 @@
+{% import "_icons.html" as i %}
 {# Inline box for a section whose loader failed (DashboardData.section / unavailable()). #}
-{% macro box(x) %}<div class="card unavail" role="status">⚠ داده در دسترس نیست <span class="muted ltr" dir="ltr">({{ x.section }}: {{ x.error }})</span></div>{% endmacro %}
+{% macro box(x) %}<div class="unavail" role="status">{{ i.icon("alert") }}<span>داده در دسترس نیست</span> <span class="muted num" dir="ltr">({{ x.section }}: {{ x.error }})</span></div>{% endmacro %}
+
+{# Friendly empty state: icon + Persian message (+ optional hint). #}
+{% macro empty(msg, hint="", ic="inbox") %}<div class="empty">{{ i.icon(ic, "ic empty-ic") }}<p>{{ msg }}</p>{% if hint %}<p class="muted small">{{ hint }}</p>{% endif %}</div>{% endmacro %}
+
+{# Signed value with an arrow icon: color is never the only signal. #}
+{% macro delta(v, text) %}{% set t = v | tone %}<span class="delta {{ t }}">{% if t == "up" %}{{ i.icon("up", "ic xs") }}{% elif t == "down" %}{{ i.icon("down", "ic xs") }}{% endif %}<span class="num">{{ text }}</span></span>{% endmacro %}
+
+{% set STAGES = {"FEE_FILTER": "FEE", "ML": "ML", "EV": "EV", "LLM": "LLM", "RISK": "RISK", "EXECUTION": "EXEC"} %}
+{% macro outcome(x) -%}
+{% if x.outcome == "ORDER_PLACED" %}<span class="badge good">{{ i.icon("check", "ic xs") }}ORDER_PLACED</span>
+{% elif x.outcome == "REJECTED" %}<span class="badge mute">{{ i.icon("x", "ic xs") }}REJECTED</span>{% if x.rejected_at %}<span class="chip" title="{{ x.rejected_at }}">{{ STAGES.get(x.rejected_at, x.rejected_at) }}</span>{% endif %}
+{% elif x.outcome %}<span class="badge">{{ x.outcome }}</span>
+{% else %}<span class="muted">—</span>{% endif %}
+{%- endmacro %}
+
+{% macro verdict(v, status) -%}
+{% if v == "APPROVE" %}<span class="vd good" title="APPROVE">{{ i.icon("check", "ic sm") }}<span class="sr">APPROVE</span></span>
+{% elif v == "REJECT" %}<span class="vd bad" title="REJECT">{{ i.icon("x", "ic sm") }}<span class="sr">REJECT</span></span>
+{% else %}<span class="vd mute" title="{{ status or '—' }}">{{ i.icon("minus", "ic sm") }}<span class="sr">{{ status or '—' }}</span></span>{% endif %}
+{%- if status and status != "ok" %} <span class="chip warn">{{ status }}</span>{% endif %}
+{%- endmacro %}
+
+{# Health tile status: "good" | "warn" | "bad" (thresholds: base.yaml > dashboard.health). #}
+{% macro tile(label, value, unit, status, sub="", ic="activity") %}
+<div class="card tile {{ status }}">
+  <div class="tile-h">{{ i.icon(ic, "ic sm") }}<span>{{ label }}</span>
+    <span class="st {{ status }}">{% if status == "good" %}{{ i.icon("check", "ic xs") }}سالم{% elif status == "warn" %}{{ i.icon("alert", "ic xs") }}هشدار{% elif status == "bad" %}{{ i.icon("x", "ic xs") }}بحرانی{% else %}—{% endif %}</span></div>
+  <div class="tile-v"><span class="num">{{ value }}</span> <small>{{ unit }}</small></div>
+  {% if sub %}<div class="muted small">{{ sub }}</div>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro regime_tone(r) %}{{ {"TREND_UP": "good", "RANGE": "acc", "HIGH_VOL": "warn", "PANIC": "bad"}.get(r, "mute") }}{% endmacro %}

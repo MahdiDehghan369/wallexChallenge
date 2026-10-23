@@ -1,64 +1,82 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}سیستم · سیاوش{% endblock %}
 {% block body %}
+{% macro level(v, warn, bad) %}{{ '' if v is none else ('bad' if v >= bad else ('warn' if v >= warn else 'good')) }}{% endmacro %}
 {% set h, api, idn = s.health, s.api, s.identity %}
 {% for x in [h, api] if x.unavailable %}{{ m.box(x) }}{% endfor %}
-<div class="kpis">
+<section class="tiles" aria-label="سلامت">
   {% if not h.unavailable %}{% set hb = h.heartbeat_age_s %}
-  <div class="card kpi"><div class="l">سن آخرین heartbeat</div>
-    <div class="v {{ 'neg' if hb is none or hb > h.watchdog_timeout_s else 'pos' }}">{{ hb | fmt(0) }} s</div>
-    <div class="s">حد watchdog {{ h.watchdog_timeout_s | fmt }} s</div></div>
+  {% set hs = 'bad' if hb is none or hb > h.watchdog_timeout_s else ('warn' if hb > h.watchdog_timeout_s * th.heartbeat_warn_ratio else 'good') %}
+  {{ m.tile("سن آخرین heartbeat", hb | fmt(0), "s", hs, "حد watchdog " ~ (h.watchdog_timeout_s | fmt) ~ " s", "heart") }}
   {% endif %}
   {% if not api.unavailable %}
-  <div class="card kpi"><div class="l">نرخ خطای API</div><div class="v">{{ api.error_rate_pct | fmt(2) }} %</div>
-    <div class="s">{{ api.errors }} از {{ api.requests }} درخواست</div></div>
-  <div class="card kpi"><div class="l">تأخیر HTTP p50 / p95</div>
-    <div class="v">{{ api.http_p50_ms | fmt(0) }} / {{ api.http_p95_ms | fmt(0) }}</div><div class="s">میلی‌ثانیه</div></div>
+  {{ m.tile("نرخ خطای API", (api.error_rate_pct | fmt(2)) ~ " %", "", level(api.error_rate_pct, th.api_error_warn_pct, th.api_error_bad_pct) | trim, (api.errors | string) ~ " از " ~ (api.requests | string) ~ " درخواست", "alert") }}
+  {{ m.tile("تأخیر HTTP p50", api.http_p50_ms | fmt(0), "ms", level(api.http_p50_ms, th.latency_warn_ms, th.latency_bad_ms) | trim, "میانه درخواست‌ها", "clock") }}
+  {{ m.tile("تأخیر HTTP p95", api.http_p95_ms | fmt(0), "ms", level(api.http_p95_ms, th.latency_warn_ms, th.latency_bad_ms) | trim, "صدک ۹۵", "gauge") }}
   {% endif %}
   {% if not idn.unavailable %}
-  <div class="card kpi"><div class="l">آخرین تصمیم</div><div class="v" style="font-size:14px">{{ idn.last_decision_ts or '—' }}</div></div>
+  <div class="card tile"><div class="tile-h">{{ i.icon("activity", "ic sm") }}<span>آخرین تصمیم</span></div>
+    <div class="tile-v" style="font-size: 15px"><span class="num">{{ idn.last_decision_ts or '—' }}</span></div><div class="muted small">UTC</div></div>
   {% endif %}
-</div>
+</section>
 
-<h2>نسخه و پیکربندی</h2>
+<h2 class="sec">{{ i.icon("cpu", "ic sm") }}هویت موتور و پیکربندی</h2>
 {% if idn.unavailable %}{{ m.box(idn) }}{% else %}
-<div class="tw"><table>
-<tr><th></th><th>موتور (state/engine.json)</th><th>آخرین رکورد تصمیم</th><th>پروسه داشبورد</th></tr>
+<div class="tw short"><table class="idgrid">
+<thead><tr><th></th><th>موتور (state/engine.json)</th><th>آخرین رکورد تصمیم</th><th>پروسه داشبورد</th></tr></thead>
+<tbody>
 {% for k in ("mode", "git_sha", "version_tag", "config_hash") %}
-<tr><th>{{ k }}</th><td class="ltr">{{ (idn.engine[k] if idn.engine else none) or '—' }}</td><td class="ltr">{{ (idn.record[k] if idn.record else none) or '—' }}</td><td class="ltr">{{ idn.process[k] or '—' }}</td></tr>
+<tr><th class="mono">{{ k }}</th><td class="ltr mono">{{ (idn.engine[k] if idn.engine else none) or '—' }}</td><td class="ltr mono">{{ (idn.record[k] if idn.record else none) or '—' }}</td><td class="ltr mono">{{ idn.process[k] or '—' }}</td></tr>
 {% endfor %}
-<tr><th>started_at</th><td class="ltr">{{ (idn.engine.started_at if idn.engine else none) or '—' }}</td><td></td><td></td></tr>
+<tr><th class="mono">started_at</th><td class="ltr mono">{{ (idn.engine.started_at if idn.engine else none) or '—' }}</td><td></td><td></td></tr>
+</tbody>
 </table></div>
-<p class="muted">ستون موتور را خود موتور هنگام شروع می‌نویسد؛ رکورد تصمیم نسخه‌ای را نشان می‌دهد که آن تصمیم را گرفته است.</p>
+<p class="note">{{ i.icon("lock", "ic xs") }}ستون موتور را خود موتور هنگام شروع می‌نویسد؛ رکورد تصمیم نسخه‌ای را نشان می‌دهد که آن تصمیم را گرفته است.</p>
 {% if idn.fees %}
-<p>کارمزد مؤثر: maker <span class="ltr">{{ idn.fees.effective.maker_pct | fmt(3) }}</span>٪ / taker <span class="ltr">{{ idn.fees.effective.taker_pct | fmt(3) }}</span>٪
-  (منبع: <span class="ltr">{{ idn.fees.source }}</span>؛ config: <span class="ltr">{{ idn.fees.config.maker_pct | fmt(3) }} / {{ idn.fees.config.taker_pct | fmt(3) }}</span>{% if idn.fees.error %}؛ خطای API: <span class="ltr">{{ idn.fees.error }}</span>{% endif %})</p>
+<div class="card" style="margin-top: var(--s3)">
+  <div class="tile-h">{{ i.icon("coins", "ic sm") }}<span>کارمزد مؤثر</span><span class="badge {{ 'good' if idn.fees.source == 'account' else '' }}" style="margin-inline-start: auto">منبع: <span class="ltr">{{ idn.fees.source }}</span></span></div>
+  <p style="margin: var(--s2) 0 0">maker <b class="num">{{ idn.fees.effective.maker_pct | fmt(3) }}</b>٪ · taker <b class="num">{{ idn.fees.effective.taker_pct | fmt(3) }}</b>٪
+    <span class="muted small">(config: <span class="num">{{ idn.fees.config.maker_pct | fmt(3) }} / {{ idn.fees.config.taker_pct | fmt(3) }}</span>{% if idn.fees.error %}؛ خطای API: <span class="ltr">{{ idn.fees.error }}</span>{% endif %})</span></p>
+</div>
 {% endif %}
 {% endif %}
 
-<h2>پایان مسابقه (endgame)</h2>
+<h2 class="sec">{{ i.icon("flag", "ic sm") }}پایان مسابقه <span class="muted">endgame</span></h2>
 {% set eg = s.endgame %}
 {% if eg.unavailable %}{{ m.box(eg) }}{% elif not eg.configured %}
-<p class="neg">competition_end_utc تنظیم نشده است (منبع: {{ eg.source }}).</p>
+<div class="unavail" role="status">{{ i.icon("alert") }}competition_end_utc تنظیم نشده است (منبع: {{ eg.source }}).</div>
 {% else %}
-<p>فاز فعلی: <b class="ltr">{{ eg.phase }}</b> · پایان: <span class="ltr">{{ eg.end_tehran }}</span> تهران (<span class="ltr">{{ eg.end_utc }}</span> UTC) · <span class="ltr">{{ eg.hours_left | fmt(2) }}</span> ساعت مانده · منبع: <span class="ltr">{{ eg.source }}</span></p>
-<div class="tw"><table>
-<tr><th>فاز</th><th>شروع (تهران)</th><th>شروع (UTC)</th><th class="n">ساعت تا شروع</th><th>وضعیت</th></tr>
-{% for r in eg.rows %}
-<tr><td class="ltr">{{ r.phase }}</td><td class="ltr">{{ r.tehran }}</td><td class="ltr">{{ r.utc }}</td><td class="n">{{ r.in_h | fmt(2) }}</td><td>{{ {'current': 'جاری', 'past': 'گذشته', 'future': 'آینده'}[r.state] }}</td></tr>
-{% endfor %}
-</table></div>
-<p class="muted">NO_NEW: ورود جدید ممنوع · UNWIND: خروج از پوزیشن‌ها · FORCE: فروش اجباری همه دارایی‌ها به تومان · DONE: پایان.</p>
+<div class="card" style="margin-bottom: var(--s3)">
+  <p style="margin: 0">فاز فعلی: <b class="ltr">{{ eg.phase }}</b> · پایان: <span class="num">{{ eg.end_tehran }}</span> تهران (<span class="num">{{ eg.end_utc }}</span> UTC) ·
+    <span class="num">{{ eg.hours_left | fmt(2) }}</span> ساعت مانده · منبع: <span class="ltr">{{ eg.source }}</span></p>
+</div>
+<div class="steps">
+  {% for r in eg.rows %}
+  <div class="card step {{ r.state }}">
+    <div class="ph">{{ r.phase }}</div>
+    <div class="tt num">{{ r.tehran[11:] }}</div>
+    <div class="small">تهران <span class="num">{{ r.tehran }}</span></div>
+    <div class="muted small">UTC <span class="num">{{ r.utc }}</span></div>
+    <div class="small">{% if r.state == 'current' %}<span class="badge warn">{{ i.icon("clock", "ic xs") }}جاری</span>{% elif r.state == 'past' %}<span class="badge">گذشته</span>{% else %}<span class="badge acc">آینده · <span class="num">{{ r.in_h | fmt(2) }}</span> ساعت</span>{% endif %}</div>
+  </div>
+  {% endfor %}
+</div>
+<p class="note">{{ i.icon("flag", "ic xs") }}NO_NEW: ورود جدید ممنوع · UNWIND: خروج از پوزیشن‌ها · FORCE: فروش اجباری همه دارایی‌ها به تومان · DONE: پایان.</p>
 {% endif %}
 
-<h2>تأخیر تصمیم‌گیری (latency.jsonl)</h2>
-{% if s.latency.unavailable %}{{ m.box(s.latency) }}{% else %}
-<div class="tw"><table>
-<tr><th>مرحله</th><th class="n">n</th><th class="n">p50 ms</th><th class="n">p95 ms</th><th class="n">max ms</th></tr>
+<h2 class="sec">{{ i.icon("clock", "ic sm") }}تأخیر تصمیم‌گیری <span class="muted">latency.jsonl</span></h2>
+{% if s.latency.unavailable %}{{ m.box(s.latency) }}
+{% elif not s.latency %}<div class="card">{{ m.empty("هنوز داده تأخیری ثبت نشده", "", "clock") }}</div>
+{% else %}
+<div class="tw short"><table>
+<thead><tr><th>مرحله</th><th class="n">n</th><th class="n">p50 ms</th><th class="n">p95 ms</th><th class="n">max ms</th></tr></thead>
+<tbody>
 {% for k, v in s.latency.items() %}
-<tr><td class="ltr">{{ k }}</td><td class="n">{{ v.n }}</td><td class="n">{{ v.p50 | fmt(1) }}</td><td class="n">{{ v.p95 | fmt(1) }}</td><td class="n">{{ v.max | fmt(1) }}</td></tr>
-{% else %}<tr><td colspan="5" class="muted">داده‌ای نیست.</td></tr>{% endfor %}
+<tr><td class="ltr mono">{{ k }}</td><td class="n">{{ v.n }}</td><td class="n">{{ v.p50 | fmt(1) }}</td><td class="n {{ level(v.p95, th.latency_warn_ms, th.latency_bad_ms) | trim | replace('good', '') | replace('bad', 'neg') }}">{{ v.p95 | fmt(1) }}</td><td class="n">{{ v.max | fmt(1) }}</td></tr>
+{% endfor %}
+</tbody>
 </table></div>
 {% endif %}
 {% endblock %}

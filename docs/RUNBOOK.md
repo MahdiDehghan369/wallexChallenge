@@ -249,6 +249,20 @@ make dashboard-serve
 siavash dashboard
 ```
 
+**Preview on synthetic data** (no engine, no real logs). `make dashboard-demo` writes a demo dataset into a
+new temp dir and serves it on `http://127.0.0.1:8090` (user `demo`, password `demo`). Pass options with
+`ARGS`, e.g. `make dashboard-demo ARGS="--port 9000 --dir /tmp/siavash-demo"`.
+
+```bash
+make dashboard-demo
+```
+
+**UI behaviour:**
+- Pages refresh in place every `dashboard.refresh_s` seconds: the script re-GETs the same page and swaps
+  the content. Without JavaScript the page reloads instead.
+- The System health tiles turn green, amber or red using `base.yaml > dashboard.health`.
+- The theme toggle (dark by default) is remembered in the browser only.
+
 **VPS with Docker:**
 - Compose sets `PORT` (default 8080, `DASHBOARD_PORT` in `.env` changes it) and publishes the port on
   the host's **loopback only** (`127.0.0.1:8080`).

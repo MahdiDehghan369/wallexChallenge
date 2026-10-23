@@ -19,8 +19,11 @@ import hmac
 import json
 import threading
 from collections.abc import Callable
+from datetime import UTC, datetime
 from importlib import resources
 from typing import Any
+from urllib.parse import urlencode
+from zoneinfo import ZoneInfo
 
 import uvicorn
 from jinja2 import Environment, PackageLoader, select_autoescape
@@ -36,6 +39,7 @@ from starlette.routing import Route
 from siavash.config import AppConfig, EnvSettings
 from siavash.dashboard.data import IMAGE_TYPES, DashboardData, rewrite_images, unavailable
 from siavash.logging import get_logger, register_secrets
+from siavash.runtime import get_runtime
 
 log = get_logger(__name__)
 
@@ -47,13 +51,13 @@ CSP = (
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
     "img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"
 )
-NAV = [
-    ("/", "نمای کلی"),
-    ("/opportunities", "فرصت‌ها"),
-    ("/positions", "پوزیشن‌ها و معاملات"),
-    ("/ai", "هوش مصنوعی"),
-    ("/reports", "گزارش‌ها"),
-    ("/system", "سیستم"),
+NAV = [  # (href, label, icon name in _icons.html)
+    ("/", "نمای کلی", "overview"),
+    ("/opportunities", "فرصت‌ها", "radar"),
+    ("/positions", "پوزیشن‌ها و معاملات", "wallet"),
+    ("/ai", "هوش مصنوعی", "cpu"),
+    ("/reports", "گزارش‌ها", "file"),
+    ("/system", "سیستم", "activity"),
 ]
 
 
@@ -116,6 +120,60 @@ def _fmt(v: Any, nd: int = 0) -> str:
     return str(v)
 
 
+def _num(v: Any) -> float | None:
+    return float(v) if isinstance(v, int | float) and not isinstance(v, bool) else None
+
+
+def _signed(v: Any, nd: int = 0) -> str:
+    """``+1,234`` / ``-1,234`` / ``0`` (an explicit sign, so color is never the only signal)."""
+    x = _num(v)
+    if x is None:
+        return "—"
+    s = f"{abs(x):,.{nd}f}"
+    return s if float(s.replace(",", "")) == 0 else ("+" if x > 0 else "-") + s
+
+
+def _pct(v: Any, nd: int = 2) -> str:
+    """Signed percent with ``nd`` decimals: ``+2.47 %``."""
+    s = _signed(v, nd)
+    return s if s == "—" else f"{s} %"
+
+
+def _tone(v: Any) -> str:
+    x = _num(v)
+    return "flat" if x is None or x == 0 else ("up" if x > 0 else "down")
+
+
+def _spark(values: Any, w: int = 120, h: int = 32) -> str:
+    """SVG polyline ``points`` for a small sparkline ("" with fewer than 2 numbers)."""
+    ys = [y for y in (_num(v) for v in values or []) if y is not None]
+    if len(ys) < 2:
+        return ""
+    lo, hi = min(ys), max(ys)
+    span = (hi - lo) or 1.0
+    step = w / (len(ys) - 1)
+    return " ".join(f"{i * step:.1f},{h - 2 - (y - lo) / span * (h - 4):.1f}" for i, y in enumerate(ys))
+
+
+def _countdown(hours: Any) -> str:
+    """Hours -> ``2d 04:12:33`` (LTR, for the top bar; the script keeps it ticking)."""
+    x = _num(hours)
+    if x is None:
+        return "—"
+    total = max(int(x * 3600), 0)
+    d, rest = divmod(total, 86400)
+    h, rest = divmod(rest, 3600)
+    m, s = divmod(rest, 60)
+    return (f"{d}d " if d else "") + f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def _qs(f: dict[str, str], **kw: str) -> str:
+    """``/opportunities`` query string with ``kw`` replacing the current filters (empty values dropped)."""
+    merged = {**f, **kw}
+    q = urlencode({k: v for k, v in merged.items() if v})
+    return f"?{q}" if q else ""
+
+
 def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
     env = env if env is not None else dashboard_env()
     password = env.dashboard_password.get_secret_value() if env.dashboard_password else None
@@ -125,9 +183,25 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
     jinja = Environment(
         loader=PackageLoader("siavash.dashboard", "templates"), autoescape=select_autoescape(["html"])
     )
-    jinja.filters["fmt"] = _fmt
+    jinja.filters.update(fmt=_fmt, signed=_signed, pct=_pct, tone=_tone, spark=_spark, countdown=_countdown)
+    jinja.globals["qs"] = _qs
     md = MarkdownIt("commonmark", {"html": False}).enable("table")
     refresh = cfg.base.dashboard.refresh_s
+    tz = ZoneInfo(cfg.base.timezone)
+
+    def topbar() -> dict[str, Any]:
+        """Top bar on every page (existing loaders only; a failing one just shows "—")."""
+        eng = data.engine_identity()
+        rt = get_runtime()
+        st = data.section("topbar_status", data.store)
+        eg = data.section("topbar_endgame", data.endgame)
+        return {
+            "breaker": None if st.get("unavailable") else (st.get("breaker") or {"state": "NORMAL"}),
+            "endgame": eg,
+            "version_tag": eng.get("version_tag") or rt.version_tag,
+            "git_sha": eng.get("git_sha") or rt.git_sha,
+            "refreshed": datetime.now(UTC).astimezone(tz).strftime("%H:%M:%S"),
+        }
 
     def page(request: Request, name: str, refresh_page: bool = True, **ctx: Any) -> HTMLResponse:
         html = jinja.get_template(name).render(
@@ -136,6 +210,9 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
             refresh_s=refresh if refresh_page else None,
             chart_js=CHART_JS,
             mode=data.engine_mode(),  # the engine's real mode (state/engine.json), not base.yaml
+            top=topbar(),
+            th=cfg.base.dashboard.health,
+            watchdog_s=cfg.base.loop.watchdog_timeout_s,
             **ctx,
         )
         return HTMLResponse(html)
@@ -158,7 +235,13 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
     async def overview(request: Request) -> Response:
         def build() -> dict[str, Any]:
             o = data.overview()
-            return {"o": o, "chart_data": json.dumps(o["equity"].get("chart") or EMPTY_CHART)}
+            n = cfg.base.dashboard.timeline
+            return {
+                "o": o,
+                "chart_data": json.dumps(o["equity"].get("chart") or EMPTY_CHART),
+                "closed": data.section("closed_trades", data._closed_trades),  # fees paid KPI
+                "timeline": data.section("decisions", lambda: data.decisions()[-n:][::-1]),
+            }
 
         return safe_page(request, "overview.html", build)
 

@@ -78,3 +78,10 @@ dashboard:                       # read-only; disabled while env DASHBOARD_PASSW
   max_chart_points: 1500         # equity/drawdown series are thinned to this many points
   regime_history: 100
   tail_bytes: 20000000           # only the last N bytes of each jsonl log are read
+  timeline: 8                    # latest decisions on the overview
+  health:                        # System page tiles: green / amber / red (display only)
+    heartbeat_warn_ratio: 0.5    # amber above 50 % of loop.watchdog_timeout_s, red above it
+    api_error_warn_pct: 1.0
+    api_error_bad_pct: 5.0
+    latency_warn_ms: 500         # HTTP p50 / p95
+    latency_bad_ms: 1500

@@ -11,7 +11,7 @@ endef
 
 .PHONY: install lint test test-live download-data validate-data train backtest walkforward diagnostics \
 	paper live report replay flatten pause resume status shadow-report export-submission \
-	dashboard dashboard-serve docker-build docker-up docker-logs
+	dashboard dashboard-serve dashboard-demo docker-build docker-up docker-logs
 
 install:
 	$(PYTHON) -m pip install -e ".[dev]"
@@ -83,6 +83,10 @@ dashboard:
 # read-only web dashboard + /health on 127.0.0.1:8080 (needs DASHBOARD_PASSWORD in env or .env)
 dashboard-serve:
 	$(SIAVASH) dashboard $(ARGS)
+
+# the same dashboard on a synthetic dataset in a temp dir: http://127.0.0.1:8090 (user demo / password demo)
+dashboard-demo:
+	$(PYTHON) -m siavash.dashboard.demo $(ARGS)
 
 docker-build:
 	$(COMPOSE) build --build-arg GIT_SHA=$(GIT_SHA)

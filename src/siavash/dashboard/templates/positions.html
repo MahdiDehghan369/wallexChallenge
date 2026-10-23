@@ -1,35 +1,63 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}پوزیشن‌ها · سیاوش{% endblock %}
 {% block body %}
+{% macro at(v, lo, hi) %}{{ "%.2f" | format([[(v - lo) / (hi - lo) * 100, 0] | max, 100] | min) }}{% endmacro %}
 {% set op, cl = p.open, p.closed %}
-<h2>پوزیشن‌های باز</h2>
+<h2 class="sec" style="margin-top: 0">{{ i.icon("wallet", "ic sm") }}پوزیشن‌های باز</h2>
 {% if op.unavailable %}{{ m.box(op) }}{% else %}
-{% if op.store_error %}<p class="warn">⚠ {{ op.store_error }}</p>{% endif %}
-<div class="tw"><table>
-<tr><th>بازار</th><th>استراتژی</th><th>وضعیت</th><th class="n">مقدار</th><th class="n">ورود</th><th class="n">حد ضرر</th>
-<th class="n">حد سود</th><th class="n">حد ضرر متحرک</th><th class="n">توقف زمانی</th><th class="n">قیمت فعلی</th><th class="n">سود/زیان باز (TMN)</th></tr>
+{% if op.store_error %}<div class="unavail" role="status">{{ i.icon("alert") }}{{ op.store_error }}</div>{% endif %}
+{% if not op.rows %}<div class="card">{{ m.empty("پوزیشن بازی نیست", "وقتی موتور وارد معامله شود، کارت پوزیشن اینجا ظاهر می‌شود.", "wallet") }}</div>
+{% else %}
+<div class="pcards">
 {% for x in op.rows %}
-<tr><td>{{ x.symbol }}</td><td>{{ x.strategy }}</td><td>{{ x.status }}</td><td class="n">{{ "%g" | format(x.qty) }}</td>
-<td class="n">{{ x.entry | fmt }}</td><td class="n">{{ x.sl | fmt }}</td><td class="n">{{ x.tp | fmt }}</td>
-<td class="n">{{ x.trailing | fmt }}</td><td class="n">{{ x.time_stop }}</td><td class="n">{{ x.price | fmt }}</td>
-<td class="n {{ 'pos' if (x.upnl_tmn or 0) > 0 else ('neg' if (x.upnl_tmn or 0) < 0) }}">{{ x.upnl_tmn | fmt }}{% if x.upnl_pct is not none %} ({{ x.upnl_pct | fmt(2) }} %){% endif %}</td></tr>
-{% else %}<tr><td colspan="11" class="muted">پوزیشن بازی نیست.</td></tr>{% endfor %}
-</table></div>
-{% if op.rows and not op.prices_known %}<p class="muted">قیمت فعلی از data/live/*/books.jsonl خوانده می‌شود؛ هنوز ضبط نشده است.</p>{% endif %}
+<article class="card pcard">
+  <div class="hd"><b>{{ x.symbol }}</b><span class="badge">{{ x.strategy or '—' }}</span><span class="badge acc">{{ x.status }}</span>
+    <div class="pnl">{% if x.upnl_tmn is not none %}<div class="big {{ x.upnl_tmn | tone }}"><span class="num">{{ x.upnl_tmn | signed }}</span> <small class="muted">TMN</small></div>
+      <div class="small">{{ m.delta(x.upnl_pct, x.upnl_pct | pct) }}</div>{% else %}<span class="muted small">قیمت فعلی نامعلوم</span>{% endif %}</div></div>
+  <div class="route"><span class="muted">ورود</span> <b class="num">{{ x.entry | fmt }}</b> {{ i.icon("back", "ic xs") }} <span class="muted">فعلی</span> <b class="num {{ (x.upnl_tmn or 0) | tone }}">{{ x.price | fmt }}</b></div>
+  {% if x.sl is not none and x.tp is not none and x.tp > x.sl %}
+  <div class="range" role="img" aria-label="قیمت بین حد ضرر {{ x.sl | fmt }} و حد سود {{ x.tp | fmt }}">
+    <div class="track">
+      {% if x.entry is not none %}<span class="mk en" style="left: {{ at(x.entry, x.sl, x.tp) }}%" title="ورود"></span>{% endif %}
+      {% if x.trailing is not none %}<span class="mk tr" style="left: {{ at(x.trailing, x.sl, x.tp) }}%" title="حد ضرر متحرک"></span>{% endif %}
+      {% if x.price is not none %}<span class="mk px" style="left: {{ at(x.price, x.sl, x.tp) }}%" title="قیمت فعلی"></span>{% endif %}
+    </div>
+    <div class="lbls"><span>SL <span class="neg">{{ x.sl | fmt }}</span></span><span>TP <span class="pos">{{ x.tp | fmt }}</span></span></div>
+  </div>
+  {% else %}<div class="muted small">حد ضرر {{ x.sl | fmt }} · حد سود {{ x.tp | fmt }}</div>{% endif %}
+  <dl class="kv">
+    <dt>مقدار</dt><dd>{{ "%g" | format(x.qty) }}</dd>
+    <dt>حد ضرر متحرک</dt><dd>{{ x.trailing | fmt }}</dd>
+    <dt>توقف زمانی</dt><dd>{{ x.time_stop or '—' }}</dd>
+    <dt>باز شده</dt><dd>{{ x.opened or '—' }}</dd>
+  </dl>
+</article>
+{% endfor %}
+</div>
+{% if not op.prices_known %}<p class="note">{{ i.icon("clock", "ic xs") }}قیمت فعلی از data/live/*/books.jsonl خوانده می‌شود؛ هنوز ضبط نشده است.</p>{% endif %}
+{% endif %}
 {% endif %}
 
-<h2>معاملات بسته‌شده (fills.csv)</h2>
-{% if cl.unavailable %}{{ m.box(cl) }}{% else %}
-<p class="muted">سود/زیان تحقق‌یافته {{ cl.realized_tmn | fmt }} TMN · کارمزد {{ cl.fees_tmn | fmt }} TMN · {{ cl.rows | length }} معامله</p>
+<h2 class="sec">{{ i.icon("repeat", "ic sm") }}معاملات بسته‌شده <span class="muted">fills.csv</span></h2>
+{% if cl.unavailable %}{{ m.box(cl) }}
+{% elif not cl.rows %}<div class="card">{{ m.empty("هنوز معامله‌ای انجام نشده", "معاملات رفت‌وبرگشتی کامل‌شده اینجا جمع می‌شوند.", "repeat") }}</div>
+{% else %}
 <div class="tw"><table>
-<tr><th>بازار</th><th>استراتژی</th><th class="n">ورود</th><th class="n">خروج</th><th class="n">خرید (TMN)</th><th class="n">فروش (TMN)</th>
-<th class="n">کارمزد</th><th class="n">سود/زیان (TMN)</th><th class="n">بازده %</th><th>دلیل خروج</th></tr>
+<thead><tr><th>بازار</th><th>استراتژی</th><th class="n">ورود</th><th class="n">خروج</th><th class="n">خرید (TMN)</th><th class="n">فروش (TMN)</th>
+<th class="n">کارمزد</th><th class="n">سود/زیان (TMN)</th><th class="n">بازده</th><th>دلیل خروج</th></tr></thead>
+<tbody>
 {% for t in cl.rows %}
-<tr><td>{{ t.symbol }}</td><td>{{ t.strategy or '—' }}</td><td class="n">{{ t.entry_ts }}</td><td class="n">{{ t.exit_ts }}</td>
+<tr><td class="sym">{{ t.symbol }}</td><td><span class="sub">{{ t.strategy or '—' }}</span></td><td class="n">{{ t.entry_ts }}</td><td class="n">{{ t.exit_ts }}</td>
 <td class="n">{{ t.buy_tmn | fmt }}</td><td class="n">{{ t.sell_tmn | fmt }}</td><td class="n">{{ t.fees_tmn | fmt }}</td>
-<td class="n {{ 'pos' if (t.pnl_tmn or 0) > 0 else 'neg' }}">{{ t.pnl_tmn | fmt }}</td><td class="n">{{ t.ret_pct | fmt(2) }}</td><td>{{ t.exit_reason or '—' }}</td></tr>
-{% else %}<tr><td colspan="10" class="muted">معامله بسته‌شده‌ای نیست.</td></tr>{% endfor %}
+<td class="n {{ t.pnl_tmn | tone }}">{{ t.pnl_tmn | signed }}</td><td class="n {{ t.ret_pct | tone }}">{{ t.ret_pct | pct }}</td>
+<td>{% if t.exit_reason %}<span class="badge">{{ t.exit_reason }}</span>{% else %}—{% endif %}</td></tr>
+{% endfor %}
+</tbody>
+<tfoot><tr><td colspan="4">جمع · <span class="num">{{ cl.rows | length }}</span> معامله</td>
+<td class="n">{{ cl.rows | sum(attribute='buy_tmn') | fmt }}</td><td class="n">{{ cl.rows | sum(attribute='sell_tmn') | fmt }}</td>
+<td class="n">{{ cl.fees_tmn | fmt }}</td><td class="n {{ cl.realized_tmn | tone }}">{{ cl.realized_tmn | signed }}</td><td></td><td></td></tr></tfoot>
 </table></div>
 {% endif %}
 {% endblock %}

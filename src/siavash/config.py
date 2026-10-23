@@ -121,6 +121,16 @@ class AlertsConfig(_C):
     min_interval_s: float = Field(3, ge=0)
 
 
+class DashboardHealthConfig(_C):
+    """Green / amber / red thresholds of the System page health tiles (display only)."""
+
+    heartbeat_warn_ratio: float = Field(0.5, gt=0, le=1)  # amber above this share of loop.watchdog_timeout_s
+    api_error_warn_pct: float = Field(1.0, ge=0)
+    api_error_bad_pct: float = Field(5.0, ge=0)
+    latency_warn_ms: float = Field(500.0, gt=0)
+    latency_bad_ms: float = Field(1500.0, gt=0)
+
+
 class DashboardConfig(_C):
     """Read-only monitoring dashboard (``siavash dashboard`` / ``siavash run`` with env ``PORT``)."""
 
@@ -131,6 +141,8 @@ class DashboardConfig(_C):
     max_chart_points: int = Field(1500, ge=50)
     regime_history: int = Field(100, ge=1)
     tail_bytes: int = Field(20_000_000, ge=100_000)
+    timeline: int = Field(8, ge=1)  # latest decisions on the overview
+    health: DashboardHealthConfig = DashboardHealthConfig()
 
 
 class BaseConfig(_C):

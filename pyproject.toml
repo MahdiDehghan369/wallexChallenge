@@ -52,7 +52,7 @@ siavash = "siavash.cli:app"
 where = ["src"]
 
 [tool.setuptools.package-data]
-siavash = ["agents/prompts/*.md", "agents/prompts/*.json", "dashboard/templates/*.html", "dashboard/static/*.js"]
+siavash = ["agents/prompts/*.md", "agents/prompts/*.json", "dashboard/templates/*.html", "dashboard/templates/*.css", "dashboard/static/*.js"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

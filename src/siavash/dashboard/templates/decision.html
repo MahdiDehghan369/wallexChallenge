@@ -1,8 +1,11 @@
 {% extends "base.html" %}
+{% import "_icons.html" as i %}
 {% block title %}تصمیم {{ rec.decision_id }} · سیاوش{% endblock %}
 {% block body %}
-<p><a href="/opportunities">→ بازگشت به فرصت‌ها</a></p>
-<h2>{{ rec.type }} · {{ rec.symbol or '' }} · {{ rec.strategy or '' }}</h2>
-<p>{{ rec.final_reason }}</p>
-<pre>{{ pretty }}</pre>
+<div class="crumbs"><a href="/opportunities">{{ i.icon("back", "ic xs") }} فرصت‌ها</a><span class="muted">/</span><span class="mono">{{ rec.decision_id }}</span></div>
+<article class="card" id="decision">
+  <h2 class="sec" style="margin-top: 0" id="decision-title"><span class="badge">{{ rec.type }}</span> {{ rec.symbol or '' }} <span class="muted">{{ rec.strategy or '' }}</span></h2>
+  <p class="reason" id="decision-reason">{{ rec.final_reason }}</p>
+  <pre class="json" id="json">{{ pretty }}</pre>
+</article>
 {% endblock %}

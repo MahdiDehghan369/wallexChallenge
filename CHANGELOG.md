@@ -54,6 +54,30 @@ and an entry under "Versions".
   - **Image:** now contains `make`, the `Makefile` and `CHANGELOG.md`, so `make report` and
     `make export-submission` work inside the container.
   - **Docs:** new RUNBOOK section "5a. Liara go-live".
+- Dashboard redesign (live-v1.5): a "trading terminal" UI. Templates, CSS and JS only: routes, auth, data
+  loaders (`dashboard/data.py`) and the read-only rule are unchanged.
+  - **Look:** dark-first with a light mode. Design tokens on `:root` / `[data-theme=light]`, Vazirmatn text,
+    numbers in tabular figures isolated LTR, signed % with 2 decimals, inline Lucide-style SVG icons.
+  - **Shell:** a fixed right sidebar (icons only below 900 px), and a sticky top bar with the MODE pill
+    (LIVE = pulsing red), breaker, endgame phase with a live countdown, version_tag / git_sha, last refresh
+    (Tehran) and the theme toggle.
+  - **Pages:**
+    - Overview: 6 KPIs with sparklines, gradient charts with Persian tooltips, latest-decisions timeline.
+    - Opportunities: filter pills, outcome badges with stage chips, p_win bars, LLM verdict icons, and a
+      side drawer with coloured JSON.
+    - Positions: cards with an SL–TP price bar; closed trades with a totals footer.
+    - AI: approve/reject donut, fallback count, budget bars, regime timeline.
+    - Reports: card grid, live vs pre-challenge research.
+    - System: green/amber/red health tiles and endgame steps.
+    - Every page has friendly empty states.
+  - **Refresh:** in place every `refresh_s` (GET of the same page). A `<noscript>` meta refresh is the fallback.
+  - **Top bar:** shown on every page, using existing loaders only. The overview also shows fees paid
+    (`_closed_trades`) and the newest `dashboard.timeline` decisions.
+  - **Config:** new `base.yaml > dashboard.timeline` and `dashboard.health` (thresholds of the health tiles).
+  - **Demo:** `make dashboard-demo` (`python -m siavash.dashboard.demo`) serves the dashboard on a synthetic
+    dataset in a temp dir.
+  - **Tests:** `tests/unit/dashboard/test_dashboard_pages.py` checks that every page renders, with structure
+    snapshots, read-only markup, pinned assets and empty states.
 - Fee parse fix (live-v1.4): on Liara `GET /v1/account/fee` returned 200 but `parse_fees` raised
   `ValueError: missing decimal value` on an entry without `makerFeeRate`. The engine fell back to config
   fees and `smoke_test.py` crashed before the test order.

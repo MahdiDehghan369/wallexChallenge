@@ -1,61 +1,110 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}هوش مصنوعی · سیاوش{% endblock %}
 {% block body %}
 {% set c, rv = a.calls, a.reviews %}
 {% for x in [c, rv] if x.unavailable %}{{ m.box(x) }}{% endfor %}
-<div class="kpis">
+<section class="kpis" aria-label="بازبینی LLM">
   {% if not rv.unavailable %}
-  <div class="card kpi"><div class="l">بازبینی‌های موفق LLM</div><div class="v">{{ rv.n_ok }}</div>
-    <div class="s">{% for k, v in rv.status.items() %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% else %}بدون بازبینی{% endfor %}</div></div>
-  <div class="card kpi"><div class="l">نرخ تأیید</div><div class="v pos">{{ rv.approve_pct | fmt(1) }} %</div>
-    <div class="s">رد: {{ rv.reject_pct | fmt(1) }} %</div></div>
+  {% set C = 251.33 %}{% set ap = rv.approve_pct or 0 %}
+  <div class="card kpi donut-card" style="grid-column: span 2">
+    <svg class="donut" viewBox="0 0 100 100" role="img" aria-label="نرخ تأیید {{ rv.approve_pct | fmt(1) }} %">
+      <circle cx="50" cy="50" r="40" stroke="{{ 'var(--loss)' if rv.n_ok else 'var(--surface-2)' }}"/>
+      {% if rv.n_ok %}<circle cx="50" cy="50" r="40" stroke="var(--profit)" stroke-dasharray="{{ '%.2f' | format(ap * C / 100) }} {{ C }}"/>{% endif %}
+    </svg>
+    <div>
+      <div class="l">{{ i.icon("check", "ic xs") }}نرخ تأیید بازبین LLM</div>
+      <div class="v pos">{{ rv.approve_pct | fmt(1) }} %</div>
+      <div class="legend">
+        <span><i style="background: var(--profit)"></i>تأیید {{ rv.approve_pct | fmt(1) }} %</span>
+        <span><i style="background: var(--loss)"></i>رد: {{ rv.reject_pct | fmt(1) }} %</span>
+        <span class="muted">از <span class="num">{{ rv.n_ok }}</span> بازبینی موفق</span>
+      </div>
+    </div>
+  </div>
+  {% set total = rv.status.values() | sum %}
+  <div class="card kpi">
+    <div class="l">{{ i.icon("repeat", "ic xs") }}fallback (بازبینی ناموفق)</div>
+    <div class="v {{ 'warn' if total - rv.n_ok else '' }}">{{ total - rv.n_ok }}</div>
+    <div class="s">{% for k, v in rv.status.items() %}<span class="chip {{ '' if k == 'ok' else 'warn' }}">{{ k }}: {{ v }}</span>{% else %}بدون بازبینی{% endfor %}</div>
+  </div>
   {% endif %}
   {% if not c.unavailable %}
-  <div class="card kpi"><div class="l">فراخوانی‌های مدل (calls.jsonl)</div><div class="v">{{ c.n }}</div>
-    <div class="s">{% for k, v in c.status.items() %}{{ k }}: {{ v }}{{ ' · ' if not loop.last }}{% endfor %}</div></div>
-  <div class="card kpi"><div class="l">توکن‌های ثبت‌شده</div><div class="v">{{ c.tokens | fmt }}</div>
-    <div class="s">سقف ورودی هر فراخوانی {{ c.max_input_tokens_per_call | fmt }}</div></div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("cpu", "ic xs") }}فراخوانی‌های مدل</div>
+    <div class="v">{{ c.n }}</div>
+    <div class="s">{% for k, v in c.status.items() %}<span class="chip {{ '' if k == 'ok' else 'warn' }}">{{ k }}: {{ v }}</span>{% else %}calls.jsonl خالی است{% endfor %}</div>
+  </div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("zap", "ic xs") }}توکن‌های ثبت‌شده</div>
+    <div class="v">{{ c.tokens | fmt }}</div>
+    <div class="s">سقف ورودی هر فراخوانی <span class="num">{{ c.max_input_tokens_per_call | fmt }}</span></div>
+  </div>
   {% endif %}
+</section>
+
+<div class="grid2" style="margin-top: var(--s3)">
+<section>
+<h2 class="sec">{{ i.icon("gauge", "ic sm") }}بودجه LLM <span class="muted">llm.budget</span></h2>
+{% if a.budget.unavailable %}{{ m.box(a.budget) }}{% else %}
+<div class="card budget">
+  {% for b in a.budget %}{% set pc = b.pct or 0 %}
+  <div class="row">
+    <div class="hd"><span>{{ {"calls this hour": "فراخوانی در این ساعت", "calls today": "فراخوانی امروز", "tokens today": "توکن امروز"}.get(b.name, b.name) }} <span class="sub mono">{{ b.period or '' }}</span></span>
+      <span class="num"><b>{{ b.used | fmt }}</b> / {{ b.limit | fmt }} · {{ b.pct | fmt(1) }} %</span></div>
+    <div class="bar {{ 'bad' if pc >= 90 else ('warn' if pc >= 70 else 'good') }}" role="img" aria-label="{{ b.pct | fmt(1) }} %"><i style="width: {{ [pc, 100] | min }}%"></i></div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+</section>
+
+<section>
+<h2 class="sec">{{ i.icon("trend", "ic sm") }}خط زمانی رژیم</h2>
+{% set rg = a.regimes %}
+{% if rg.unavailable %}{{ m.box(rg) }}
+{% elif not rg.rows %}<div class="card">{{ m.empty("هنوز رژیمی ثبت نشده", "logs/regime.jsonl خالی است.", "trend") }}</div>
+{% else %}{% set chrono = rg.rows | reverse | list %}
+<div class="card">
+  <div class="segs" role="img" aria-label="رژیم‌ها از قدیمی به جدید">
+    {% for r in chrono %}<span class="seg-{{ m.regime_tone(r.regime) }}" title="{{ r.ts }} · {{ r.regime }} ({{ r.source }})"></span>{% endfor %}
+  </div>
+  <div class="axis"><span>{{ chrono[0].ts }}</span><span>{{ chrono[-1].ts }}</span></div>
+  <div class="seg-legend">{% for name in ["TREND_UP", "RANGE", "HIGH_VOL", "PANIC"] %}<span><i class="seg-{{ m.regime_tone(name) }}"></i>{{ name }}</span>{% endfor %}
+    <span>منبع: {% for k, v in rg.sources.items() %}{{ k }} {{ v }}{{ ' · ' if not loop.last }}{% else %}—{% endfor %}</span></div>
+</div>
+{% endif %}
+</section>
 </div>
 
-<h2>بودجه LLM (llm.budget)</h2>
-{% if a.budget.unavailable %}{{ m.box(a.budget) }}{% else %}
+{% if not rg.unavailable and rg.rows %}
+<h2 class="sec">{{ i.icon("layers", "ic sm") }}تاریخچه رژیم</h2>
 <div class="tw"><table>
-<tr><th>شاخص</th><th class="n">مصرف</th><th class="n">سقف</th><th>درصد</th><th class="n">دوره (تهران)</th></tr>
-{% for b in a.budget %}
-<tr><td>{{ b.name }}</td><td class="n">{{ b.used | fmt }}</td><td class="n">{{ b.limit | fmt }}</td>
-<td><div class="bar" role="img" aria-label="{{ b.pct | fmt(1) }} %"><i style="width: {{ [b.pct or 0, 100] | min }}%"></i></div> <span class="muted">{{ b.pct | fmt(1) }} %</span></td>
-<td class="n">{{ b.period or '—' }}</td></tr>
-{% endfor %}
-</table></div>
-{% endif %}
-
-<h2>تاریخچه رژیم</h2>
-{% set rg = a.regimes %}
-{% if rg.unavailable %}{{ m.box(rg) }}{% else %}
-<p class="muted">منبع: {% for k, v in rg.sources.items() %}{{ k }} {{ v }}{{ ' · ' if not loop.last }}{% else %}—{% endfor %}</p>
-<div class="tw"><table>
-<tr><th class="n">زمان</th><th>رژیم</th><th>رژیم قاعده‌ای</th><th>منبع</th><th>وضعیت</th><th class="n">ضریب ریسک</th><th>دلایل</th></tr>
+<thead><tr><th class="n">زمان</th><th>رژیم</th><th>رژیم قاعده‌ای</th><th>منبع</th><th>وضعیت</th><th class="n">ضریب ریسک</th><th>دلایل</th></tr></thead>
+<tbody>
 {% for r in rg.rows %}
-<tr><td class="n">{{ r.ts }}</td><td>{{ r.regime }}</td><td>{{ r.rule_regime }}</td><td>{{ r.source }}</td><td>{{ r.status }}</td>
-<td class="n">{{ r.risk_multiplier | fmt(2) }}</td><td>{{ r.reasons }}</td></tr>
-{% else %}<tr><td colspan="7" class="muted">logs/regime.jsonl خالی است.</td></tr>{% endfor %}
+<tr><td class="n">{{ r.ts }}</td><td><span class="badge {{ m.regime_tone(r.regime) | replace('mute', '') }}">{{ r.regime }}</span></td><td><span class="sub">{{ r.rule_regime }}</span></td><td>{{ r.source }}</td><td>{{ r.status }}</td>
+<td class="n">{{ r.risk_multiplier | fmt(2) }}</td><td><div class="trunc" title="{{ r.reasons }}">{{ r.reasons }}</div></td></tr>
+{% endfor %}
+</tbody>
 </table></div>
 {% endif %}
 
-<h2>تحلیل خلاف‌واقع (counterfactual)</h2>
+<h2 class="sec">{{ i.icon("search", "ic sm") }}تحلیل خلاف‌واقع <span class="muted">counterfactual</span></h2>
 {% set cf = a.counterfactual %}
 {% if cf.unavailable %}{{ m.box(cf) }}
 {% elif cf %}
-<p class="muted">از {{ cf.source }}</p>
-<div class="tw"><table>
-<tr><th>دروازه</th><th class="n">رد</th><th class="n">رد درست</th><th class="n">فرصت ازدست‌رفته</th><th class="n">زیان اجتناب‌شده %</th><th class="n">سود ازدست‌رفته %</th><th class="n">ارزش خالص %</th></tr>
+<p class="muted small">از <span class="mono">{{ cf.source }}</span></p>
+<div class="tw short"><table>
+<thead><tr><th>دروازه</th><th class="n">رد</th><th class="n">رد درست</th><th class="n">فرصت ازدست‌رفته</th><th class="n">زیان اجتناب‌شده</th><th class="n">سود ازدست‌رفته</th><th class="n">ارزش خالص</th></tr></thead>
+<tbody>
 {% for g, v in cf.gates.items() %}
-<tr><td>{{ g }}</td><td class="n">{{ v.rejected }}</td><td class="n">{{ v.correct_rejections }}</td><td class="n">{{ v.missed_opportunities }}</td>
-<td class="n">{{ v.avoided_loss_pct | fmt(2) }}</td><td class="n">{{ v.missed_profit_pct | fmt(2) }}</td>
-<td class="n {{ 'pos' if (v.net_value_pct or 0) > 0 else 'neg' }}">{{ v.net_value_pct | fmt(2) }}</td></tr>
+<tr><td><span class="chip">{{ g }}</span></td><td class="n">{{ v.rejected }}</td><td class="n">{{ v.correct_rejections }}</td><td class="n">{{ v.missed_opportunities }}</td>
+<td class="n">{{ v.avoided_loss_pct | fmt(2) }} %</td><td class="n">{{ v.missed_profit_pct | fmt(2) }} %</td>
+<td class="n {{ v.net_value_pct | tone }}">{{ v.net_value_pct | pct }}</td></tr>
 {% endfor %}
+</tbody>
 </table></div>
-{% else %}<p class="muted">هنوز گزارشی با بخش counterfactual نیست (make report).</p>{% endif %}
+{% else %}<div class="card">{{ m.empty("هنوز گزارشی با بخش counterfactual نیست", "پس از make report اینجا پر می‌شود.", "search") }}</div>{% endif %}
 {% endblock %}

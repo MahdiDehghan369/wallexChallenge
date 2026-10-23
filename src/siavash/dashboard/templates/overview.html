@@ -1,49 +1,104 @@
 {% extends "base.html" %}
 {% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}نمای کلی · سیاوش{% endblock %}
 {% block head %}<script src="{{ chart_js }}" defer></script>{% endblock %}
 {% block body %}
 {% set e, st, act, rg, eg = o.equity, o.status, o.activity, o.regime, o.endgame %}
-{% if st.store_error %}<p class="warn">⚠ {{ st.store_error }}</p>{% endif %}
-{% for x in [e, st, act, rg, eg] if x and x.unavailable %}{{ m.box(x) }}{% endfor %}
-<div class="kpis">
+{% if st.store_error %}<div class="unavail" role="status">{{ i.icon("alert") }}{{ st.store_error }}</div>{% endif %}
+{% for x in [e, st, act, rg, eg, closed] if x and x.unavailable %}{{ m.box(x) }}{% endfor %}
+
+<section class="kpis" aria-label="شاخص‌های اصلی">
   {% if not e.unavailable %}
-  <div class="card kpi"><div class="l">ارزش حساب (TMN)</div><div class="v">{{ e.equity_tmn | fmt }}</div>
-    <div class="s">{{ e.equity_ts or 'بدون داده' }}</div></div>
-  <div class="card kpi"><div class="l">سود/زیان کل</div>
-    <div class="v {{ 'pos' if (e.pnl_pct or 0) > 0 else ('neg' if (e.pnl_pct or 0) < 0) }}">{{ e.pnl_pct | fmt(2) }} %</div>
-    <div class="s">نسبت به {{ e.capital_base | fmt }} TMN · امروز {{ e.daily_pnl_pct | fmt(2) }} %</div></div>
-  <div class="card kpi"><div class="l">افت از اوج</div><div class="v">{{ e.drawdown_pct | fmt(2) }} %</div>
-    <div class="s">بیشینه {{ e.max_drawdown_pct | fmt(2) }} %</div></div>
-  {% endif %}
-  {% if not st.unavailable %}
-  <div class="card kpi"><div class="l">وضعیت ترمز</div>
-    <div class="v {{ 'pos' if st.breaker.state == 'NORMAL' else 'neg' }}">{{ st.breaker.state }}</div>
-    <div class="s">{{ st.breaker.reason or '' }}{% if st.paused %} · توقف ورود توسط اپراتور{% endif %}</div></div>
-  {% endif %}
-  {% if not rg.unavailable %}
-  <div class="card kpi"><div class="l">رژیم بازار</div><div class="v">{{ rg.regime if rg else '—' }}</div>
-    <div class="s">{% if rg %}منبع: {{ rg.source }} · {{ rg.ts }}{% else %}بدون داده{% endif %}</div></div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("wallet", "ic xs") }}ارزش حساب</div>
+    <div class="v">{{ e.equity_tmn | fmt }} <small>TMN</small></div>
+    <div class="s">امروز {{ m.delta(e.daily_pnl_pct, e.daily_pnl_pct | pct) }}</div>
+    {% set sp = e.chart.equity | spark(96, 28) %}{% if sp %}<svg class="spark" viewBox="0 0 96 28" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{ sp }}" stroke="var(--accent)"/></svg>{% endif %}
+  </div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("percent", "ic xs") }}بازده خالص</div>
+    <div class="v {{ e.pnl_pct | tone }}">{{ e.pnl_pct | pct }}</div>
+    <div class="s">نسبت به سرمایه <span class="num">{{ e.capital_base | fmt }}</span> TMN</div>
+  </div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("drop", "ic xs") }}افت از اوج</div>
+    <div class="v {{ 'down' if (e.drawdown_pct or 0) > 0 else 'flat' }}">{{ (-(e.drawdown_pct) if e.drawdown_pct is not none else none) | pct }}</div>
+    <div class="s">بیشینه <span class="num">{{ (-(e.max_drawdown_pct) if e.max_drawdown_pct is not none else none) | pct }}</span></div>
+    {% set sp = e.chart.dd | spark(96, 28) %}{% if sp %}<svg class="spark" viewBox="0 0 96 28" preserveAspectRatio="none" aria-hidden="true"><polyline points="{{ sp }}" stroke="var(--loss)"/></svg>{% endif %}
+  </div>
   {% endif %}
   {% if not e.unavailable or not st.unavailable %}
-  <div class="card kpi"><div class="l">در معرض (TMN)</div><div class="v">{{ e.exposure_tmn | fmt if not e.unavailable else '—' }}</div>
-    <div class="s">{{ st.open_positions if not st.unavailable else '—' }} پوزیشن باز</div></div>
-  {% endif %}
-  {% if not eg.unavailable %}
-  <div class="card kpi"><div class="l">فاز endgame</div>
-    <div class="v {{ 'pos' if eg.phase == 'NONE' else 'neg' }}">{{ eg.phase }}</div>
-    <div class="s">{% if eg.configured %}پایان {{ eg.end_tehran }} تهران · {{ eg.hours_left | fmt(1) }} ساعت مانده{% else %}competition_end_utc تنظیم نشده{% endif %}</div></div>
+  {% set expo = (e.exposure_tmn / e.equity_tmn * 100) if (not e.unavailable and e.exposure_tmn is not none and e.equity_tmn) else none %}
+  <div class="card kpi">
+    <div class="l">{{ i.icon("layers", "ic xs") }}در معرض بازار</div>
+    <div class="v">{{ expo | fmt(2) }}{% if expo is not none %} <small>%</small>{% endif %}</div>
+    <div class="s"><span class="num">{{ e.exposure_tmn | fmt if not e.unavailable else '—' }}</span> TMN · {{ st.open_positions if not st.unavailable else '—' }} پوزیشن باز</div>
+  </div>
   {% endif %}
   {% if not act.unavailable %}
-  <div class="card kpi"><div class="l">معاملات امروز (تهران)</div><div class="v">{{ act.entries_today }}</div>
-    <div class="s">ورود · {{ act.closed_today }} بسته‌شده · {{ act.fills_today }} fill</div></div>
+  <div class="card kpi">
+    <div class="l">{{ i.icon("repeat", "ic xs") }}معاملات امروز (تهران)</div>
+    <div class="v">{{ act.entries_today }}</div>
+    <div class="s">ورود · {{ act.closed_today }} بسته‌شده · {{ act.fills_today }} fill</div>
+  </div>
   {% endif %}
-</div>
+  {% if not closed.unavailable %}
+  <div class="card kpi">
+    <div class="l">{{ i.icon("coins", "ic xs") }}کارمزد پرداختی</div>
+    <div class="v">{{ closed.fees_tmn | fmt }} <small>TMN</small></div>
+    <div class="s">سود/زیان تحقق‌یافته {{ m.delta(closed.realized_tmn, closed.realized_tmn | signed) }}</div>
+  </div>
+  {% endif %}
+</section>
+
+<section class="strip" aria-label="وضعیت">
+  {% if not st.unavailable %}{% set bt = 'good' if st.breaker.state == 'NORMAL' else ('bad' if st.breaker.state == 'FLATTEN_AND_HALT' else 'warn') %}
+  <div class="card"><span class="ico {{ bt }}">{{ i.icon('shield' if bt == 'good' else 'alert') }}</span>
+    <div><div class="t">وضعیت ترمز</div><div class="b num">{{ st.breaker.state }}</div>
+    <div class="x">{{ st.breaker.reason or 'عادی' }}{% if st.paused %} · توقف ورود توسط اپراتور{% endif %}</div></div></div>
+  {% endif %}
+  {% if not rg.unavailable %}
+  <div class="card"><span class="ico {{ m.regime_tone(rg.regime) if rg else '' }}">{{ i.icon("trend") }}</span>
+    <div><div class="t">رژیم بازار</div><div class="b num">{{ rg.regime if rg else '—' }}</div>
+    <div class="x">{% if rg %}منبع: {{ rg.source }} · <span class="num">{{ rg.ts }}</span>{% else %}بدون داده{% endif %}</div></div></div>
+  {% endif %}
+  {% if not eg.unavailable %}
+  <div class="card"><span class="ico {{ 'good' if eg.phase == 'NONE' else 'warn' }}">{{ i.icon("flag") }}</span>
+    <div><div class="t">فاز endgame</div><div class="b num">{{ eg.phase }}</div>
+    <div class="x">{% if eg.configured %}پایان <span class="num">{{ eg.end_tehran }}</span> تهران · <span class="num">{{ eg.hours_left | fmt(1) }}</span> ساعت مانده{% else %}competition_end_utc تنظیم نشده{% endif %}</div></div></div>
+  {% endif %}
+</section>
+
 {% if not e.unavailable %}
-<div class="grid2" id="charts" data-chart="{{ chart_data }}">
-  <div><h2>ارزش حساب (TMN)</h2><div class="card chart"><canvas id="eq" aria-label="نمودار ارزش حساب"></canvas></div></div>
-  <div><h2>افت از اوج (%)</h2><div class="card chart"><canvas id="dd" aria-label="نمودار افت از اوج"></canvas></div></div>
+{% if e.chart.ts | length < 2 %}
+<h2 class="sec">{{ i.icon("trend", "ic sm") }}ارزش حساب و افت از اوج</h2>
+<div class="card">{{ m.empty("هنوز منحنی ارزش حسابی ثبت نشده", "موتور هر دقیقه یک سطر به logs/equity.csv اضافه می‌کند.", "trend") }}</div>
+{% else %}
+<div class="grid2" id="charts" data-chart="{{ chart_data }}" style="margin-top: var(--s5)">
+  <div class="card chart-card"><h3><span>ارزش حساب (TMN)</span><span class="num">{{ e.equity_ts or '' }}</span></h3>
+    <div class="chart skeleton"><canvas id="eq" role="img" aria-label="نمودار ارزش حساب"></canvas></div></div>
+  <div class="card chart-card"><h3><span>افت از اوج (%)</span></h3>
+    <div class="chart skeleton"><canvas id="dd" role="img" aria-label="نمودار افت از اوج"></canvas></div></div>
 </div>
-{% if e.chart.ts | length < 2 %}<p class="muted">هنوز داده‌ای در logs/equity.csv نیست.</p>{% endif %}
+{% endif %}
+{% endif %}
+
+<h2 class="sec">{{ i.icon("activity", "ic sm") }}آخرین تصمیم‌ها <a class="muted small" href="/opportunities">همه فرصت‌ها</a></h2>
+{% if timeline.unavailable %}{{ m.box(timeline) }}
+{% elif not timeline %}<div class="card">{{ m.empty("هنوز تصمیمی ثبت نشده", "تصمیم‌ها در logs/decisions.jsonl نوشته می‌شوند.") }}</div>
+{% else %}
+<div class="card"><ol class="tl">
+  {% for d in timeline %}{% set oc = d.outcome_action %}
+  {% set tone = 'good' if oc == 'ORDER_PLACED' else ('bad' if oc == 'REJECTED' else ('warn' if d.type in ('BREAKER', 'ENDGAME') else 'acc')) %}
+  <li><span class="dotc {{ tone }}" aria-hidden="true"></span>
+    <div class="what">
+      <div><span class="badge">{{ d.type or '—' }}</span>{% if d.symbol %} <b>{{ d.symbol }}</b>{% endif %}{% if d.strategy %} <span class="sub">{{ d.strategy }}</span>{% endif %}
+        {% if oc %} <span class="badge {{ 'good' if oc == 'ORDER_PLACED' else ('mute' if oc == 'REJECTED' else '') }}">{% if oc == 'ORDER_PLACED' %}{{ i.icon("check", "ic xs") }}{% elif oc == 'REJECTED' %}{{ i.icon("x", "ic xs") }}{% endif %}{{ oc }}</span>{% endif %}</div>
+      <p class="muted small" title="{{ d.final_reason or '' }}">{% if d.decision_id %}<a href="/opportunities/{{ d.decision_id }}">{{ d.final_reason or d.decision_id }}</a>{% else %}{{ d.final_reason or '—' }}{% endif %}</p>
+    </div>
+    <time class="num">{{ ((d.ts or '') | string)[:19] | replace('T', ' ') }}</time></li>
+  {% endfor %}
+</ol></div>
 {% endif %}
 {% endblock %}

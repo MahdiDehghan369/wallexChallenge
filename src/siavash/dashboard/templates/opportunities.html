@@ -1,28 +1,41 @@
 {% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}فرصت‌ها · سیاوش{% endblock %}
 {% block body %}
-<h2>کاندیدهای ورود (ENTRY_CANDIDATE)</h2>
-<form class="filters" method="get" action="/opportunities">
-  <select name="symbol"><option value="">همه بازارها</option>{% for s in r.options.symbols %}<option {{ 'selected' if f.symbol == s }}>{{ s }}</option>{% endfor %}</select>
-  <select name="strategy"><option value="">همه استراتژی‌ها</option>{% for s in r.options.strategies %}<option {{ 'selected' if f.strategy == s }}>{{ s }}</option>{% endfor %}</select>
-  <select name="outcome"><option value="">همه نتایج</option>{% for s in r.options.outcomes %}<option {{ 'selected' if f.outcome == s }}>{{ s }}</option>{% endfor %}</select>
-  <button type="submit">اعمال فیلتر</button>
-  <span class="muted">{{ r.rows | length }} از {{ r.total }} (جدیدترین بالا)</span>
-</form>
+<h2 class="sec" style="margin-top: 0">{{ i.icon("radar", "ic sm") }}کاندیدهای ورود <span class="muted">ENTRY_CANDIDATE · جدیدترین بالا</span></h2>
+<nav class="filters" aria-label="فیلترها">
+  {% for key, label, opts in [("outcome", "نتیجه", r.options.outcomes), ("strategy", "استراتژی", r.options.strategies), ("symbol", "بازار", r.options.symbols)] %}
+  <div class="frow"><span class="fl">{{ label }}</span>
+    <a class="fp {{ 'on' if not f[key] }}" href="/opportunities{{ qs(f, **{key: ''}) }}"{% if not f[key] %} aria-current="true"{% endif %}>همه</a>
+    {% for s in opts %}<a class="fp {{ 'on' if f[key] == s }}" href="/opportunities{{ qs(f, **{key: s}) }}"{% if f[key] == s %} aria-current="true"{% endif %}>{{ s }}</a>{% endfor %}
+  </div>
+  {% endfor %}
+  <div class="count"><span class="num">{{ r.rows | length }}</span> از <span class="num">{{ r.total }}</span> کاندید · برای جزئیات روی ردیف بزنید</div>
+</nav>
+
+{% if not r.rows %}
+<div class="card">{{ m.empty("هنوز فرصتی ثبت نشده" if not (f.symbol or f.strategy or f.outcome) else "کاندیدی با این فیلترها نیست", "هر کاندید ورود با همه دروازه‌هایش (FEE، ML، EV، LLM، RISK) اینجا می‌آید.", "radar") }}</div>
+{% else %}
 <div class="tw"><table>
-<tr><th>زمان</th><th>بازار</th><th>استراتژی</th><th>شرط‌ها</th><th class="n">ML p_win</th><th>LLM</th><th>دلایل LLM</th>
-<th>ریسک</th><th>نتیجه</th><th>رد در / کد</th><th>دلیل نهایی</th></tr>
+<thead><tr><th>زمان</th><th>بازار</th><th>استراتژی</th><th class="n">ML p_win</th><th>LLM</th><th>ریسک</th><th>نتیجه</th><th>دلیل نهایی</th></tr></thead>
+<tbody>
 {% for x in r.rows %}
-<tr class="click" data-href="/opportunities/{{ x.decision_id }}">
-  <td class="n">{{ x.ts }}</td><td>{{ x.symbol }}</td><td>{{ x.strategy }}</td><td class="ltr">{{ x.conditions }}</td>
-  <td class="n">{% if x.p_win is not none %}{{ x.p_win | fmt(3) }}{% if x.threshold is not none %} / {{ x.threshold | fmt(3) }}{% endif %}{% else %}{{ x.ml_status or '—' }}{% endif %}</td>
-  <td>{{ x.llm_verdict or '—' }}{% if x.llm_status and x.llm_status != 'ok' %} <span class="muted">({{ x.llm_status }})</span>{% endif %}</td>
-  <td>{{ x.llm_reasons }}</td>
-  <td class="{{ 'neg' if x.risk == 'REJECT' }}">{{ x.risk or '—' }}{% if x.risk_checks %} <span class="muted ltr">{{ x.risk_checks }}</span>{% endif %}</td>
-  <td class="{{ 'pos' if x.outcome == 'ORDER_PLACED' else ('neg' if x.outcome == 'REJECTED') }}">{{ x.outcome }}</td>
-  <td class="ltr">{{ x.rejected_at or '' }}{% if x.reject_code %} · {{ x.reject_code }}{% endif %}</td>
-  <td>{{ x.final_reason }}</td>
+<tr class="click" tabindex="0" data-href="/opportunities/{{ x.decision_id }}" aria-label="جزئیات {{ x.symbol or '' }} {{ x.ts }}">
+  <td class="n">{{ x.ts }}</td>
+  <td class="sym">{{ x.symbol }}</td>
+  <td><span class="sub">{{ x.strategy or '—' }}</span>{% if x.conditions %}<div class="sub mono trunc" title="{{ x.conditions }}">{{ x.conditions }}</div>{% endif %}</td>
+  <td class="n">{% if x.p_win is not none %}
+    <div class="pw"><span class="bar {{ 'good' if x.threshold is not none and x.p_win >= x.threshold else '' }}" role="img" aria-label="p_win {{ x.p_win | fmt(3) }}"><i style="width: {{ [[x.p_win * 100, 0] | max, 100] | min }}%"></i>{% if x.threshold is not none %}<b style="left: {{ [[x.threshold * 100, 0] | max, 100] | min }}%"></b>{% endif %}</span>
+      <span>{{ x.p_win | fmt(3) }}{% if x.threshold is not none %} <span class="sub">/ {{ x.threshold | fmt(3) }}</span>{% endif %}</span></div>
+    {% else %}<span class="sub">{{ x.ml_status or '—' }}</span>{% endif %}</td>
+  <td>{{ m.verdict(x.llm_verdict, x.llm_status) }}</td>
+  <td>{% if x.risk == 'REJECT' %}<span class="badge bad">{{ i.icon("x", "ic xs") }}REJECT</span>{% elif x.risk == 'OK' %}<span class="badge good">{{ i.icon("check", "ic xs") }}OK</span>{% else %}<span class="muted">—</span>{% endif %}{% if x.risk_checks %}<div class="sub mono">{{ x.risk_checks }}</div>{% endif %}</td>
+  <td>{{ m.outcome(x) }}{% if x.reject_code %}<div class="sub mono">{{ x.reject_code }}</div>{% endif %}</td>
+  <td><div class="trunc" title="{{ x.final_reason or '' }}">{{ x.final_reason }}</div>{% if x.llm_reasons %}<div class="sub trunc" title="{{ x.llm_reasons }}">LLM: {{ x.llm_reasons }}</div>{% endif %}</td>
 </tr>
-{% else %}<tr><td colspan="11" class="muted">کاندیدی ثبت نشده است.</td></tr>{% endfor %}
+{% endfor %}
+</tbody>
 </table></div>
+{% endif %}
 {% endblock %}

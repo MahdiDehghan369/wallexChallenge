@@ -1,10 +1,28 @@
 {% extends "base.html" %}
+{% import "_macros.html" as m %}
+{% import "_icons.html" as i %}
 {% block title %}گزارش‌ها · سیاوش{% endblock %}
 {% block body %}
-{% for group, items in groups.items() %}
-<h2 class="ltr" dir="ltr">{{ group }}</h2>
-<div class="tw"><table>
-{% for r in items %}<tr><td class="ltr"><a href="/reports/view/{{ r.path }}">{{ r.path }}</a></td><td class="n muted">{{ r.mtime }}</td></tr>{% endfor %}
-</table></div>
-{% else %}<p class="muted">گزارشی در reports/ نیست.</p>{% endfor %}
+{% set LIVE = ("live", "shadow") %}
+{% set DESC = {"live": "گزارش معاملات واقعی مسابقه", "shadow": "اجرای سایه کنار موتور", "backtest": "بک‌تست و walk-forward", "diagnostics": "تشخیص لبه (D-001)", "research_v2": "پژوهش نسخه ۲", "(root)": "گزارش‌های ریشه"} %}
+{% if not groups %}<div class="card">{{ m.empty("هنوز گزارشی ساخته نشده", "با siavash report یا make report در reports/ ساخته می‌شود.", "file") }}</div>{% endif %}
+{% for kind, title, ic in [("live", "مسابقه (live)", "activity"), ("research", "پژوهش پیش از مسابقه", "search")] %}
+{% set ns = namespace(items=[]) %}
+{% for group, items in groups.items() if (group in LIVE) == (kind == "live") %}{% for r in items %}{% set ns.items = ns.items + [(group, r)] %}{% endfor %}{% endfor %}
+{% if ns.items %}
+<section class="rgroup">
+  <h2 class="sec">{{ i.icon(ic, "ic sm") }}{{ title }} <span class="muted"><span class="num">{{ ns.items | length }}</span> گزارش</span></h2>
+  <div class="rcards">
+  {% for group, r in ns.items %}{% set name = r.path.rsplit("/", 1)[-1][:-3] %}
+    <a class="card rcard" href="/reports/view/{{ r.path }}">
+      <span class="t">{{ i.icon("file", "ic sm") }}<span class="ltr">{{ group if group != "(root)" else name }}{% if group != "(root)" %} · {{ name }}{% endif %}</span></span>
+      <span class="muted small">{{ DESC.get(group, "گزارش") }}</span>
+      <span class="p">{{ r.path }}</span>
+      <span class="muted small">{{ i.icon("clock", "ic xs") }} <span class="num">{{ r.mtime }}</span> UTC</span>
+    </a>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endfor %}
 {% endblock %}
