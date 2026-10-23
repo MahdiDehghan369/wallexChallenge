@@ -9,7 +9,7 @@
 .hypothesis
 logs
 state
-data
+/data
 models
 reports
 submission
