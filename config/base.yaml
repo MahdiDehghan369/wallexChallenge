@@ -70,7 +70,7 @@ data:
 alerts:
   backend: log_only              # log_only | webhook
   min_interval_s: 3
-dashboard:                       # read-only; disabled while env DASHBOARD_PASSWORD is unset
+dashboard:                       # read-only, no login: public wherever it is bound
   host: 127.0.0.1                # env DASHBOARD_HOST overrides (0.0.0.0 only on Liara)
   port: 8080                     # env PORT overrides; /health is served on the same port
   refresh_s: 30

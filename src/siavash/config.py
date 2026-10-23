@@ -434,10 +434,8 @@ class EnvSettings(BaseSettings):
     version_tag: str | None = None
     # persistent disk (Liara: /app/persist): relative base.yaml paths are resolved under it
     paths_root: str | None = None
-    # read-only dashboard: disabled while DASHBOARD_PASSWORD is unset; PORT / DASHBOARD_HOST override
-    # base.yaml > dashboard (DASHBOARD_HOST=0.0.0.0 only on Liara)
-    dashboard_user: str | None = None
-    dashboard_password: SecretStr | None = None
+    # read-only dashboard (no login): PORT / DASHBOARD_HOST override base.yaml > dashboard
+    # (DASHBOARD_HOST=0.0.0.0 only on Liara)
     dashboard_host: str | None = None
     port: int | None = None
 

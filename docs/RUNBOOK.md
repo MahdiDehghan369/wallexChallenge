@@ -118,8 +118,9 @@ only. Run them from the repo root on the tagged commit.
 `liara.json` names the same app and port and mounts the disk `siavash-data` at `/app/persist`. The commands
 below still pass `--app` explicitly. `<tag>` is the release being deployed (e.g. `live-v1.4`).
 
-**1. Environment** (Liara panel or CLI). Secrets (`WALLEX_API_KEY`, `LLM_API_KEY`,
-`DASHBOARD_PASSWORD`) are set only in the panel and never pasted into commands or chats.
+**1. Environment** (Liara panel or CLI). Secrets (`WALLEX_API_KEY`, `LLM_API_KEY`) are set only in the
+panel and never pasted into commands or chats. The dashboard has no login, so it needs no credentials; old
+`DASHBOARD_USER` / `DASHBOARD_PASSWORD` entries are ignored and can be deleted.
 
 ```bash
 liara env set MODE=live CONFIRM_LIVE=YES PATHS_ROOT=/app/persist DASHBOARD_HOST=0.0.0.0 PORT=8080 --app siavash-starcoach-wallex
@@ -232,9 +233,9 @@ It only reads `logs/`, `state/state.sqlite` (opened with `mode=ro`), `data/live/
 buttons or endpoints that place or cancel orders, pause, resume, or change config. To act, use the CLI
 commands in section 7.
 
-- **Auth:** HTTP Basic, `DASHBOARD_USER` (default `admin`) / `DASHBOARD_PASSWORD` in `.env`.
-  - While `DASHBOARD_PASSWORD` is empty the dashboard is disabled and only `/health` answers.
-  - Use a long random password; it is masked in logs like the API keys.
+- **Access:** no login. Every page is public wherever the server is bound. On Liara that is the app URL,
+  so anyone with the link can see positions, PnL, decisions and the engine identity. No page shows API
+  keys or env values.
 - **`/health`:** unauthenticated, on the same port. It returns `200 {"status":"ok"}` while
   `state/heartbeat` is younger than `loop.watchdog_timeout_s`, otherwise `503`.
 - **Bind address:** `base.yaml > dashboard` gives `127.0.0.1:8080`. Env `DASHBOARD_HOST` and `PORT`
@@ -250,7 +251,7 @@ siavash dashboard
 ```
 
 **Preview on synthetic data** (no engine, no real logs). `make dashboard-demo` writes a demo dataset into a
-new temp dir and serves it on `http://127.0.0.1:8090` (user `demo`, password `demo`). Pass options with
+new temp dir and serves it on `http://127.0.0.1:8090`. Pass options with
 `ARGS`, e.g. `make dashboard-demo ARGS="--port 9000 --dir /tmp/siavash-demo"`.
 
 ```bash
@@ -276,10 +277,10 @@ curl -s http://127.0.0.1:8080/health
 ```
 
 **Liara:**
-- In the app's environment settings, set `PORT` to the app's port, plus `DASHBOARD_HOST=0.0.0.0` and
-  `DASHBOARD_PASSWORD`.
+- In the app's environment settings, set `PORT` to the app's port and `DASHBOARD_HOST=0.0.0.0`. The
+  dashboard starts whenever `PORT` is set.
 - Point the platform health check at `/health`.
-- Open `https://<app>.liara.run/`; the browser asks for the user name and password.
+- The dashboard is public at the app URL, `https://siavash-starcoach-wallex.liara.run/`, with no login.
 - Only use `0.0.0.0` there, behind Liara's HTTPS. Never expose the plain-HTTP port of a VPS directly.
 - Deploy with the commit sha as a build arg, or `git_sha` shows `unknown`: `.git` is not in the image,
   so the `GIT_SHA` build arg is the only source.

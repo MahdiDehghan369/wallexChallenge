@@ -21,7 +21,7 @@ from siavash.runtime import get_runtime
 
 MASK = "***"
 SENSITIVE_KEY_RE = re.compile(r"key|token|secret|password|authorization", re.IGNORECASE)
-SECRET_ENV_VARS = ("WALLEX_API_KEY", "LLM_API_KEY", "DASHBOARD_PASSWORD")
+SECRET_ENV_VARS = ("WALLEX_API_KEY", "LLM_API_KEY")
 
 _extra_secrets: set[str] = set()
 

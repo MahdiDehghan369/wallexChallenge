@@ -80,11 +80,11 @@ export-submission:
 dashboard:
 	$(PYTHON) -m siavash.reporting.dashboard $(ARGS)
 
-# read-only web dashboard + /health on 127.0.0.1:8080 (needs DASHBOARD_PASSWORD in env or .env)
+# read-only web dashboard + /health on 127.0.0.1:8080 (no login)
 dashboard-serve:
 	$(SIAVASH) dashboard $(ARGS)
 
-# the same dashboard on a synthetic dataset in a temp dir: http://127.0.0.1:8090 (user demo / password demo)
+# the same dashboard on a synthetic dataset in a temp dir: http://127.0.0.1:8090
 dashboard-demo:
 	$(PYTHON) -m siavash.dashboard.demo $(ARGS)
 

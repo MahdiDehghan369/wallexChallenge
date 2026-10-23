@@ -54,6 +54,14 @@ and an entry under "Versions".
   - **Image:** now contains `make`, the `Makefile` and `CHANGELOG.md`, so `make report` and
     `make export-submission` work inside the container.
   - **Docs:** new RUNBOOK section "5a. Liara go-live".
+- Dashboard login removed (live-v1.6): the dashboard is public at the bound address (Liara: the app URL).
+  - **Removed:** HTTP Basic auth, the 401 responses, the "no `DASHBOARD_PASSWORD` = dashboard disabled"
+    rule, and env `DASHBOARD_USER` / `DASHBOARD_PASSWORD` (dropped from `EnvSettings`, `.env.example` and
+    the secret-masking list; leftover values are ignored). The dashboard starts whenever `PORT` is set.
+  - **Unchanged:** GET-only and read-only (no forms or trading controls), the same security headers on every
+    response (CSP, no framing, `no-store`), `/health`, and the test that no API key or env value appears on
+    any page.
+  - **Docs:** README has a new "Dashboard" section; RUNBOOK drops the credential instructions.
 - Dashboard redesign (live-v1.5): a "trading terminal" UI. Templates, CSS and JS only: routes, auth, data
   loaders (`dashboard/data.py`) and the read-only rule are unchanged.
   - **Look:** dark-first with a light mode. Design tokens on `:root` / `[data-theme=light]`, Vazirmatn text,

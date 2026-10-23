@@ -83,6 +83,18 @@ make shadow-report
   share of identical decisions (`reports/replay.md`).
 - `make report` writes the judge indicators (`reports/live/REPORT.md`), including the AI counterfactual.
 
+## Dashboard
+
+A read-only monitoring dashboard with no login, plus `/health`, served on one port:
+
+- **On Liara:** public at the app URL, https://siavash-starcoach-wallex.liara.run/. The engine starts it
+  whenever env `PORT` is set, with `DASHBOARD_HOST=0.0.0.0`.
+- **Locally:** `make dashboard-serve` serves it on `127.0.0.1:8080`. `make dashboard-demo` serves a
+  synthetic dataset on `127.0.0.1:8090`.
+- **Read-only:** no forms or trading controls, and no API keys or env values on any page.
+
+Details: [docs/RUNBOOK.md](docs/RUNBOOK.md), section "Dashboard (read-only)".
+
 ## Repository layout
 
 | path | content |

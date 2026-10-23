@@ -6,16 +6,13 @@
   ``loop.watchdog_timeout_s``, else 503.
 - Pages never answer 500: a failing section renders an inline "data unavailable" box, and a failure
   outside any section renders a whole-page box (see ``safe_page``).
-- Every other path needs HTTP Basic auth (``DASHBOARD_USER`` / ``DASHBOARD_PASSWORD``). With no
-  password set the dashboard is disabled (503) and only ``/health`` works.
+- No login: every page is public at the bound address (on Liara: the app URL). Pages show no secrets
+  (API keys, env values); the security headers below are set on every response.
 - Bind address and port: ``base.yaml > dashboard`` overridden by env ``DASHBOARD_HOST`` / ``PORT``.
 """
 
 from __future__ import annotations
 
-import base64
-import binascii
-import hmac
 import json
 import threading
 from collections.abc import Callable
@@ -38,12 +35,11 @@ from starlette.routing import Route
 
 from siavash.config import AppConfig, EnvSettings
 from siavash.dashboard.data import IMAGE_TYPES, DashboardData, rewrite_images, unavailable
-from siavash.logging import get_logger, register_secrets
+from siavash.logging import get_logger
 from siavash.runtime import get_runtime
 
 log = get_logger(__name__)
 
-DEFAULT_USER = "admin"
 CHART_JS = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
 EMPTY_CHART: dict[str, list[Any]] = {"ts": [], "equity": [], "dd": []}
 CSP = (
@@ -72,36 +68,11 @@ def bind_address(cfg: AppConfig, env: EnvSettings) -> tuple[str, int]:
     return env.dashboard_host or cfg.base.dashboard.host, env.port or cfg.base.dashboard.port
 
 
-class BasicAuth(BaseHTTPMiddleware):
-    def __init__(self, app: Any, user: str, password: str | None) -> None:
-        super().__init__(app)
-        self.user = user.encode()
-        self.password = password.encode() if password else None
-
-    def _authorized(self, header: str) -> bool:
-        scheme, _, token = header.partition(" ")
-        if scheme.lower() != "basic" or not token or self.password is None:
-            return False
-        try:
-            user, _, pw = base64.b64decode(token, validate=True).partition(b":")
-        except (binascii.Error, ValueError):
-            return False
-        # evaluate both comparisons (constant time, no short-circuit on the user name)
-        ok_user = hmac.compare_digest(user, self.user)
-        ok_pw = hmac.compare_digest(pw, self.password)
-        return ok_user and ok_pw
+class SecurityHeaders(BaseHTTPMiddleware):
+    """CSP, no framing, no caching on every response (there is no login)."""
 
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if request.url.path == "/health":
-            response = await call_next(request)
-        elif self.password is None:
-            response = PlainTextResponse("dashboard disabled: DASHBOARD_PASSWORD is not set", 503)
-        elif not self._authorized(request.headers.get("authorization", "")):
-            response = PlainTextResponse(
-                "authentication required", 401, headers={"WWW-Authenticate": 'Basic realm="siavash"'}
-            )
-        else:
-            response = await call_next(request)
+        response = await call_next(request)
         response.headers["Content-Security-Policy"] = CSP
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -174,11 +145,7 @@ def _qs(f: dict[str, str], **kw: str) -> str:
     return f"?{q}" if q else ""
 
 
-def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
-    env = env if env is not None else dashboard_env()
-    password = env.dashboard_password.get_secret_value() if env.dashboard_password else None
-    if password:
-        register_secrets([password])
+def create_app(cfg: AppConfig) -> Starlette:
     data = DashboardData(cfg)
     jinja = Environment(
         loader=PackageLoader("siavash.dashboard", "templates"), autoescape=select_autoescape(["html"])
@@ -306,17 +273,14 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
         Route("/system", system, methods=["GET"]),
         Route("/static/dashboard.js", script, methods=["GET"]),
     ]
-    user = env.dashboard_user or DEFAULT_USER
-    return Starlette(routes=routes, middleware=[Middleware(BasicAuth, user=user, password=password)])
+    return Starlette(routes=routes, middleware=[Middleware(SecurityHeaders)])
 
 
 def _server(cfg: AppConfig, env: EnvSettings) -> uvicorn.Server:
     host, port = bind_address(cfg, env)
-    if not env.dashboard_password:
-        log.warning("dashboard_disabled", reason="DASHBOARD_PASSWORD not set; only /health is served")
     log.info("dashboard_listening", host=host, port=port)
     config = uvicorn.Config(
-        create_app(cfg, env), host=host, port=port, log_config=None, access_log=False, log_level="warning"
+        create_app(cfg), host=host, port=port, log_config=None, access_log=False, log_level="warning"
     )
     return uvicorn.Server(config)
 

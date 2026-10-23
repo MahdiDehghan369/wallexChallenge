@@ -1,8 +1,7 @@
-"""Read-only dashboard: auth, GET-only routes, pages render on fixture logs, no secrets leak."""
+"""Read-only public dashboard (no login): GET-only routes, pages render on fixture logs, no secrets leak."""
 
 from __future__ import annotations
 
-import base64
 import csv
 import json
 import os
@@ -26,7 +25,7 @@ from siavash.engine.store import SCHEMA
 from siavash.runtime import detect_git_sha
 
 ROOT = Path(__file__).resolve().parents[3]
-PASSWORD = "dash-pass-7c1f9e"
+LEFTOVER = "old-dash-pass-7c1f9e"  # DASHBOARD_PASSWORD left in the env after the login was removed
 SECRETS = ["wallex-key-0b5d2a91", "llm-key-6e3f8c27", "https://hooks.example/abc-secret-4411"]
 NOW = "2026-10-22T10:00:00Z"
 
@@ -275,19 +274,16 @@ def _cfg(root: Path) -> AppConfig:
     return cfg.model_copy(update={"base": cfg.base.model_copy(update={"paths": paths}), "secrets": secrets})
 
 
-def _env(password: str | None = PASSWORD, **kw: object) -> EnvSettings:
-    return EnvSettings(_env_file=None, dashboard_user="judge", dashboard_password=password, **kw)  # type: ignore[call-arg]
-
-
-def _auth(user: str = "judge", pw: str = PASSWORD) -> dict[str, str]:
-    return {"Authorization": "Basic " + base64.b64encode(f"{user}:{pw}".encode()).decode()}
+def _env(**kw: object) -> EnvSettings:
+    return EnvSettings(_env_file=None, **kw)  # type: ignore[call-arg]
 
 
 @pytest.fixture()
 def client(root: Path, monkeypatch: pytest.MonkeyPatch) -> TestClient:
     monkeypatch.setenv("WALLEX_API_KEY", SECRETS[0])
     monkeypatch.setenv("LLM_API_KEY", SECRETS[1])
-    return TestClient(create_app(_cfg(root), _env()))
+    monkeypatch.setenv("DASHBOARD_PASSWORD", LEFTOVER)  # a stale env value from the old login must not leak
+    return TestClient(create_app(_cfg(root)))
 
 
 PAGES = [
@@ -302,7 +298,7 @@ PAGES = [
 ]
 
 
-# ---------------------------------------------------------------- auth
+# ---------------------------------------------------------------- public (no login)
 
 
 def test_health_is_public_and_tracks_heartbeat(client: TestClient, root: Path) -> None:
@@ -315,20 +311,44 @@ def test_health_is_public_and_tracks_heartbeat(client: TestClient, root: Path) -
 
 
 @pytest.mark.parametrize("path", PAGES)
-def test_pages_require_auth(client: TestClient, path: str) -> None:
+def test_pages_are_public(client: TestClient, path: str) -> None:
     r = client.get(path)
-    assert r.status_code == 401 and r.headers["www-authenticate"].startswith("Basic")
-    assert client.get(path, headers=_auth(pw="wrong")).status_code == 401
-    assert client.get(path, headers=_auth(user="admin")).status_code == 401
-    assert client.get(path, headers={"Authorization": "Basic !!notbase64"}).status_code == 401
-    assert client.get(path, headers=_auth()).status_code == 200
+    assert r.status_code == 200 and "www-authenticate" not in r.headers
+    # a browser that still sends old Basic credentials is not rejected either
+    assert client.get(path, headers={"Authorization": "Basic !!notbase64"}).status_code == 200
 
 
-def test_disabled_without_password(root: Path) -> None:
-    c = TestClient(create_app(_cfg(root), _env(password=None)))
-    assert c.get("/", headers=_auth()).status_code == 503
-    assert "disabled" in c.get("/").text
-    assert c.get("/health").status_code == 200
+def test_runs_without_any_dashboard_env(root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    for v in ("DASHBOARD_USER", "DASHBOARD_PASSWORD"):
+        monkeypatch.delenv(v, raising=False)
+    c = TestClient(create_app(_cfg(root)))
+    assert all(c.get(p).status_code == 200 for p in PAGES) and c.get("/health").status_code == 200
+
+
+def test_engine_starts_dashboard_whenever_port_is_set(
+    root: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from typer.testing import CliRunner
+
+    from siavash import cli
+    from siavash.dashboard import app as dash_app
+
+    monkeypatch.chdir(tmp_path)  # no repo .env
+    for v in ("MODE", "CONFIRM_LIVE", "WALLEX_API_KEY", "DASHBOARD_USER", "DASHBOARD_PASSWORD", "PATHS_ROOT"):
+        monkeypatch.delenv(v, raising=False)
+    monkeypatch.setenv("PORT", "8080")
+    started: list[int | None] = []
+
+    async def no_engine(cfg: object, mode: str) -> None:
+        return None
+
+    monkeypatch.setattr(
+        dash_app, "start_in_thread", lambda cfg, env=None: started.append(env.port if env else None)
+    )
+    monkeypatch.setattr(cli, "_run_engine", no_engine)
+    res = CliRunner().invoke(cli.app, ["run", "--config", str(ROOT / "config")])
+    assert res.exit_code == 0, res.output
+    assert started == [8080]
 
 
 def test_default_bind_is_loopback(root: Path) -> None:
@@ -348,14 +368,14 @@ def test_only_get_routes(client: TestClient) -> None:
         assert r.methods is not None and r.methods <= {"GET", "HEAD"}, r.path
     for path in [*PAGES, "/health"]:
         for method in ("POST", "PUT", "PATCH", "DELETE"):
-            assert client.request(method, path, headers=_auth()).status_code == 405, (method, path)
+            assert client.request(method, path).status_code == 405, (method, path)
 
 
 def test_store_is_never_written(client: TestClient, root: Path) -> None:
     db = root / "state" / "state.sqlite"
     before = db.read_bytes()
     for path in PAGES:
-        client.get(path, headers=_auth())
+        client.get(path)
     assert db.read_bytes() == before
     con = open_ro(db)
     with pytest.raises(sqlite3.OperationalError):
@@ -367,7 +387,7 @@ def test_store_is_never_written(client: TestClient, root: Path) -> None:
 
 
 def test_overview(client: TestClient) -> None:
-    t = client.get("/", headers=_auth()).text
+    t = client.get("/").text
     assert "5,123,456" in t  # equity
     assert "2.47" in t  # (5,123,456 − 5,000,000) / 5,000,000
     assert "NO_NEW_ENTRIES" in t and "TREND_UP" in t and "llm" in t
@@ -377,29 +397,29 @@ def test_overview(client: TestClient) -> None:
 
 
 def test_opportunities_filters_and_detail(client: TestClient) -> None:
-    t = client.get("/opportunities", headers=_auth()).text
+    t = client.get("/opportunities").text
     assert "BTC pullback approved by all gates" in t and "ETH mean reversion" in t
     assert "0.612" in t and "trend intact" in t and "LLM_REJECT" in t
     assert t.index("ETH/TMN</td>") < t.index("BTC/TMN</td>")  # newest first
     assert "regime updated" not in t  # only ENTRY_CANDIDATE
-    t = client.get("/opportunities?outcome=REJECTED", headers=_auth()).text
+    t = client.get("/opportunities?outcome=REJECTED").text
     assert "ETH mean reversion" in t and "BTC pullback" not in t
-    t = client.get("/opportunities?symbol=BTC/TMN&strategy=S1_TREND_PULLBACK", headers=_auth()).text
+    t = client.get("/opportunities?symbol=BTC/TMN&strategy=S1_TREND_PULLBACK").text
     assert "BTC pullback" in t and "ETH mean reversion" not in t
-    d = client.get(f"/opportunities/01J{1:023d}", headers=_auth())
+    d = client.get(f"/opportunities/01J{1:023d}")
     assert d.status_code == 200 and "&#34;p_win&#34;: 0.612" in d.text
-    assert client.get("/opportunities/nope", headers=_auth()).status_code == 404
+    assert client.get("/opportunities/nope").status_code == 404
 
 
 def test_positions(client: TestClient) -> None:
-    t = client.get("/positions", headers=_auth()).text
+    t = client.get("/positions").text
     assert "195,000" in t and "210,000" in t and "198,000" in t and "2026-10-22 18:00" in t
     assert "2,000" in t  # unrealized (204,000 − 200,000) × 0.5
     assert "96" in t  # realized 1100 − 1000 − 4 fees
 
 
 def test_ai(client: TestClient) -> None:
-    t = client.get("/ai", headers=_auth()).text
+    t = client.get("/ai").text
     assert "50.0 %" in t  # approve rate 1 of 2
     assert "timeout" in t and "100,000" in t and "400,000" in t  # budget tokens used vs limit
     assert "ema stack up" in t
@@ -407,12 +427,12 @@ def test_ai(client: TestClient) -> None:
 
 
 def test_reports(client: TestClient) -> None:
-    t = client.get("/reports", headers=_auth()).text
+    t = client.get("/reports").text
     assert "live/REPORT.md" in t and "research_v2/SUMMARY.md" in t
-    t = client.get("/reports/view/live/REPORT.md", headers=_auth()).text
+    t = client.get("/reports/view/live/REPORT.md").text
     assert "<table>" in t and 'src="/reports/file/live/equity.png"' in t
     assert "<script>alert(1)</script>" not in t  # raw HTML in markdown is escaped
-    img = client.get("/reports/file/live/equity.png", headers=_auth())
+    img = client.get("/reports/file/live/equity.png")
     assert img.status_code == 200 and img.headers["content-type"] == "image/png"
     for bad in (
         "/reports/view/../logs/decisions.jsonl",
@@ -420,11 +440,11 @@ def test_reports(client: TestClient) -> None:
         "/reports/view/%2e%2e/%2e%2e/etc/passwd",
         "/reports/file/live/missing.png",
     ):
-        assert client.get(bad, headers=_auth()).status_code == 404, bad
+        assert client.get(bad).status_code == 404, bad
 
 
 def test_system(client: TestClient) -> None:
-    t = client.get("/system", headers=_auth()).text
+    t = client.get("/system").text
     assert "abc1234" in t and "v-test" in t and "sha256:feedbeef" in t
     assert "50.00 %" in t  # 1 of 2 http_request errors
     assert "candle_close_to_decision" in t
@@ -432,10 +452,10 @@ def test_system(client: TestClient) -> None:
 
 def test_no_secrets_in_responses(client: TestClient) -> None:
     for path in [*PAGES, "/health", "/reports/file/live/equity.png", "/static/dashboard.js"]:
-        r = client.get(path, headers=_auth())
+        r = client.get(path)
         assert r.status_code == 200, path
         body = r.content.decode("utf-8", errors="replace")
-        for s in [*SECRETS, PASSWORD]:
+        for s in [*SECRETS, LEFTOVER]:
             assert s not in body, (path, s)
         assert r.headers["cache-control"] == "no-store"
         assert "frame-ancestors 'none'" in r.headers["content-security-policy"]
@@ -548,17 +568,17 @@ def bad_root(root: Path) -> Path:
 
 @pytest.fixture()
 def bad_client(bad_root: Path) -> TestClient:
-    return TestClient(create_app(_cfg(bad_root), _env()), raise_server_exceptions=False)
+    return TestClient(create_app(_cfg(bad_root)), raise_server_exceptions=False)
 
 
 @pytest.mark.parametrize("path", PAGES)
 def test_pages_survive_bad_numbers(bad_client: TestClient, path: str) -> None:
-    r = bad_client.get(path, headers=_auth())
+    r = bad_client.get(path)
     assert r.status_code == 200, (path, r.text[:500])
 
 
 def test_ai_with_string_numbers(bad_client: TestClient) -> None:
-    t = bad_client.get("/ai", headers=_auth()).text
+    t = bad_client.get("/ai").text
     assert UNAVAILABLE not in t  # every /ai section loads; bad values become 0 / —
     assert "1,000" in t  # tokens: 0 + 100, 900 + 0, 0 + 0, 0 + 0
     assert ">50<" in t and "25.0 %" in t  # day_calls "50" of 200 calls/day; hour_calls "x" -> 0
@@ -567,11 +587,11 @@ def test_ai_with_string_numbers(bad_client: TestClient) -> None:
 
 
 def test_other_pages_with_bad_values(bad_client: TestClient) -> None:
-    t = bad_client.get("/", headers=_auth()).text
+    t = bad_client.get("/").text
     assert "5,123,456" in t  # the malformed equity row is dropped, not fatal
-    t = bad_client.get("/opportunities", headers=_auth()).text
+    t = bad_client.get("/opportunities").text
     assert "0.700" in t and "reason 2" in t
-    t = bad_client.get("/system", headers=_auth()).text
+    t = bad_client.get("/system").text
     assert UNAVAILABLE in t and "(api: ValueError)" in t  # http status "abc" -> only the api section fails
     assert "abc1234" in t  # identity section still renders
 
@@ -606,7 +626,7 @@ def test_failing_section_renders_inline_box(
         raise RuntimeError("boom")
 
     monkeypatch.setattr(DashboardData, method, boom)
-    r = client.get(path, headers=_auth())
+    r = client.get(path)
     assert r.status_code == 200
     assert UNAVAILABLE in r.text and f"({name}: RuntimeError)" in r.text
     assert still_shown in r.text
@@ -635,8 +655,8 @@ def test_failing_page_loader_never_500(
         raise ValueError("boom")
 
     monkeypatch.setattr(DashboardData, method, boom)
-    c = TestClient(create_app(_cfg(root), _env()), raise_server_exceptions=False)
-    r = c.get(path, headers=_auth())
+    c = TestClient(create_app(_cfg(root)), raise_server_exceptions=False)
+    r = c.get(path)
     assert r.status_code == 200 and UNAVAILABLE in r.text, path
     assert "boom" not in r.text  # only the exception type is shown; details go to the log
 
@@ -689,14 +709,14 @@ def _engine_json(root: Path, end: datetime | None, **kw: object) -> None:
 def test_system_shows_engine_identity_and_endgame(client: TestClient, root: Path) -> None:
     end = datetime.now(UTC).replace(microsecond=0) + timedelta(hours=5)  # 5 h left -> NO_NEW
     _engine_json(root, end)
-    t = client.get("/system", headers=_auth()).text
+    t = client.get("/system").text
     assert "liv3sha" in t and "live-v1.0" in t and "sha256:eng1ne" in t
     assert "حالت: live" in t  # header badge = the engine's mode, not base.yaml's paper
     assert '<b class="ltr">NO_NEW</b>' in t and "engine.json" in t
     tehran = end.astimezone(ZoneInfo("Asia/Tehran")).strftime("%Y-%m-%d %H:%M")
     assert tehran in t and end.strftime("%Y-%m-%d %H:%M") in t
     assert "0.300" in t and "account" in t  # effective fees + source
-    o = client.get("/", headers=_auth()).text
+    o = client.get("/").text
     assert "فاز endgame" in o and "NO_NEW" in o and tehran in o
 
 

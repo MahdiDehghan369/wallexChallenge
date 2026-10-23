@@ -3,7 +3,7 @@
 Writes synthetic logs / state / reports into a scratch directory (never the real ``logs/`` or ``state/``)
 and serves the dashboard on it. Also used by the page render tests.
 
-    python -m siavash.dashboard.demo                 # http://127.0.0.1:8090  user demo / password demo
+    python -m siavash.dashboard.demo                 # http://127.0.0.1:8090
     python -m siavash.dashboard.demo --port 9000 --dir /tmp/siavash-demo
 """
 
@@ -20,8 +20,6 @@ import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
-
-from pydantic import SecretStr
 
 from siavash.config import AppConfig, EnvSettings, load_config
 from siavash.engine.store import SCHEMA
@@ -364,22 +362,12 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--dir", default=None, help="scratch directory (default: a new temp dir)")
     ap.add_argument("--host", default="127.0.0.1")
     ap.add_argument("--port", type=int, default=8090)
-    ap.add_argument("--user", default="demo")
-    ap.add_argument("--password", default="demo")
     args = ap.parse_args(argv)
     root = Path(args.dir) if args.dir else Path(tempfile.mkdtemp(prefix="siavash-demo-"))
     cfg = build_demo(root, config_dir=Path(args.config))
     threading.Thread(target=_keep_alive, args=(root / "state" / "heartbeat", 10.0), daemon=True).start()
-    env = EnvSettings(  # type: ignore[call-arg]
-        _env_file=None,
-        dashboard_host=args.host,
-        port=args.port,
-        dashboard_user=args.user,
-        dashboard_password=SecretStr(args.password),
-    )
-    print(
-        f"demo data: {root}\nopen http://{args.host}:{args.port}/  (user {args.user} / password {args.password})"
-    )
+    env = EnvSettings(_env_file=None, dashboard_host=args.host, port=args.port)  # type: ignore[call-arg]
+    print(f"demo data: {root}\nopen http://{args.host}:{args.port}/")
     serve(cfg, env)
     return 0
 

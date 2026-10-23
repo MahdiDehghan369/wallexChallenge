@@ -2,46 +2,35 @@
 
 from __future__ import annotations
 
-import base64
 import re
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
-from pydantic import SecretStr
 from starlette.testclient import TestClient
 
-from siavash.config import EnvSettings
 from siavash.dashboard import app as dash_app
 from siavash.dashboard.app import create_app
 from siavash.dashboard.demo import build_demo, demo_config
 
-PASSWORD = "demo-pass-91ab"
 UNAVAILABLE = "داده در دسترس نیست"
 NOW = datetime(2026, 10, 24, 9, 30, tzinfo=UTC)
 PAGES = ["/", "/opportunities", "/positions", "/ai", "/reports", "/system"]
 
 
-def _env() -> EnvSettings:
-    return EnvSettings(_env_file=None, dashboard_user="u", dashboard_password=SecretStr(PASSWORD))  # type: ignore[call-arg]
-
-
-AUTH = {"Authorization": "Basic " + base64.b64encode(f"u:{PASSWORD}".encode()).decode()}
-
-
 @pytest.fixture(scope="module")
 def demo(tmp_path_factory: pytest.TempPathFactory) -> TestClient:
     root = tmp_path_factory.mktemp("demo")
-    return TestClient(create_app(build_demo(root, now=NOW), _env()))
+    return TestClient(create_app(build_demo(root, now=NOW)))
 
 
 @pytest.fixture()
 def empty(tmp_path: Path) -> TestClient:
-    return TestClient(create_app(demo_config(tmp_path), _env()), raise_server_exceptions=False)
+    return TestClient(create_app(demo_config(tmp_path)), raise_server_exceptions=False)
 
 
 def _get(c: TestClient, path: str) -> str:
-    r = c.get(path, headers=AUTH)
+    r = c.get(path)
     assert r.status_code == 200, (path, r.text[:300])
     return r.text
 
