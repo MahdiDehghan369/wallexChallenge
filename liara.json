@@ -1,0 +1,9 @@
+{
+  "app": "siavash-wallex",
+  "port": 3000,
+  "team-id": "6ad5d83307e024287d0a3c95",
+  "build": {
+    "location": "germany"
+  },
+  "disks": []
+}
