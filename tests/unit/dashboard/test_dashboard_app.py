@@ -14,11 +14,14 @@ import pytest
 from pydantic import SecretStr
 from starlette.routing import Route
 from starlette.testclient import TestClient
+from structlog.testing import capture_logs
 
 from siavash.config import AppConfig, EnvSettings, Secrets, load_config
+from siavash.dashboard import data as dash_data
 from siavash.dashboard.app import bind_address, create_app
-from siavash.dashboard.data import open_ro
+from siavash.dashboard.data import DashboardData, open_ro, to_float, to_int
 from siavash.engine.store import SCHEMA
+from siavash.runtime import detect_git_sha
 
 ROOT = Path(__file__).resolve().parents[3]
 PASSWORD = "dash-pass-7c1f9e"
@@ -434,3 +437,216 @@ def test_no_secrets_in_responses(client: TestClient) -> None:
             assert s not in body, (path, s)
         assert r.headers["cache-control"] == "no-store"
         assert "frame-ancestors 'none'" in r.headers["content-security-policy"]
+
+
+# ---------------------------------------------------------------- robustness (bad numbers, failing sections)
+
+UNAVAILABLE = "داده در دسترس نیست"
+
+
+def test_numeric_coercion(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(dash_data, "_warned_fields", set())
+    assert to_int("12", "f") == 12 and to_int("12.7", "f") == 12 and to_int(7, "f") == 7
+    assert to_int(None, "f") == 0 and to_int("", "f") == 0 and to_int(None, "f", default=3) == 3
+    assert to_float("0.5", "f") == 0.5 and to_float(None, "f") is None and to_float("nan", "f") is None
+    with capture_logs() as logs:
+        assert to_int("abc", "calls.prompt_tokens") == 0
+        assert to_int([1], "calls.prompt_tokens") == 0  # same field: warned once
+        assert to_int(True, "llm_budget.day_calls") == 0
+        assert to_float("inf", "regime.risk_multiplier") is None
+    bad = [x for x in logs if x["event"] == "dashboard_bad_number"]
+    assert [x["field"] for x in bad] == [
+        "calls.prompt_tokens",
+        "llm_budget.day_calls",
+        "regime.risk_multiplier",
+    ]
+
+
+def _jsonl(path: Path, rows: list[object]) -> None:
+    path.write_text(
+        "\n".join(r if isinstance(r, str) else json.dumps(r) for r in rows) + "\n", encoding="utf-8"
+    )
+
+
+@pytest.fixture()
+def bad_root(root: Path) -> Path:
+    """Fixture logs where numeric fields are strings, null, missing or malformed (Liara /ai crash)."""
+    logs, state = root / "logs", root / "state"
+    _jsonl(
+        logs / "llm" / "calls.jsonl",
+        [
+            {
+                "ts": NOW,
+                "status": "ok",
+                "prompt_tokens": None,
+                "completion_tokens": "100",
+            },  # the int + str crash
+            {"ts": NOW, "status": "ok", "prompt_tokens": "900", "completion_tokens": "abc"},
+            {"ts": NOW, "status": "ok", "prompt_tokens": [1], "completion_tokens": True},
+            {"ts": NOW, "status": "timeout"},
+            "{not json",
+            "[1, 2]",
+        ],
+    )
+    _jsonl(
+        logs / "decisions.jsonl",
+        [
+            _decision(
+                1,
+                symbol="BTC/TMN",
+                strategy="S1_TREND_PULLBACK",
+                signal="garbage",
+                ml={"status": "ok", "p_win": "0.7", "threshold": "n/a"},
+                llm_review="garbage",
+                risk="bad",
+                regime="TREND_UP",
+            ),
+            {"type": "ENTRY_CANDIDATE", "ts": 12345},  # no decision_id
+            "{broken",
+            _decision(2, symbol="ETH/TMN", llm_review={"status": "ok", "verdict": "APPROVE", "reasons": "x"}),
+        ],
+    )
+    _jsonl(
+        logs / "regime.jsonl",
+        [{"ts": 123, "regime": "RANGE", "risk_multiplier": "high", "reasons": "not a list", "source": None}],
+    )
+    _jsonl(
+        logs / "latency.jsonl", [{"kind": "candle_close_to_decision", "ms": "slow"}, {"kind": None, "ms": 5}]
+    )
+    _jsonl(logs / "system.log", [{"event": "http_request", "status": "abc", "ms": "x"}])
+    with (logs / "equity.csv").open("a", newline="", encoding="utf-8") as fh:
+        csv.writer(fh).writerow(["2026-10-22T05:00:00Z", "n/a", "", "", "", "", "oops"])
+    with (logs / "fills.csv").open("a", newline="", encoding="utf-8") as fh:
+        csv.writer(fh).writerow(
+            ["2026-10-22T04:00:00Z", "ETH/TMN", "buy", "abc", None, "", "x", "TMN", "", "c3", "d3", "P3", ""]
+        )
+    (root / "reports" / "live" / "metrics.json").write_text(
+        json.dumps({"counterfactual": {"LLM": {"rejected": "3", "net_value_pct": "lots"}, "ML": "bad"}}),
+        encoding="utf-8",
+    )
+    (root / "data" / "live" / "2026-10-22" / "books.jsonl").write_text(
+        json.dumps({"symbol": "ETH/TMN", "bids": [{"price": "x"}]})
+        + "\n"
+        + json.dumps({"symbol": 5, "bids": "no"}),
+        encoding="utf-8",
+    )
+    con = sqlite3.connect(state / "state.sqlite")
+    con.execute("DELETE FROM kv")
+    con.execute(
+        "INSERT INTO kv VALUES ('llm_budget', ?)",
+        (json.dumps({"day": "2026-10-22", "day_calls": "50", "day_tokens": None, "hour_calls": "x"}),),
+    )
+    pos = {"symbol": "BTC/TMN", "status": "OPEN", "qty": "abc", "avg_entry": None, "stop_loss": "1e400"}
+    con.execute("INSERT INTO positions VALUES (?,?,?,?)", ("P4", "BTC/TMN", "OPEN", json.dumps(pos)))
+    con.execute("INSERT INTO positions VALUES (?,?,?,?)", ("P5", "BTC/TMN", "OPEN", "{not json"))
+    con.commit()
+    con.close()
+    return root
+
+
+@pytest.fixture()
+def bad_client(bad_root: Path) -> TestClient:
+    return TestClient(create_app(_cfg(bad_root), _env()), raise_server_exceptions=False)
+
+
+@pytest.mark.parametrize("path", PAGES)
+def test_pages_survive_bad_numbers(bad_client: TestClient, path: str) -> None:
+    r = bad_client.get(path, headers=_auth())
+    assert r.status_code == 200, (path, r.text[:500])
+
+
+def test_ai_with_string_numbers(bad_client: TestClient) -> None:
+    t = bad_client.get("/ai", headers=_auth()).text
+    assert UNAVAILABLE not in t  # every /ai section loads; bad values become 0 / —
+    assert "1,000" in t  # tokens: 0 + 100, 900 + 0, 0 + 0, 0 + 0
+    assert ">50<" in t and "25.0 %" in t  # day_calls "50" of 200 calls/day; hour_calls "x" -> 0
+    assert "RANGE" in t and "not a list" not in t
+    assert "lots" not in t and "reports/live/metrics.json" in t
+
+
+def test_other_pages_with_bad_values(bad_client: TestClient) -> None:
+    t = bad_client.get("/", headers=_auth()).text
+    assert "5,123,456" in t  # the malformed equity row is dropped, not fatal
+    t = bad_client.get("/opportunities", headers=_auth()).text
+    assert "0.700" in t and "reason 2" in t
+    t = bad_client.get("/system", headers=_auth()).text
+    assert UNAVAILABLE in t and "(api: ValueError)" in t  # http status "abc" -> only the api section fails
+    assert "abc1234" in t  # identity section still renders
+
+
+# section loaders: one failing section -> inline box, the rest of the page still renders
+SECTIONS = [
+    ("/", "_equity", "equity", "NO_NEW_ENTRIES"),
+    ("/", "_status", "status", "5,123,456"),
+    ("/", "_activity", "activity", "TREND_UP"),
+    ("/", "last_regime", "regime", "5,123,456"),
+    ("/positions", "_open_positions", "open_positions", "96"),
+    ("/positions", "_closed_trades", "closed_trades", "195,000"),
+    ("/ai", "_ai_calls", "llm_calls", "50.0 %"),
+    ("/ai", "_ai_reviews", "llm_reviews", "timeout"),
+    ("/ai", "_ai_budget", "llm_budget", "ema stack up"),
+    ("/ai", "_ai_regimes", "regimes", "400,000"),
+    ("/ai", "counterfactual", "counterfactual", "ema stack up"),
+    ("/system", "_sys_health", "health", "abc1234"),
+    ("/system", "_sys_identity", "identity", "candle_close_to_decision"),
+    ("/system", "_api", "api", "abc1234"),
+    ("/system", "_latency", "latency", "50.00 %"),
+]
+
+
+@pytest.mark.parametrize(("path", "method", "name", "still_shown"), SECTIONS)
+def test_failing_section_renders_inline_box(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, path: str, method: str, name: str, still_shown: str
+) -> None:
+    def boom(*a: object, **k: object) -> None:
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(DashboardData, method, boom)
+    r = client.get(path, headers=_auth())
+    assert r.status_code == 200
+    assert UNAVAILABLE in r.text and f"({name}: RuntimeError)" in r.text
+    assert still_shown in r.text
+
+
+# whole-page loaders: failure outside any section -> 200 with a page-level box, never a 500
+PAGE_LOADERS = [
+    ("/", "overview"),
+    ("/opportunities", "opportunities"),
+    (f"/opportunities/01J{1:023d}", "decision"),
+    ("/positions", "positions"),
+    ("/ai", "ai"),
+    ("/reports", "report_list"),
+    ("/reports/view/live/REPORT.md", "safe_report_path"),
+    ("/system", "system"),
+    ("/", "store"),
+    ("/ai", "decisions"),
+]
+
+
+@pytest.mark.parametrize(("path", "method"), PAGE_LOADERS)
+def test_failing_page_loader_never_500(
+    root: Path, monkeypatch: pytest.MonkeyPatch, path: str, method: str
+) -> None:
+    def boom(*a: object, **k: object) -> None:
+        raise ValueError("boom")
+
+    monkeypatch.setattr(DashboardData, method, boom)
+    c = TestClient(create_app(_cfg(root), _env()), raise_server_exceptions=False)
+    r = c.get(path, headers=_auth())
+    assert r.status_code == 200 and UNAVAILABLE in r.text, path
+    assert "boom" not in r.text  # only the exception type is shown; details go to the log
+
+
+# ---------------------------------------------------------------- git_sha (Liara showed "unknown")
+
+
+def test_dockerfile_bakes_git_sha() -> None:
+    lines = [x.strip() for x in (ROOT / "Dockerfile").read_text(encoding="utf-8").splitlines()]
+    arg = lines.index("ARG GIT_SHA")
+    env = next(i for i, x in enumerate(lines) if x.startswith("ENV GIT_SHA=$GIT_SHA"))
+    assert arg < env
+
+
+def test_runtime_reads_env_git_sha_first(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GIT_SHA", "deadbee")
+    assert detect_git_sha() == "deadbee"

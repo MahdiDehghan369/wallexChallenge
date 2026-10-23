@@ -4,6 +4,8 @@
   order / pause / resume control. SQLite is opened with ``mode=ro``.
 - ``/health`` is public (platform healthcheck): 200 while ``state/heartbeat`` is younger than
   ``loop.watchdog_timeout_s``, else 503.
+- Pages never answer 500: a failing section renders an inline "data unavailable" box, and a failure
+  outside any section renders a whole-page box (see ``safe_page``).
 - Every other path needs HTTP Basic auth (``DASHBOARD_USER`` / ``DASHBOARD_PASSWORD``). With no
   password set the dashboard is disabled (503) and only ``/health`` works.
 - Bind address and port: ``base.yaml > dashboard`` overridden by env ``DASHBOARD_HOST`` / ``PORT``.
@@ -16,6 +18,7 @@ import binascii
 import hmac
 import json
 import threading
+from collections.abc import Callable
 from importlib import resources
 from typing import Any
 
@@ -31,13 +34,14 @@ from starlette.responses import FileResponse, HTMLResponse, JSONResponse, PlainT
 from starlette.routing import Route
 
 from siavash.config import AppConfig, EnvSettings
-from siavash.dashboard.data import IMAGE_TYPES, DashboardData, rewrite_images
+from siavash.dashboard.data import IMAGE_TYPES, DashboardData, rewrite_images, unavailable
 from siavash.logging import get_logger, register_secrets
 
 log = get_logger(__name__)
 
 DEFAULT_USER = "admin"
 CHART_JS = "https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"
+EMPTY_CHART: dict[str, list[Any]] = {"ts": [], "equity": [], "dd": []}
 CSP = (
     "default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; "
@@ -136,42 +140,62 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
         )
         return HTMLResponse(html)
 
+    def safe_page(
+        request: Request, name: str, build: Callable[[], dict[str, Any] | Response], refresh_page: bool = True
+    ) -> Response:
+        """Load + render one page; any failure renders an inline "data unavailable" page (200), never a 500."""
+        try:
+            ctx = build()
+            return ctx if isinstance(ctx, Response) else page(request, name, refresh_page, **ctx)
+        except Exception as e:
+            log.warning("dashboard_page_failed", path=request.url.path, error=f"{type(e).__name__}: {e}")
+            return page(request, "unavailable.html", refresh_page, err=unavailable("page", e))
+
     async def health(request: Request) -> JSONResponse:
         ok, body = data.health()
         return JSONResponse(body, status_code=200 if ok else 503)
 
-    async def overview(request: Request) -> HTMLResponse:
-        o = data.overview()
-        return page(request, "overview.html", o=o, chart_data=json.dumps(o["chart"]))
+    async def overview(request: Request) -> Response:
+        def build() -> dict[str, Any]:
+            o = data.overview()
+            return {"o": o, "chart_data": json.dumps(o["equity"].get("chart") or EMPTY_CHART)}
 
-    async def opportunities(request: Request) -> HTMLResponse:
+        return safe_page(request, "overview.html", build)
+
+    async def opportunities(request: Request) -> Response:
         q = request.query_params
         f = {k: q.get(k, "") for k in ("symbol", "strategy", "outcome")}
-        return page(request, "opportunities.html", r=data.opportunities(**f), f=f)
+        return safe_page(request, "opportunities.html", lambda: {"r": data.opportunities(**f), "f": f})
 
     async def decision(request: Request) -> Response:
-        rec = data.decision(request.path_params["decision_id"])
-        if rec is None:
-            return PlainTextResponse("decision not found", 404)
-        pretty = json.dumps(rec, ensure_ascii=False, indent=2)
-        return page(request, "decision.html", refresh_page=False, rec=rec, pretty=pretty)
+        def build() -> dict[str, Any] | Response:
+            rec = data.decision(request.path_params["decision_id"])
+            if rec is None:
+                return PlainTextResponse("decision not found", 404)
+            return {"rec": rec, "pretty": json.dumps(rec, ensure_ascii=False, indent=2, default=str)}
 
-    async def positions(request: Request) -> HTMLResponse:
-        return page(request, "positions.html", p=data.positions())
+        return safe_page(request, "decision.html", build, refresh_page=False)
 
-    async def ai(request: Request) -> HTMLResponse:
-        return page(request, "ai.html", a=data.ai())
+    async def positions(request: Request) -> Response:
+        return safe_page(request, "positions.html", lambda: {"p": data.positions()})
 
-    async def reports(request: Request) -> HTMLResponse:
-        return page(request, "reports.html", refresh_page=False, groups=data.report_list())
+    async def ai(request: Request) -> Response:
+        return safe_page(request, "ai.html", lambda: {"a": data.ai()})
+
+    async def reports(request: Request) -> Response:
+        return safe_page(request, "reports.html", lambda: {"groups": data.report_list()}, refresh_page=False)
 
     async def report(request: Request) -> Response:
         rel = request.path_params["path"]
-        p = data.safe_report_path(rel, {".md"})
-        if p is None:
-            return PlainTextResponse("report not found", 404)
-        body = rewrite_images(md.render(p.read_text(encoding="utf-8", errors="replace")), rel)
-        return page(request, "report.html", refresh_page=False, rel=rel, body=Markup(body))
+
+        def build() -> dict[str, Any] | Response:
+            p = data.safe_report_path(rel, {".md"})
+            if p is None:
+                return PlainTextResponse("report not found", 404)
+            body = rewrite_images(md.render(p.read_text(encoding="utf-8", errors="replace")), rel)
+            return {"rel": rel, "body": Markup(body)}
+
+        return safe_page(request, "report.html", build, refresh_page=False)
 
     async def report_file(request: Request) -> Response:
         p = data.safe_report_path(request.path_params["path"], set(IMAGE_TYPES))
@@ -179,8 +203,8 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
             return PlainTextResponse("file not found", 404)
         return FileResponse(p, media_type=IMAGE_TYPES[p.suffix.lower()])
 
-    async def system(request: Request) -> HTMLResponse:
-        return page(request, "system.html", s=data.system())
+    async def system(request: Request) -> Response:
+        return safe_page(request, "system.html", lambda: {"s": data.system()})
 
     async def script(request: Request) -> Response:
         js = resources.files("siavash.dashboard").joinpath("static/dashboard.js").read_text(encoding="utf-8")

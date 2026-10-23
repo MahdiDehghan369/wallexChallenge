@@ -44,7 +44,7 @@
     var holder = document.getElementById("charts");
     if (holder && window.Chart) {
       var d = JSON.parse(holder.getAttribute("data-chart"));
-      if (d.ts.length > 1) {
+      if (d.ts && d.ts.length > 1) {
         lineChart(document.getElementById("eq"), d.ts, d.equity, css("--series-1"), " TMN");
         lineChart(document.getElementById("dd"), d.ts, d.dd, css("--series-dd"), " %");
       }

@@ -37,6 +37,7 @@ SYSTEM_TOOLS = {
     "grep",
     "head",
     "less",
+    "liara",
     "ls",
     "mkdir",
     "nano",

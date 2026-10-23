@@ -3,10 +3,13 @@
 ARG BASE_IMAGE=python:3.11-slim
 FROM ${BASE_IMAGE}
 
-ARG GIT_SHA=unknown
+# Commit sha baked into the image (.git is not copied, so this is the only source at runtime).
+# Pass it on every build: docker compose build --build-arg GIT_SHA=... / liara deploy --build-arg GIT_SHA=...
+# Unset -> empty -> runtime reports "unknown".
+ARG GIT_SHA
 # Optional PyPI mirror for networks where files.pythonhosted.org is unreachable
 ARG PIP_INDEX_URL=
-ENV GIT_SHA=${GIT_SHA} \
+ENV GIT_SHA=$GIT_SHA \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \

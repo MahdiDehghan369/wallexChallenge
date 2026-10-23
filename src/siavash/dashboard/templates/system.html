@@ -1,32 +1,44 @@
 {% extends "base.html" %}
+{% import "_macros.html" as m %}
 {% block title %}سیستم · سیاوش{% endblock %}
 {% block body %}
-{% set hb = s.heartbeat_age_s %}
+{% set h, api, idn = s.health, s.api, s.identity %}
+{% for x in [h, api] if x.unavailable %}{{ m.box(x) }}{% endfor %}
 <div class="kpis">
+  {% if not h.unavailable %}{% set hb = h.heartbeat_age_s %}
   <div class="card kpi"><div class="l">سن آخرین heartbeat</div>
-    <div class="v {{ 'neg' if hb is none or hb > s.watchdog_timeout_s else 'pos' }}">{{ hb | fmt(0) }} s</div>
-    <div class="s">حد watchdog {{ s.watchdog_timeout_s | fmt }} s</div></div>
-  <div class="card kpi"><div class="l">نرخ خطای API</div><div class="v">{{ s.api.error_rate_pct | fmt(2) }} %</div>
-    <div class="s">{{ s.api.errors }} از {{ s.api.requests }} درخواست</div></div>
+    <div class="v {{ 'neg' if hb is none or hb > h.watchdog_timeout_s else 'pos' }}">{{ hb | fmt(0) }} s</div>
+    <div class="s">حد watchdog {{ h.watchdog_timeout_s | fmt }} s</div></div>
+  {% endif %}
+  {% if not api.unavailable %}
+  <div class="card kpi"><div class="l">نرخ خطای API</div><div class="v">{{ api.error_rate_pct | fmt(2) }} %</div>
+    <div class="s">{{ api.errors }} از {{ api.requests }} درخواست</div></div>
   <div class="card kpi"><div class="l">تأخیر HTTP p50 / p95</div>
-    <div class="v">{{ s.api.http_p50_ms | fmt(0) }} / {{ s.api.http_p95_ms | fmt(0) }}</div><div class="s">میلی‌ثانیه</div></div>
-  <div class="card kpi"><div class="l">آخرین تصمیم</div><div class="v" style="font-size:14px">{{ s.last_decision_ts or '—' }}</div></div>
+    <div class="v">{{ api.http_p50_ms | fmt(0) }} / {{ api.http_p95_ms | fmt(0) }}</div><div class="s">میلی‌ثانیه</div></div>
+  {% endif %}
+  {% if not idn.unavailable %}
+  <div class="card kpi"><div class="l">آخرین تصمیم</div><div class="v" style="font-size:14px">{{ idn.last_decision_ts or '—' }}</div></div>
+  {% endif %}
 </div>
 
 <h2>نسخه و پیکربندی</h2>
+{% if idn.unavailable %}{{ m.box(idn) }}{% else %}
 <div class="tw"><table>
-<tr><th>mode</th><td class="ltr">{{ s.identity.mode or '—' }}</td></tr>
-<tr><th>git_sha</th><td class="ltr">{{ s.identity.git_sha or '—' }}</td></tr>
-<tr><th>version_tag</th><td class="ltr">{{ s.identity.version_tag or '—' }}</td></tr>
-<tr><th>config_hash</th><td class="ltr">{{ s.identity.config_hash or '—' }}</td></tr>
+<tr><th></th><th>آخرین رکورد تصمیم</th><th>پروسه داشبورد / موتور</th></tr>
+{% for k in ("mode", "git_sha", "version_tag", "config_hash") %}
+<tr><th>{{ k }}</th><td class="ltr">{{ (idn.record[k] if idn.record else none) or '—' }}</td><td class="ltr">{{ idn.process[k] or '—' }}</td></tr>
+{% endfor %}
 </table></div>
-<p class="muted">منبع: {{ s.identity_source }}</p>
+<p class="muted">رکورد تصمیم نسخه‌ای را نشان می‌دهد که آن تصمیم را گرفته است؛ ستون پروسه نسخه در حال اجرا را.</p>
+{% endif %}
 
 <h2>تأخیر تصمیم‌گیری (latency.jsonl)</h2>
+{% if s.latency.unavailable %}{{ m.box(s.latency) }}{% else %}
 <div class="tw"><table>
 <tr><th>مرحله</th><th class="n">n</th><th class="n">p50 ms</th><th class="n">p95 ms</th><th class="n">max ms</th></tr>
 {% for k, v in s.latency.items() %}
 <tr><td class="ltr">{{ k }}</td><td class="n">{{ v.n }}</td><td class="n">{{ v.p50 | fmt(1) }}</td><td class="n">{{ v.p95 | fmt(1) }}</td><td class="n">{{ v.max | fmt(1) }}</td></tr>
 {% else %}<tr><td colspan="5" class="muted">داده‌ای نیست.</td></tr>{% endfor %}
 </table></div>
+{% endif %}
 {% endblock %}

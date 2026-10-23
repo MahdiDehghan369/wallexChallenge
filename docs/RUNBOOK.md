@@ -167,6 +167,21 @@ curl -s http://127.0.0.1:8080/health
 - Point the platform health check at `/health`.
 - Open `https://<app>.liara.run/`; the browser asks for the user name and password.
 - Only use `0.0.0.0` there, behind Liara's HTTPS. Never expose the plain-HTTP port of a VPS directly.
+- Deploy with the commit sha as a build arg, or `git_sha` shows `unknown`: `.git` is not in the image,
+  so the `GIT_SHA` build arg is the only source.
+
+```bash
+liara deploy --app <app> --platform docker --port 8080 --build-arg "GIT_SHA=$(git rev-parse --short HEAD)"
+```
+
+- The System page shows two `git_sha` columns:
+  - the last decision record: the build that made that decision;
+  - the running process.
+
+  Right after a redeploy, only the process column changes, until the engine logs a new decision.
+- A page section that cannot read its data shows an inline "data unavailable" box naming the section
+  and the error type. The details are in the app log as `dashboard_section_failed` /
+  `dashboard_bad_number`.
 
 ## 7. Emergency procedures
 

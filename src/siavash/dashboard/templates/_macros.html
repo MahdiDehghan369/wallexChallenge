@@ -1,0 +1,2 @@
+{# Inline box for a section whose loader failed (DashboardData.section / unavailable()). #}
+{% macro box(x) %}<div class="card unavail" role="status">⚠ داده در دسترس نیست <span class="muted ltr" dir="ltr">({{ x.section }}: {{ x.error }})</span></div>{% endmacro %}

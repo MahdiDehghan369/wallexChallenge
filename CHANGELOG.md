@@ -16,6 +16,18 @@ and an entry under "Versions".
     `DASHBOARD_HOST` and `PORT`.
   - **Compose:** publishes the port on the host's loopback only.
   - **Dependencies:** new explicit deps `starlette`, `uvicorn`, `jinja2` and `markdown-it-py`.
+- Dashboard fix: `/ai` crashed on Liara with a TypeError (`int + str`). The cause was `calls.jsonl` token
+  counts stored as strings.
+  - **Number parsing:** every number read from logs or the store now goes through `to_int` / `to_float`
+    in `dashboard/data.py`. Null or missing values become 0 or "—"; malformed values do too, with one
+    `dashboard_bad_number` warning per field.
+  - **Fault isolation:** each page is built from sections, and a section that fails shows an inline
+    "data unavailable" box. A failure outside any section gives a page-level box with status 200, so
+    no page returns a 500.
+  - **Decision tail:** trades now read exit reasons from the tolerant decisions tail.
+  - **git_sha:** the System page shows the record's and the running process's git_sha side by side. The
+    Dockerfile now uses `ARG GIT_SHA` with no default and `ENV GIT_SHA=$GIT_SHA`. Liara builds must pass
+    `--build-arg GIT_SHA=...` (RUNBOOK).
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.
