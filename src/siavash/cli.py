@@ -403,6 +403,51 @@ def export_submission() -> None:
     raise typer.Exit(subprocess.call([sys.executable, str(script)]))
 
 
+FEE_DIAGNOSE_SYMBOLS = ("BTC/TMN", "ETH/TMN", "USDT/TMN")
+
+
+async def _fetch_fee_raw(cfg: AppConfig) -> Any:
+    from siavash.exchange import endpoints as ep
+    from siavash.exchange.client import WallexHttp
+
+    http = WallexHttp.from_config(cfg)  # same key / base URL resolution as the engine
+    try:
+        typer.echo(f"base url: {http.base_url}  key configured: {bool(cfg.secrets.wallex_api_key)}")
+        return await http.get(ep.Paths.FEE, private=True)
+    finally:
+        await http.aclose()
+
+
+@app.command()
+def fees(
+    diagnose: bool = typer.Option(
+        False, "--diagnose", help="also print the response shape (keys/types only)"
+    ),
+    config: str = typer.Option("config", "--config"),
+) -> None:
+    """Read-only GET /v1/account/fee: parsed maker/taker % for BTCTMN, ETHTMN, USDTTMN."""
+    from siavash.core.symbols import to_exchange
+    from siavash.exchange import endpoints as ep
+
+    cfg = _cfg(config)
+    setup_logging("WARNING", cfg.base.paths.logs)
+    if not cfg.secrets.wallex_api_key:
+        typer.echo("WALLEX_API_KEY is not set", err=True)
+        raise typer.Exit(2)
+    raw = asyncio.run(_fetch_fee_raw(cfg))
+    if diagnose:
+        typer.echo(json.dumps(ep.fee_shape(raw), indent=2, ensure_ascii=False))
+    parsed, skipped = ep.parse_fees_report(raw)
+    typer.echo(f"parsed entries: {len(parsed)}  skipped: {len(skipped)}")
+    for sym in FEE_DIAGNOSE_SYMBOLS:
+        pct = parsed.get(sym)
+        shown = f"maker {pct[0]} %  taker {pct[1]} %" if pct else "not found / unparsable"
+        typer.echo(f"{to_exchange(sym):10} {shown}")
+    typer.echo(f"config risk.fees: maker {cfg.risk.fees.maker_pct} %  taker {cfg.risk.fees.taker_pct} %")
+    if not parsed:
+        raise typer.Exit(1)
+
+
 async def _llm_check(cfg: AppConfig) -> dict[str, Any]:
     from siavash.agents.budget import LLMBudget
     from siavash.agents.llm import LLMClient

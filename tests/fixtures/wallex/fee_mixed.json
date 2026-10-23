@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "message": "Synthetic regression fixture: GET /v1/account/fee with valid, null, missing and non-dict entries (Liara 2026-10-23: 'missing decimal value')",
+  "result": {
+    "BTCTMN": {"makerFeeRate": "0.00250000", "takerFeeRate": "0.00250000", "recent_days_sum": 0},
+    "ETHTMN": {"makerFeeRate": 0.002, "takerFeeRate": 0.003},
+    "USDTTMN": {"maker_fee_rate": "0.001", "takerFee": 0.0015},
+    "SHIBTMN": {"makerFeeRate": null, "takerFeeRate": "0.002"},
+    "DOGETMN": {"takerFeeRate": "0.002"},
+    "XRPTMN": {"makerFeeRate": "abc", "takerFeeRate": "0.002"},
+    "default": "0.002",
+    "levels": [1, 2, 3],
+    "meta": null
+  }
+}

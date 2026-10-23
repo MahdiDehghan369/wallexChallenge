@@ -101,24 +101,29 @@ The first live day runs at `initial_live_risk_scale` (0.5×) of normal risk.
 At start the engine reads `GET /v1/account/fee` (read-only) and logs `account_fees` (maker / taker of every
 traded market). The effective fee is the higher of the account rate and `config/risk.yaml > fees`. It
 is never lower than the API, and a difference logs the warning `account_fees_differ`. If the call
-fails, the config fees stay, with the error `account_fees_unavailable`. The engine writes its identity to
+fails, the config fees stay, with the error `account_fees_unavailable`. Fee entries that are not dicts or
+have no usable maker/taker rate are skipped with the warning `fee_entries_skipped` (count plus a sample of
+their keys); only a response with no valid entry counts as a failure. To inspect the response shape (keys
+and types only) and the parsed rates for BTCTMN, ETHTMN and USDTTMN, run the read-only
+`siavash fees --diagnose`. It uses the engine's `WALLEX_API_KEY` / `WALLEX_BASE_URL` (default
+`https://api.wallex.ir`). The engine writes its identity to
 `state/engine.json`: mode, git_sha, version_tag, config_hash, effective fees and the endgame config. The
 dashboard shows that file.
 
 ### 5a. Liara go-live
 
-The app is `siavash-bot` (platform docker), with its disk mounted at `/app/persist`. All commands are human
+The app is `siavash-starcoach-wallex` (platform docker), with its disk mounted at `/app/persist`. All commands are human
 only. Run them from the repo root on the tagged commit.
 
-Note: `liara.json` in the repo says `"app": "siavash-wallex"`, `"port": 3000` and `"disks": []`. Always pass
-`--app` explicitly. A plain `liara deploy` goes to the app named in `liara.json`.
+`liara.json` names the same app and port and mounts the disk `siavash-data` at `/app/persist`. The commands
+below still pass `--app` explicitly. `<tag>` is the release being deployed (e.g. `live-v1.4`).
 
 **1. Environment** (Liara panel or CLI). Secrets (`WALLEX_API_KEY`, `LLM_API_KEY`,
 `DASHBOARD_PASSWORD`) are set only in the panel and never pasted into commands or chats.
 
 ```bash
-liara env set MODE=live CONFIRM_LIVE=YES PATHS_ROOT=/app/persist DASHBOARD_HOST=0.0.0.0 PORT=3000 --app siavash-bot
-liara env list --app siavash-bot
+liara env set MODE=live CONFIRM_LIVE=YES PATHS_ROOT=/app/persist DASHBOARD_HOST=0.0.0.0 PORT=8080 --app siavash-starcoach-wallex
+liara env list --app siavash-starcoach-wallex
 ```
 
 Verify: `env list` shows `MODE=live`, `CONFIRM_LIVE=YES`, `PATHS_ROOT=/app/persist` and a `PORT` equal to
@@ -127,15 +132,15 @@ the `--port` used below.
 **2. Deploy** the tagged commit, baking in the commit sha and the release tag:
 
 ```bash
-git checkout live-v1.0
-liara deploy --app siavash-bot --platform docker --port 3000 --build-arg "GIT_SHA=$(git rev-parse --short HEAD)" --build-arg VERSION_TAG=live-v1.0 --message live-v1.0
-liara logs --app siavash-bot --since "10 minutes ago"
+git checkout <tag>
+liara deploy --app siavash-starcoach-wallex --platform docker --port 8080 --build-arg "GIT_SHA=$(git rev-parse --short HEAD)" --build-arg VERSION_TAG=<tag> --message <tag>
+liara logs --app siavash-starcoach-wallex --since "10 minutes ago"
 ```
 
 Verify, in the startup logs:
 - `engine_mode` with `mode=live configured_mode=live` and `paths` under `/app/persist`;
 - `account_fees` (and `account_fees_differ` if the account rate is not the config rate);
-- every line carries `git_sha=<sha>`, `version_tag=live-v1.0` and `mode=live`.
+- every line carries `git_sha=<sha>`, `version_tag=<tag>` and `mode=live`.
 
 If you see `refusing to start LIVE` instead, `CONFIRM_LIVE` is not `YES`. If you see
 `competition_end_utc is empty`, the endgame end time is missing. In both cases the bot exits; it never
@@ -144,7 +149,7 @@ falls back to paper.
 **3. Inside the container:**
 
 ```bash
-liara shell --app siavash-bot
+liara shell --app siavash-starcoach-wallex
 ```
 
 Then, in that shell:
@@ -156,20 +161,22 @@ ls -l /app/persist
 cat /app/persist/state/engine.json
 tail -n 20 /app/persist/logs/decisions.jsonl
 grep -c account_fees /app/persist/logs/system.log
+grep fee_entries_skipped /app/persist/logs/system.log | tail -n 1
+siavash fees --diagnose
 siavash status
-curl -s http://127.0.0.1:3000/health
+curl -s http://127.0.0.1:8080/health
 ```
 
 Expected:
 - `df` shows a separate volume for `/app/persist`, not the container's root filesystem. If it is the root
   filesystem, the disk is not mounted, and logs and state are lost on the next deploy.
-- `engine.json` has `"mode": "live"`, the commit sha, `"version_tag": "live-v1.0"`, `fees.effective` and
+- `engine.json` has `"mode": "live"`, the commit sha, `"version_tag": "<tag>"`, `fees.effective` and
   `endgame.competition_end_utc = 2026-10-26T19:30:00Z`.
 - `/health` returns `{"status":"ok", ...}`.
 
-**4. Dashboard:** open `https://siavash-bot.liara.run/system`.
+**4. Dashboard:** open `https://siavash-starcoach-wallex.liara.run/system`.
 - The header badge shows `حالت: live`.
-- The "engine" column shows the commit sha and `live-v1.0`.
+- The "engine" column shows the commit sha and `<tag>`.
 - The endgame table shows the phases in Tehran time: NO_NEW 2026-10-26 17:00, UNWIND 20:00, FORCE 22:00
   and DONE 23:00.
 

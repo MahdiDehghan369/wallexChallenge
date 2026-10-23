@@ -20,13 +20,14 @@ ENV GIT_SHA=$GIT_SHA \
 
 # Optional Debian mirror host (e.g. mirror.arvancloud.ir) where deb.debian.org is slow/blocked
 ARG DEBIAN_MIRROR=
-# libgomp1: OpenMP runtime required by LightGBM; make: `make report` / `make export-submission` in the container
+# libgomp1: OpenMP runtime required by LightGBM; make: `make report` / `make export-submission` in the container;
+# curl: debugging inside `liara shell`
 RUN if [ -n "$DEBIAN_MIRROR" ]; then \
         sed -i "s|deb.debian.org|$DEBIAN_MIRROR|g" /etc/apt/sources.list.d/debian.sources 2>/dev/null \
         || sed -i "s|deb.debian.org|$DEBIAN_MIRROR|g" /etc/apt/sources.list; \
     fi \
     && apt-get update \
-    && apt-get install -y --no-install-recommends libgomp1 make \
+    && apt-get install -y --no-install-recommends libgomp1 make curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

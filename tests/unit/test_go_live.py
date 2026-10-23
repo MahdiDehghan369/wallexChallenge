@@ -179,15 +179,121 @@ def test_report_defaults_follow_paths(workdir: Path, monkeypatch: pytest.MonkeyP
     assert (persist / "reports" / "live" / "REPORT.md").exists()
 
 
-def _export_module() -> Any:
-    spec = importlib.util.spec_from_file_location(
-        "export_submission", ROOT / "scripts" / "export_submission.py"
-    )
+def _script_module(name: str) -> Any:
+    spec = importlib.util.spec_from_file_location(name, ROOT / "scripts" / f"{name}.py")
     assert spec and spec.loader
     mod = importlib.util.module_from_spec(spec)
-    sys.modules["export_submission"] = mod
+    sys.modules[name] = mod
     spec.loader.exec_module(mod)
     return mod
+
+
+def _export_module() -> Any:
+    return _script_module("export_submission")
+
+
+# ---------------------------------------------------------------- fee parse problems (Liara, live-v1.4)
+
+FEE_MIXED = json.loads(
+    (ROOT / "tests" / "fixtures" / "wallex" / "fee_mixed.json").read_text(encoding="utf-8")
+)
+
+
+def test_fees_diagnose_prints_shape_and_parsed(workdir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("WALLEX_API_KEY", "k-test-123456")
+    monkeypatch.delenv("WALLEX_BASE_URL", raising=False)
+    seen: list[Any] = []
+
+    async def fake_fetch(cfg: Any) -> Any:
+        seen.append((cfg.secrets.wallex_api_key is not None, cfg.wallex_base_url))
+        return FEE_MIXED
+
+    monkeypatch.setattr(cli, "_fetch_fee_raw", fake_fetch)
+    res = runner.invoke(cli.app, ["fees", "--diagnose"])
+    assert res.exit_code == 0, res.output
+    assert seen == [(True, None)]  # env key; base URL None -> WallexHttp default https://api.wallex.ir
+    assert '"result_count": 9' in res.output and '"entries_lacking_maker_or_taker": 6' in res.output
+    assert "BTCTMN     maker 0.25 %  taker 0.25 %" in res.output
+    assert "ETHTMN     maker 0.2 %  taker 0.3 %" in res.output
+    assert "USDTTMN    maker 0.1 %  taker 0.15 %" in res.output
+    assert "k-test-123456" not in res.output
+
+
+def test_fees_without_key_or_valid_entries(workdir: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    assert runner.invoke(cli.app, ["fees"]).exit_code == 2
+    monkeypatch.setenv("WALLEX_API_KEY", "k-test-123456")
+
+    async def fake_fetch(cfg: Any) -> Any:
+        return {"result": {"BTCTMN": {"takerFeeRate": "0.002"}}}
+
+    monkeypatch.setattr(cli, "_fetch_fee_raw", fake_fetch)
+    res = runner.invoke(cli.app, ["fees"])
+    assert res.exit_code == 1 and "BTCTMN     not found / unparsable" in res.output
+
+
+def test_wallex_base_url_default() -> None:
+    from siavash.exchange import endpoints as ep
+    from siavash.exchange.client import WallexHttp
+
+    assert ep.BASE_URL == "https://api.wallex.ir"
+    assert WallexHttp(base_url=None).base_url == "https://api.wallex.ir"
+
+
+def test_smoke_fee_problem_is_a_warn_row() -> None:
+    smoke = _script_module("smoke_test")
+    s = smoke.Smoke(None)
+    smoke.check_fees(FEE_MIXED, s)  # some entries skipped, BTC/TMN fine
+    smoke.check_fees({"result": {"BTCTMN": {"takerFeeRate": "0.002"}}}, s)  # nothing valid
+    smoke.check_fees({"result": "garbage"}, s)
+    smoke.check_fees(FEE_MIXED["result"]["BTCTMN"], s)  # unexpected: entries are not dicts
+    assert [ok for _, ok, _, _ in s.rows] == ["WARN"] * 4
+    assert all("siavash fees --diagnose" in detail for *_, detail in s.rows)
+
+
+def test_smoke_test_order_runs_after_fee_problem(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    smoke = _script_module("smoke_test")
+    calls: list[str] = []
+
+    class FakeHttp:
+        base_url = "https://example.invalid"
+
+        async def get(self, path: str, params: Any = None, private: bool = False) -> Any:
+            calls.append(path)
+            return {"result": {"BTCTMN": {"takerFeeRate": "0.002"}}} if path.endswith("/fee") else {}
+
+        async def aclose(self) -> None:
+            pass
+
+    class FakeMd:
+        def __init__(self, *a: Any, **kw: Any) -> None:
+            pass
+
+        async def list_markets(self) -> list[Any]:
+            return []
+
+        async def get_ticker(self, symbol: str) -> Any:
+            return None
+
+        async def get_candles(self, *a: Any) -> list[Any]:
+            return []
+
+        async def get_recent_trades(self, symbol: str) -> list[Any]:
+            return []
+
+    async def fake_test_order(*a: Any) -> None:
+        calls.append("test_order")
+
+    monkeypatch.chdir(tmp_path)  # no repo .env
+    monkeypatch.setenv("WALLEX_API_KEY", "k-test-123456")
+    monkeypatch.setattr(smoke.WallexHttp, "from_config", classmethod(lambda cls, cfg: FakeHttp()))
+    monkeypatch.setattr(smoke, "WallexMarketData", FakeMd)
+    monkeypatch.setattr(smoke, "setup_logging", lambda *a, **kw: None)
+    monkeypatch.setattr(smoke, "test_order", fake_test_order)
+    args = smoke.argparse.Namespace(
+        config=str(ROOT / "config"), base_url=None, save_samples=None, place_test_order=True, yes=True
+    )
+    asyncio.run(smoke.run(args))
+    assert calls[-1] == "test_order"
 
 
 def test_export_submission_defaults_follow_paths(workdir: Path, monkeypatch: pytest.MonkeyPatch) -> None:

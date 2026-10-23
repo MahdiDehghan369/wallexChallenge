@@ -27,7 +27,7 @@
 | Public trades | `GET /v1/trades` | `symbol=` | `result.latestTrades[] {symbol, price, quantity, sum, isBuyOrder, timestamp (ISO)}` |
 | Candles | `GET /v1/udf/history` | `symbol, resolution, from, to` (unix s) | UDF `{s, t[], o[], h[], l[], c[], v[]}` (prices/volumes as strings) — see resolution quirks |
 | Balances | `GET /v1/account/balances` | — | `result.balances{ASSET: {asset, value (total), locked, fiat, is_dust, …}}`; **free = value − locked** |
-| Account fees | `GET /v1/account/fee` | — | `result{SYMBOL: {makerFeeRate, takerFeeRate, recent_days_sum}}`, rates are fractions (`0.002` = 0.2 %) → `WallexAccount.get_fees()` returns percent |
+| Account fees | `GET /v1/account/fee` | — | `result{SYMBOL: {makerFeeRate, takerFeeRate, recent_days_sum}}`, rates are fractions (`0.002` = 0.2 %) → `WallexAccount.get_fees()` returns percent. OBSERVED 2026-10-23 (Liara): some `result` entries have no usable `makerFeeRate`; `parse_fees` skips such entries (also tries `maker_fee_rate`/`makerFee`, `taker_fee_rate`/`takerFee`, UNVERIFIED) and fails only if none is valid. Real shape: `siavash fees --diagnose` |
 | Place order | `POST /v1/account/orders` | JSON, **all strings**: `symbol, side, type, quantity, client_id` (+ `price` for LIMIT) | `201` + `result: OrderResource` |
 | Order status | `GET /v1/account/orders/{client_id}` | — | `result: OrderResource`; `404` if unknown |
 | Cancel order | `DELETE /v1/account/orders/{client_id}` | — | `result: OrderResource` (Swagger also has `DELETE /v1/account/orders` with body `{clientOrderId}`; not used) |

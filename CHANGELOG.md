@@ -54,6 +54,22 @@ and an entry under "Versions".
   - **Image:** now contains `make`, the `Makefile` and `CHANGELOG.md`, so `make report` and
     `make export-submission` work inside the container.
   - **Docs:** new RUNBOOK section "5a. Liara go-live".
+- Fee parse fix (live-v1.4): on Liara `GET /v1/account/fee` returned 200 but `parse_fees` raised
+  `ValueError: missing decimal value` on an entry without `makerFeeRate`. The engine fell back to config
+  fees and `smoke_test.py` crashed before the test order.
+  - **Parser:** `endpoints.parse_fees` now skips entries that are not dicts or lack a usable maker/taker
+    rate (missing, null, not a number). Rates may be numbers or strings, and the spellings
+    `maker_fee_rate`/`makerFee` and `taker_fee_rate`/`takerFee` are tried after the Swagger names. Skips
+    log `fee_entries_skipped` with the count and up to 3 key samples. It raises only when no entry is valid.
+  - **`siavash fees [--diagnose]`:** read-only. Prints the parsed maker/taker % for BTCTMN, ETHTMN and
+    USDTTMN. `--diagnose` adds the response shape (top-level keys, result type and count, the first 3
+    entries' keys, how many lack maker/taker), keys and types only.
+  - **Smoke test:** a fee parse problem is a WARN row, and `--place-test-order` still runs. WARN rows do not
+    fail the exit code.
+  - **Image:** `curl` installed for debugging in `liara shell`.
+  - **Tests:** regression fixture `tests/fixtures/wallex/fee_mixed.json` (valid, null, missing,
+    non-numeric and non-dict entries).
+  - **RUNBOOK 5a:** app `siavash-starcoach-wallex`, port 8080 (as in `liara.json`), tag placeholder.
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.

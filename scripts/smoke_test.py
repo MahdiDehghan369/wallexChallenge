@@ -58,6 +58,9 @@ class Smoke:
         self.rows.append((name, ok, (time.perf_counter() - t0) * 1000, detail))
         return out
 
+    def warn(self, name: str, detail: str) -> None:
+        self.rows.append((name, "WARN", 0.0, detail[:160]))
+
     def save(self, name: str, raw: Any) -> None:
         if self.samples is None or raw is None:
             return
@@ -103,10 +106,7 @@ async def run(args: argparse.Namespace) -> int:
             fees = await s.step("GET account fee (raw)", http.get(ep.Paths.FEE, private=True))
             s.save("fee", fees)
             if fees is not None:
-                pct = ep.parse_fees(fees).get(SYMBOL)
-                print(
-                    f"account fee {SYMBOL}: maker/taker % = {pct}  -> copy into config/risk.yaml > fees (T-108)"
-                )
+                check_fees(fees, s)
             s.save(
                 "open_orders",
                 await s.step("GET openOrders (raw)", http.get(ep.Paths.OPEN_ORDERS, private=True)),
@@ -126,7 +126,27 @@ async def run(args: argparse.Namespace) -> int:
     finally:
         await http.aclose()
     s.print()
-    return 0 if all(ok == "OK" for _, ok, _, _ in s.rows) else 1
+    return 0 if all(ok != "FAIL" for _, ok, _, _ in s.rows) else 1
+
+
+def check_fees(raw: Any, s: Smoke) -> None:
+    """Fee parse problems are a WARN row (the engine then keeps config fees); never abort the smoke test."""
+    try:
+        parsed, skipped = ep.parse_fees_report(raw)
+    except Exception as e:  # unexpected shape: report and continue
+        s.warn("parse account fee", f"{type(e).__name__}: {e}  (run: siavash fees --diagnose)")
+        return
+    pct = parsed.get(SYMBOL)
+    if not parsed or skipped or pct is None:
+        s.warn(
+            "parse account fee",
+            f"parsed {len(parsed)}, skipped {len(skipped)}, {SYMBOL} {'found' if pct else 'missing'}"
+            "  (run: siavash fees --diagnose)",
+        )
+    else:
+        s.rows.append(("parse account fee", "OK", 0.0, f"{len(parsed)} markets"))
+    if pct is not None:
+        print(f"account fee {SYMBOL}: maker/taker % = {pct}  -> compare with config/risk.yaml > fees (T-108)")
 
 
 async def test_order(

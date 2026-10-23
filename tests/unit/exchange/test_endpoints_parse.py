@@ -84,6 +84,40 @@ def test_parse_fees() -> None:
     assert "BTC/USDT" in fees
 
 
+def test_parse_fees_tolerates_bad_entries() -> None:
+    # regression (Liara): one entry without makerFeeRate made the whole parse fail
+    raw = load("fee_mixed")
+    fees = ep.parse_fees(raw)
+    assert fees == {
+        "BTC/TMN": (Decimal("0.25"), Decimal("0.25")),
+        "ETH/TMN": (Decimal("0.2"), Decimal("0.3")),  # numbers, not strings
+        "USDT/TMN": (Decimal("0.1"), Decimal("0.15")),  # alternative key spellings
+    }
+    parsed, skipped = ep.parse_fees_report(raw)
+    assert parsed == fees
+    assert sorted(k for k, _ in skipped) == ["DOGETMN", "SHIBTMN", "XRPTMN", "default", "levels", "meta"]
+    shape = ep.fee_shape(raw)
+    assert shape["top_level_keys"] == ["message", "result", "success"]
+    assert shape["result_type"] == "dict" and shape["result_count"] == 9
+    assert shape["first_entries"][0] == {
+        "key": "BTCTMN",
+        "type": "dict",
+        "keys": ["makerFeeRate", "recent_days_sum", "takerFeeRate"],
+    }
+    assert shape["entries_lacking_maker_or_taker"] == 6
+    assert "0.0025" not in str(shape)  # keys and types only, no values
+
+
+def test_parse_fees_raises_only_without_valid_entries() -> None:
+    with pytest.raises(ValueError, match="no valid fee entries"):
+        ep.parse_fees({"success": True, "result": {"BTCTMN": {"takerFeeRate": "0.002"}, "x": None}})
+    with pytest.raises(ValueError, match="list result"):
+        ep.parse_fees({"result": [{"makerFeeRate": "0.002", "takerFeeRate": "0.002"}]})
+    assert ep.fee_shape({"result": [{"a": 1}]})["first_entries"] == [
+        {"key": "[0]", "type": "dict", "keys": ["a"]}
+    ]
+
+
 def test_parse_order() -> None:
     o = ep.parse_order(load("order"))
     assert o.order_id == COID and o.client_order_id == COID and o.symbol == "BTC/TMN"

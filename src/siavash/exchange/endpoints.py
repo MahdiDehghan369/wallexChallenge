@@ -492,16 +492,93 @@ def parse_balance(resp: Any) -> dict[str, Balance]:
     return out
 
 
-def parse_fees(resp: Any) -> dict[str, tuple[Decimal, Decimal]]:
-    """``GET /v1/account/fee`` -> ``{canonical symbol: (maker_pct, taker_pct)}`` in **percent**."""
-    out: dict[str, tuple[Decimal, Decimal]] = {}
-    for key, x in (_result(resp) or {}).items():
-        if not isinstance(x, dict):
+# Fee keys tried in order: the Swagger names first, then spellings the operator asked to accept (UNVERIFIED).
+# On the live account (2026-10-23) some ``result`` entries lack ``makerFeeRate`` → parse_fees skips them.
+FEE_MAKER_KEYS: tuple[str, ...] = (F["fee_maker"], "maker_fee_rate", "makerFee")
+FEE_TAKER_KEYS: tuple[str, ...] = (F["fee_taker"], "taker_fee_rate", "takerFee")
+
+
+def _fee_rate(x: dict[str, Any], keys: tuple[str, ...]) -> Decimal | None:
+    for k in keys:
+        v = x.get(k)
+        if v is None or v == "" or isinstance(v, bool):
             continue
-        maker = _dec(x.get(F["fee_maker"])) * 100
-        taker = _dec(x.get(F["fee_taker"])) * 100
-        out[to_canonical(str(key))] = (maker.normalize(), taker.normalize())
+        try:
+            return _dec(v)
+        except ValueError:
+            return None
+    return None
+
+
+def _fee_entries(resp: Any) -> list[tuple[str, Any]]:
+    root = _result(resp)
+    return [(str(k), v) for k, v in root.items()] if isinstance(root, dict) else []
+
+
+def parse_fees_report(resp: Any) -> tuple[dict[str, tuple[Decimal, Decimal]], list[tuple[str, Any]]]:
+    """``GET /v1/account/fee`` -> (``{canonical symbol: (maker_pct, taker_pct)}`` in **percent**, skipped).
+
+    Entries that are not dicts or have no usable maker/taker rate (missing, null, not a number) are
+    skipped, not fatal; ``skipped`` holds their ``(key, raw value)``.
+    """
+    out: dict[str, tuple[Decimal, Decimal]] = {}
+    skipped: list[tuple[str, Any]] = []
+    for key, x in _fee_entries(resp):
+        maker = _fee_rate(x, FEE_MAKER_KEYS) if isinstance(x, dict) else None
+        taker = _fee_rate(x, FEE_TAKER_KEYS) if isinstance(x, dict) else None
+        if maker is None or taker is None:
+            skipped.append((key, x))
+            continue
+        out[to_canonical(key)] = ((maker * 100).normalize(), (taker * 100).normalize())
+    return out, skipped
+
+
+def _keys_of(x: Any) -> list[str] | str:
+    return sorted(str(k) for k in x) if isinstance(x, dict) else type(x).__name__
+
+
+def parse_fees(resp: Any) -> dict[str, tuple[Decimal, Decimal]]:
+    """Tolerant ``parse_fees_report``: logs the skipped entries; raises only if none is valid."""
+    out, skipped = parse_fees_report(resp)
+    if skipped:
+        from siavash.logging import get_logger
+
+        get_logger("siavash.exchange").warning(
+            "fee_entries_skipped",
+            skipped=len(skipped),
+            parsed=len(out),
+            sample=[{"key": k, "keys": _keys_of(v)} for k, v in skipped[:3]],
+        )
+    if not out:
+        raise ValueError(
+            f"no valid fee entries ({len(skipped)} skipped; {fee_shape(resp)['result_type']} result)"
+        )
     return out
+
+
+def fee_shape(resp: Any, sample: int = 3) -> dict[str, Any]:
+    """Structure of a ``/v1/account/fee`` response for diagnostics: keys and types only, no values."""
+    root = _result(resp)
+    entries = _fee_entries(resp) or (
+        [(f"[{i}]", v) for i, v in enumerate(root)] if isinstance(root, list) else []
+    )
+    lacking = 0
+    for _, x in entries:
+        if (
+            not isinstance(x, dict)
+            or _fee_rate(x, FEE_MAKER_KEYS) is None
+            or _fee_rate(x, FEE_TAKER_KEYS) is None
+        ):
+            lacking += 1
+    return {
+        "top_level_keys": _keys_of(resp),
+        "result_type": type(root).__name__,
+        "result_count": len(root) if isinstance(root, dict | list) else None,
+        "first_entries": [
+            {"key": k, "type": type(v).__name__, "keys": _keys_of(v)} for k, v in entries[:sample]
+        ],
+        "entries_lacking_maker_or_taker": lacking,
+    }
 
 
 def _status(x: dict[str, Any], qty: Decimal, filled: Decimal) -> OrderStatus:
