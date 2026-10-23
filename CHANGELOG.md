@@ -114,4 +114,6 @@ and an entry under "Versions".
 
 ## Versions
 
+- **live-v1.4** (2026-10-23) — sha `9dc241d`, config `sha256:e4ad215c4c3d43035dbf924afd1d9daeba656998616c01f691a0bc24c3fd1449`, model `none`: Liara app siavash-starcoach-wallex (port 8080, disk siavash-data at /app/persist). Tolerant /v1/account/fee parsing (bad entries skipped, logged as fee_entries_skipped), `siavash fees --diagnose`, smoke-test fee problems as WARN, curl in the image.
+
 - **live-v1.0** (2026-10-23) — sha `09a4906`, config `sha256:e4ad215c4c3d43035dbf924afd1d9daeba656998616c01f691a0bc24c3fd1449`, model `none`: first live release on Liara (siavash-bot). MODE from env (Dockerfile CMD fix), competition_end_utc 2026-10-26T19:30:00Z, initial_live_risk_scale 0.5, fees floored at the account's /v1/account/fee rates (the runtime config_hash differs from this one if the account fees are higher), state/logs/reports on /app/persist.
