@@ -43,7 +43,7 @@ COPY Makefile CHANGELOG.md ./
 RUN useradd --create-home --uid 1000 siavash \
     && mkdir -p logs state data models reports submission \
     && chown -R siavash:siavash /app
-USER siavash
+# USER siavash  # disabled: Liara disk is root-owned
 
 ENTRYPOINT ["siavash"]
 # No --mode here: the mode comes from env MODE (then base.yaml). live still needs CONFIRM_LIVE=YES and
