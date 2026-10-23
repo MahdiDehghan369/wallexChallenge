@@ -13,6 +13,9 @@ Text files are masked in the copy; a binary file (the LLM cache) that contains a
 
     python scripts/export_submission.py
     python scripts/export_submission.py --logs logs --out submission --strict
+
+Defaults come from ``base.yaml > paths`` (``logs``, ``reports``, ``submission``), so with env
+``PATHS_ROOT=/app/persist`` (Liara) it reads and writes the persistent disk.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 MASK = "***MASKED***"
@@ -37,7 +41,7 @@ LOG_FILES = [
     "llm/calls.jsonl",
     "llm/cache.sqlite",
 ]
-REPORT_DIRS = ["reports/live", "reports/shadow", "reports/backtest/walkforward"]
+REPORT_DIRS = ["live", "shadow", "backtest/walkforward"]  # under the reports directory
 TEXT_SUFFIXES = {".jsonl", ".json", ".csv", ".md", ".txt", ".yaml", ".yml", ".log"}
 
 TOKEN_RE = re.compile(r"(?<![A-Za-z0-9_\-:])[A-Za-z0-9_\-]{24,}(?![A-Za-z0-9_\-])")
@@ -132,14 +136,25 @@ def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def env_secrets(env_file: Path) -> list[str]:
+def load_cfg(env_file: Path) -> Any:
     from siavash.config import load_config
 
-    cfg = load_config(ROOT / "config", env_file=env_file if env_file.exists() else None)
-    return [s for s in cfg.secrets.raw_values() if len(s) >= 8]
+    return load_config(ROOT / "config", env_file=env_file if env_file.exists() else None)
 
 
-def export(logs: Path, out: Path, secrets: list[str], strict: bool = False, root: Path = ROOT) -> ScanResult:
+def env_secrets(env_file: Path) -> list[str]:
+    return [s for s in load_cfg(env_file).secrets.raw_values() if len(s) >= 8]
+
+
+def export(
+    logs: Path,
+    out: Path,
+    secrets: list[str],
+    strict: bool = False,
+    root: Path = ROOT,
+    reports: Path | None = None,
+) -> ScanResult:
+    reports = reports if reports is not None else root / "reports"
     if out.exists():
         shutil.rmtree(out)
     out.mkdir(parents=True)
@@ -148,9 +163,9 @@ def export(logs: Path, out: Path, secrets: list[str], strict: bool = False, root
         if (logs / name).exists():
             copy_scanned(logs / name, out / "logs" / name, secrets, res, f"logs/{name}")
     for d in REPORT_DIRS:
-        for f in sorted((root / d).rglob("*")) if (root / d).exists() else []:
-            if f.is_file() and "runs" not in f.relative_to(root / d).parts:
-                rel = str(f.relative_to(root))
+        for f in sorted((reports / d).rglob("*")) if (reports / d).exists() else []:
+            if f.is_file() and "runs" not in f.relative_to(reports / d).parts:
+                rel = (Path("reports") / f.relative_to(reports)).as_posix()
                 copy_scanned(f, out / rel, secrets, res, rel)
     if (root / "CHANGELOG.md").exists():
         copy_scanned(root / "CHANGELOG.md", out / "CHANGELOG.md", secrets, res, "CHANGELOG.md")
@@ -177,19 +192,30 @@ def export(logs: Path, out: Path, secrets: list[str], strict: bool = False, root
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--logs", default="logs")
-    ap.add_argument("--out", default="submission")
+    ap.add_argument("--logs", default=None, help="default: paths.logs")
+    ap.add_argument("--reports", default=None, help="default: paths.reports")
+    ap.add_argument("--out", default=None, help="default: paths.submission")
     ap.add_argument("--env-file", default=".env")
     ap.add_argument("--strict", action="store_true", help="fail instead of masking")
     args = ap.parse_args(argv)
-    res = export(ROOT / args.logs, ROOT / args.out, env_secrets(ROOT / args.env_file), args.strict)
+    cfg = load_cfg(ROOT / args.env_file)
+    paths = cfg.base.paths
+    out = ROOT / (args.out or paths.submission)  # an absolute path (PATHS_ROOT) stays absolute
+    secrets = [s for s in cfg.secrets.raw_values() if len(s) >= 8]
+    res = export(
+        ROOT / (args.logs or paths.logs),
+        out,
+        secrets,
+        args.strict,
+        reports=ROOT / (args.reports or paths.reports),
+    )
     if res.binary_hits:
         print(f"FAILED: secret found in binary file(s) {res.binary_hits}; nothing exported", file=sys.stderr)
         return 1
     if args.strict and res.masked:
         print(f"FAILED (--strict): sensitive strings in {res.masked}; nothing exported", file=sys.stderr)
         return 1
-    print(f"exported -> {args.out}/ (masked: {res.masked or 'nothing'})")
+    print(f"exported -> {out}/ (masked: {res.masked or 'nothing'})")
     return 0
 
 

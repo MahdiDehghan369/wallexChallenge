@@ -3,6 +3,7 @@
 Sources (nothing is ever written): ``logs/decisions.jsonl``, ``logs/regime.jsonl``,
 ``logs/llm/calls.jsonl``, ``logs/latency.jsonl``, ``logs/system.log*``, ``logs/fills.csv``,
 ``logs/equity.csv``, ``state/state.sqlite`` (opened with ``mode=ro``), ``state/heartbeat``,
+``state/engine.json`` (the engine's mode / git_sha / version_tag / fees / endgame config),
 ``data/live/*/books.jsonl`` (last best bid for unrealized PnL) and markdown files under ``reports/``.
 
 Robustness:
@@ -26,15 +27,17 @@ from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pandas as pd
 
-from siavash.config import AppConfig
+from siavash.config import AppConfig, EndgameConfig
 from siavash.logging import get_logger
 from siavash.reporting import latency
 from siavash.reporting.equity import trading_day_start
 from siavash.reporting.judge_report import OFFICIAL_CAPITAL_TMN, api_stats
 from siavash.reporting.metrics import build_trades, load_equity, load_fills
+from siavash.risk.endgame import phase_at, phase_starts
 from siavash.runtime import get_runtime
 
 log = get_logger(__name__)
@@ -266,6 +269,7 @@ class DashboardData:
             "status": self.section("status", self._status),
             "activity": self.section("activity", self._activity),
             "regime": self.section("regime", self.last_regime),
+            "endgame": self.section("endgame", self.endgame),
         }
 
     def _equity(self) -> dict[str, Any]:
@@ -506,6 +510,7 @@ class DashboardData:
         return {
             "health": self.section("health", self._sys_health),
             "identity": self.section("identity", self._sys_identity),
+            "endgame": self.section("endgame", self.endgame),
             "api": self.section("api", self._api),
             "latency": self.section("latency", self._latency),
         }
@@ -516,21 +521,79 @@ class DashboardData:
             "watchdog_timeout_s": self.cfg.base.loop.watchdog_timeout_s,
         }
 
+    def engine_identity(self) -> dict[str, Any]:
+        """``state/engine.json`` written by the running engine at startup ({} when missing / unreadable)."""
+        try:
+            return as_dict(json.loads((self.state / "engine.json").read_text(encoding="utf-8")))
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def engine_mode(self) -> str:
+        """The engine's real mode (``engine.json``), else this process's runtime mode."""
+        mode = self.engine_identity().get("mode")
+        return mode if isinstance(mode, str) and mode else get_runtime().mode
+
     def _sys_identity(self) -> dict[str, Any]:
         decs = read_jsonl(self.logs / "decisions.jsonl", 200_000)
         last = decs[-1] if decs else None
         rt = get_runtime()
         process = {
-            "mode": self.cfg.mode,
+            "mode": rt.mode,
             "git_sha": rt.git_sha,
             "version_tag": rt.version_tag,
             "config_hash": rt.config_hash,
         }
+        eng = self.engine_identity()
+        engine = {k: eng.get(k) for k in (*process, "started_at", "pid")} if eng else None
         record = {k: last.get(k) for k in process} if last else None
+        fees = as_dict(eng.get("fees"))
         return {
             "record": record,
+            "engine": engine,
             "process": process,
+            "fees": {
+                "source": fees.get("source"),
+                "effective": as_dict(fees.get("effective")),
+                "config": as_dict(fees.get("config")),
+                "error": fees.get("error"),
+            }
+            if fees
+            else None,
             "last_decision_ts": _ts((last or {}).get("ts"), 19) or None,
+        }
+
+    def endgame(self) -> dict[str, Any]:
+        """Endgame phase and its start times (UTC + Tehran) from the engine's config (else this config)."""
+        raw = as_dict(self.engine_identity().get("endgame"))
+        eg = EndgameConfig.model_validate(raw) if raw else self.cfg.risk.endgame
+        source = "engine.json" if raw else "config"
+        now = datetime.now(UTC)
+        starts = phase_starts(eg)
+        if not starts:
+            return {"configured": False, "phase": "NONE", "source": source, "rows": []}
+        tz = ZoneInfo(self.cfg.base.timezone)
+        current = phase_at(now, eg)
+        rows = []
+        for name, ts in starts.items():
+            rows.append(
+                {
+                    "phase": name,
+                    "utc": ts.strftime("%Y-%m-%d %H:%M"),
+                    "tehran": ts.astimezone(tz).strftime("%Y-%m-%d %H:%M"),
+                    "state": "current" if name == current else ("past" if ts <= now else "future"),
+                    "in_h": round((ts - now).total_seconds() / 3600, 2),
+                }
+            )
+        end = starts["DONE"]
+        return {
+            "configured": True,
+            "phase": current,
+            "source": source,
+            "end_tehran": end.astimezone(tz).strftime("%Y-%m-%d %H:%M"),
+            "end_utc": end.strftime("%Y-%m-%d %H:%M"),
+            "hours_left": round(max((end - now).total_seconds(), 0) / 3600, 2),
+            "timezone": self.cfg.base.timezone,
+            "rows": rows,
         }
 
     def _latency(self) -> dict[str, dict[str, float]]:

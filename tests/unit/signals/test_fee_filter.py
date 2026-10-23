@@ -22,7 +22,8 @@ CFG_DIR = Path(__file__).resolve().parents[3] / "config"
 
 @pytest.fixture(scope="module")
 def cfg() -> AppConfig:
-    return load_config(CFG_DIR, env_file=None)
+    # pinned pessimistic fees: the repo's risk.yaml fees are the operator's account rate and may change
+    return _with_fees(load_config(CFG_DIR, env_file=None), 0.35, 0.35)
 
 
 def _with_fees(cfg: AppConfig, maker: float | None, taker: float) -> AppConfig:

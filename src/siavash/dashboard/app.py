@@ -135,7 +135,7 @@ def create_app(cfg: AppConfig, env: EnvSettings | None = None) -> Starlette:
             path=request.url.path,
             refresh_s=refresh if refresh_page else None,
             chart_js=CHART_JS,
-            mode=cfg.mode,
+            mode=data.engine_mode(),  # the engine's real mode (state/engine.json), not base.yaml
             **ctx,
         )
         return HTMLResponse(html)

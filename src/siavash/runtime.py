@@ -6,10 +6,13 @@ Every log line and decision record carries ``run_id``, ``git_sha``, ``version_ta
 
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 from dataclasses import dataclass, replace
+from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 from ulid import ULID
 
@@ -81,3 +84,19 @@ def update_runtime(**changes: str | None) -> RuntimeInfo:
     global _RUNTIME
     _RUNTIME = replace(get_runtime(), **changes)  # type: ignore[arg-type]
     return _RUNTIME
+
+
+def write_identity(path: str | os.PathLike[str], **extra: Any) -> Path:
+    """Write the engine's identity (``state/engine.json``) so other processes (dashboard) can show it."""
+    p = Path(path)
+    p.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        **get_runtime().as_dict(),
+        "started_at": datetime.now(UTC).isoformat(),
+        "pid": os.getpid(),
+        **extra,
+    }
+    tmp = p.with_suffix(".tmp")
+    tmp.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    os.replace(tmp, p)
+    return p

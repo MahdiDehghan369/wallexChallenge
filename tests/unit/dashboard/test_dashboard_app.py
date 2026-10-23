@@ -8,7 +8,9 @@ import json
 import os
 import sqlite3
 import time
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import pytest
 from pydantic import SecretStr
@@ -580,6 +582,8 @@ SECTIONS = [
     ("/", "_status", "status", "5,123,456"),
     ("/", "_activity", "activity", "TREND_UP"),
     ("/", "last_regime", "regime", "5,123,456"),
+    ("/", "endgame", "endgame", "5,123,456"),
+    ("/system", "endgame", "endgame", "abc1234"),
     ("/positions", "_open_positions", "open_positions", "96"),
     ("/positions", "_closed_trades", "closed_trades", "195,000"),
     ("/ai", "_ai_calls", "llm_calls", "50.0 %"),
@@ -650,3 +654,63 @@ def test_dockerfile_bakes_git_sha() -> None:
 def test_runtime_reads_env_git_sha_first(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("GIT_SHA", "deadbee")
     assert detect_git_sha() == "deadbee"
+
+
+# ---------------------------------------------------------------- engine identity + endgame (go-live)
+
+
+def _engine_json(root: Path, end: datetime | None, **kw: object) -> None:
+    eg = {
+        "competition_end_utc": end.isoformat() if end else None,
+        "no_new_entries_hours_before": 6,
+        "start_unwind_hours_before": 3,
+        "force_liquidate_hours_before": 1,
+        "unwind_passive_timeout_s": 30,
+    }
+    rec = {
+        "run_id": "r1",
+        "git_sha": "liv3sha",
+        "version_tag": "live-v1.0",
+        "mode": "live",
+        "config_hash": "sha256:eng1ne",
+        "started_at": "2026-10-23T10:00:00+00:00",
+        "pid": 7,
+        "fees": {
+            "source": "account",
+            "effective": {"maker_pct": 0.3, "taker_pct": 0.3},
+            "config": {"maker_pct": 0.25, "taker_pct": 0.25},
+        },
+        "endgame": eg,
+        **kw,
+    }
+    (root / "state" / "engine.json").write_text(json.dumps(rec), encoding="utf-8")
+
+
+def test_system_shows_engine_identity_and_endgame(client: TestClient, root: Path) -> None:
+    end = datetime.now(UTC).replace(microsecond=0) + timedelta(hours=5)  # 5 h left -> NO_NEW
+    _engine_json(root, end)
+    t = client.get("/system", headers=_auth()).text
+    assert "liv3sha" in t and "live-v1.0" in t and "sha256:eng1ne" in t
+    assert "حالت: live" in t  # header badge = the engine's mode, not base.yaml's paper
+    assert '<b class="ltr">NO_NEW</b>' in t and "engine.json" in t
+    tehran = end.astimezone(ZoneInfo("Asia/Tehran")).strftime("%Y-%m-%d %H:%M")
+    assert tehran in t and end.strftime("%Y-%m-%d %H:%M") in t
+    assert "0.300" in t and "account" in t  # effective fees + source
+    o = client.get("/", headers=_auth()).text
+    assert "فاز endgame" in o and "NO_NEW" in o and tehran in o
+
+
+def test_endgame_phases_and_fallbacks(root: Path) -> None:
+    data = DashboardData(_cfg(root))
+    now = datetime.now(UTC)
+    for hours, phase in ((10, "NONE"), (5, "NO_NEW"), (2, "UNWIND"), (0.5, "FORCE"), (-1, "DONE")):
+        _engine_json(root, now + timedelta(hours=hours))
+        eg = data.endgame()
+        assert eg["phase"] == phase and eg["source"] == "engine.json", hours
+        assert [r["phase"] for r in eg["rows"]] == ["NO_NEW", "UNWIND", "FORCE", "DONE"]
+    _engine_json(root, None)
+    assert data.endgame()["configured"] is False
+    (root / "state" / "engine.json").unlink()
+    assert data.endgame()["source"] == "config" and data.engine_identity() == {}
+    (root / "state" / "engine.json").write_text("{not json", encoding="utf-8")
+    assert data.engine_identity() == {} and data._sys_identity()["engine"] is None

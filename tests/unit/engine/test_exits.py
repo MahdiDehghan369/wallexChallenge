@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from siavash.config import AppConfig, load_config
+from siavash.config import AppConfig, FeesConfig, load_config
 from siavash.core.models import Position, RegimeAssessment
 from siavash.core.types import BreakerState, ExitReason, PositionStatus, Regime, StrategyId
 from siavash.engine.exits import after_tp1, evaluate_exit, update_trailing
@@ -19,7 +19,10 @@ NOW = datetime(2026, 1, 1, 12, tzinfo=UTC)
 
 @pytest.fixture(scope="module")
 def cfg() -> AppConfig:
-    return load_config(Path(__file__).resolve().parents[3] / "config", env_file=None)
+    # pinned fees 0.35/0.35 (break-even stop = entry × 1.007); the repo's risk.yaml fees may change
+    c = load_config(Path(__file__).resolve().parents[3] / "config", env_file=None)
+    fees = FeesConfig(maker_pct=0.35, taker_pct=0.35)
+    return c.model_copy(update={"risk": c.risk.model_copy(update={"fees": fees})})
 
 
 def pos(strategy: StrategyId = StrategyId.S1_TREND_BREAKOUT, **kw: object) -> Position:

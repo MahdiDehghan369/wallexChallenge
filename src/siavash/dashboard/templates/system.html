@@ -24,12 +24,32 @@
 <h2>نسخه و پیکربندی</h2>
 {% if idn.unavailable %}{{ m.box(idn) }}{% else %}
 <div class="tw"><table>
-<tr><th></th><th>آخرین رکورد تصمیم</th><th>پروسه داشبورد / موتور</th></tr>
+<tr><th></th><th>موتور (state/engine.json)</th><th>آخرین رکورد تصمیم</th><th>پروسه داشبورد</th></tr>
 {% for k in ("mode", "git_sha", "version_tag", "config_hash") %}
-<tr><th>{{ k }}</th><td class="ltr">{{ (idn.record[k] if idn.record else none) or '—' }}</td><td class="ltr">{{ idn.process[k] or '—' }}</td></tr>
+<tr><th>{{ k }}</th><td class="ltr">{{ (idn.engine[k] if idn.engine else none) or '—' }}</td><td class="ltr">{{ (idn.record[k] if idn.record else none) or '—' }}</td><td class="ltr">{{ idn.process[k] or '—' }}</td></tr>
+{% endfor %}
+<tr><th>started_at</th><td class="ltr">{{ (idn.engine.started_at if idn.engine else none) or '—' }}</td><td></td><td></td></tr>
+</table></div>
+<p class="muted">ستون موتور را خود موتور هنگام شروع می‌نویسد؛ رکورد تصمیم نسخه‌ای را نشان می‌دهد که آن تصمیم را گرفته است.</p>
+{% if idn.fees %}
+<p>کارمزد مؤثر: maker <span class="ltr">{{ idn.fees.effective.maker_pct | fmt(3) }}</span>٪ / taker <span class="ltr">{{ idn.fees.effective.taker_pct | fmt(3) }}</span>٪
+  (منبع: <span class="ltr">{{ idn.fees.source }}</span>؛ config: <span class="ltr">{{ idn.fees.config.maker_pct | fmt(3) }} / {{ idn.fees.config.taker_pct | fmt(3) }}</span>{% if idn.fees.error %}؛ خطای API: <span class="ltr">{{ idn.fees.error }}</span>{% endif %})</p>
+{% endif %}
+{% endif %}
+
+<h2>پایان مسابقه (endgame)</h2>
+{% set eg = s.endgame %}
+{% if eg.unavailable %}{{ m.box(eg) }}{% elif not eg.configured %}
+<p class="neg">competition_end_utc تنظیم نشده است (منبع: {{ eg.source }}).</p>
+{% else %}
+<p>فاز فعلی: <b class="ltr">{{ eg.phase }}</b> · پایان: <span class="ltr">{{ eg.end_tehran }}</span> تهران (<span class="ltr">{{ eg.end_utc }}</span> UTC) · <span class="ltr">{{ eg.hours_left | fmt(2) }}</span> ساعت مانده · منبع: <span class="ltr">{{ eg.source }}</span></p>
+<div class="tw"><table>
+<tr><th>فاز</th><th>شروع (تهران)</th><th>شروع (UTC)</th><th class="n">ساعت تا شروع</th><th>وضعیت</th></tr>
+{% for r in eg.rows %}
+<tr><td class="ltr">{{ r.phase }}</td><td class="ltr">{{ r.tehran }}</td><td class="ltr">{{ r.utc }}</td><td class="n">{{ r.in_h | fmt(2) }}</td><td>{{ {'current': 'جاری', 'past': 'گذشته', 'future': 'آینده'}[r.state] }}</td></tr>
 {% endfor %}
 </table></div>
-<p class="muted">رکورد تصمیم نسخه‌ای را نشان می‌دهد که آن تصمیم را گرفته است؛ ستون پروسه نسخه در حال اجرا را.</p>
+<p class="muted">NO_NEW: ورود جدید ممنوع · UNWIND: خروج از پوزیشن‌ها · FORCE: فروش اجباری همه دارایی‌ها به تومان · DONE: پایان.</p>
 {% endif %}
 
 <h2>تأخیر تصمیم‌گیری (latency.jsonl)</h2>

@@ -28,6 +28,32 @@ and an entry under "Versions".
   - **git_sha:** the System page shows the record's and the running process's git_sha side by side. The
     Dockerfile now uses `ARG GIT_SHA` with no default and `ENV GIT_SHA=$GIT_SHA`. Liara builds must pass
     `--build-arg GIT_SHA=...` (RUNBOOK).
+- Liara go-live fix: the container stayed in paper although Liara had `MODE=live` and `CONFIRM_LIVE=YES`.
+  - **Root cause:** the Dockerfile ran `CMD ["run", "--mode", "paper"]`. On top of that, `siavash run`
+    defaulted `--mode` to `"paper"`, and `_cfg()` wrote that value over the env `MODE` that `load_config`
+    had already applied.
+  - **Fix:** `run` without `--mode` now uses env `MODE`, then `base.yaml`, and the Dockerfile runs
+    `CMD ["run"]`. An explicit `--mode` still wins, with the warning `engine_mode_flag_overrides_env`.
+  - **Safety checks unchanged:** `CONFIRM_LIVE=YES` is checked on the effective mode, and live still
+    refuses to start without `competition_end_utc`. There is no paper fallback anywhere.
+  - **git_sha:** `unknown` meant the image was built without `--build-arg GIT_SHA`. The Dockerfile also
+    takes `ARG VERSION_TAG` now.
+  - **Config:** `config/risk.yaml > endgame.competition_end_utc` = `2026-10-26T19:30:00Z` (23:00 Tehran).
+    Tests now pin that value.
+  - **Account fees at startup** (`siavash.exchange.fees`, read-only `GET /v1/account/fee`): logs `account_fees`
+    for the traded markets. The effective `risk.fees` is the higher of the config and the account rate,
+    never lower, and a difference logs `account_fees_differ`. If the API fails, the config fees stay.
+  - **Engine identity:** the engine writes `state/engine.json`: mode, git_sha, version_tag, config_hash,
+    started_at, effective fees and the endgame config.
+  - **Dashboard:** shows the engine's real mode (header badge), its git_sha, version_tag and fees, and the
+    endgame phase and its start times in Tehran time and UTC. These are on the System page, with a KPI on
+    the overview.
+  - **Persistent disk:** new env `PATHS_ROOT` (Liara: `/app/persist`) prefixes the relative `base.yaml > paths`.
+    New path `paths.submission`. `siavash report` and `scripts/export_submission.py` default to the
+    config paths, so on Liara they write to `/app/persist/reports` and `/app/persist/submission`.
+  - **Image:** now contains `make`, the `Makefile` and `CHANGELOG.md`, so `make report` and
+    `make export-submission` work inside the container.
+  - **Docs:** new RUNBOOK section "5a. Liara go-live".
 - D-001: edge diagnostics (`siavash.research`, `scripts/run_diagnostics.py`, `make diagnostics`,
   research-only profiles in `config/profiles/`, reports in `reports/diagnostics/`). No change to
   `config/strategy.yaml`, `config/risk.yaml` or any live / paper / backtest code path.

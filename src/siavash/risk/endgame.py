@@ -32,7 +32,24 @@ class EndgameConfigError(RuntimeError):
 
 def endgame_phase(now: datetime, cfg: Any) -> str:
     """``NONE | NO_NEW | UNWIND | FORCE | DONE`` (``NONE`` if no end time is configured)."""
-    eg = cfg.risk.endgame
+    return phase_at(now, cfg.risk.endgame)
+
+
+def phase_starts(eg: Any) -> dict[str, datetime]:
+    """Start time (UTC) of every phase after ``NONE``; empty without ``competition_end_utc``."""
+    end = eg.competition_end_utc
+    if end is None:
+        return {}
+    return {
+        "NO_NEW": end - timedelta(hours=eg.no_new_entries_hours_before),
+        "UNWIND": end - timedelta(hours=eg.start_unwind_hours_before),
+        "FORCE": end - timedelta(hours=eg.force_liquidate_hours_before),
+        "DONE": end,
+    }
+
+
+def phase_at(now: datetime, eg: Any) -> str:
+    """:func:`endgame_phase` for a bare ``EndgameConfig``."""
     end = eg.competition_end_utc
     if end is None:
         return "NONE"

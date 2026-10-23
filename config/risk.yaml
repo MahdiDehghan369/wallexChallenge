@@ -20,7 +20,7 @@ cash_buffer_fraction: 0.98          # حداکثر سهم نقد قابل است
 allowed_quotes: [TMN]               # فقط بازارهای تومانی معامله می‌شوند؛ USDT فقط منبع داده
 allow_usdt_liquidation: true        # فقط SELL روی USDT/TMN (تبدیل USDT به تومان در endgame)
 endgame:
-  competition_end_utc: "2026-10-26T14:30:00Z"
+  competition_end_utc: "2026-10-26T19:30:00Z"
   no_new_entries_hours_before: 6
   start_unwind_hours_before: 3
   force_liquidate_hours_before: 1

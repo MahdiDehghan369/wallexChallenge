@@ -22,8 +22,8 @@ from siavash.config import AppConfig, config_hash, load_config
 from siavash.core.types import BreakerState, DecisionType
 from siavash.engine.decision_log import JsonlDecisionLogger, build_record
 from siavash.engine.store import SqliteStore
-from siavash.logging import register_secrets, setup_logging
-from siavash.runtime import init_runtime
+from siavash.logging import get_logger, register_secrets, setup_logging
+from siavash.runtime import init_runtime, update_runtime, write_identity
 
 app = typer.Typer(add_completion=False, no_args_is_help=True, help="Siavash — spot-only Wallex trading agent")
 MODES = ("backtest", "paper", "live", "replay")
@@ -52,11 +52,33 @@ def _operator_record(cfg: AppConfig, command: str, **extra: Any) -> None:
     )
 
 
+async def _account_fees(cfg: AppConfig) -> tuple[AppConfig, dict[str, Any]]:
+    """``risk.fees`` raised to the account's ``/v1/account/fee`` rates (never lowered)."""
+    from siavash.exchange.account import fetch_fees
+    from siavash.exchange.client import WallexHttp
+    from siavash.exchange.fees import apply_account_fees
+
+    http = WallexHttp.from_config(cfg)
+    try:
+        return await apply_account_fees(cfg, lambda: fetch_fees(http))
+    finally:
+        await http.aclose()
+
+
 async def _run_engine(cfg: AppConfig, mode: str) -> None:
     from siavash.engine.factory import build_app, make_pipeline
     from siavash.engine.orchestrator import Orchestrator, install_signal_handlers
 
+    fees: dict[str, Any] = {"source": "config", "note": "no WALLEX_API_KEY"}
+    if cfg.secrets.wallex_api_key is not None:
+        cfg, fees = await _account_fees(cfg)
+        update_runtime(config_hash=config_hash(cfg))
     application = build_app(cfg, mode)
+    write_identity(
+        Path(cfg.base.paths.state) / "engine.json",
+        fees=fees,
+        endgame=cfg.risk.endgame.model_dump(mode="json"),
+    )
     orch = Orchestrator(application)
     orch.pipeline = make_pipeline(application, orch, cfg)
     install_signal_handlers(orch)
@@ -65,12 +87,16 @@ async def _run_engine(cfg: AppConfig, mode: str) -> None:
 
 @app.command()
 def run(
-    mode: str = typer.Option("paper", "--mode", help="backtest | paper | live | replay"),
+    mode: str | None = typer.Option(
+        None, "--mode", help="backtest | paper | live | replay (default: env MODE, then base.yaml)"
+    ),
     date_from: str | None = typer.Option(None, "--from", help="backtest/replay start (YYYY-MM-DD)"),
     date_to: str | None = typer.Option(None, "--to", help="backtest/replay end (YYYY-MM-DD)"),
     config: str = typer.Option("config", "--config"),
 ) -> None:
     """Run the engine."""
+    configured = load_config(config).mode  # env MODE over base.yaml
+    mode = mode or configured
     if mode not in MODES:
         raise typer.BadParameter(f"mode must be one of {MODES}")
     if mode == "live" and os.environ.get("CONFIRM_LIVE") != "YES":
@@ -80,6 +106,10 @@ def run(
         raise typer.Exit(2)
     cfg = _cfg(config, mode)
     setup_logging("INFO", cfg.base.paths.logs)
+    log = get_logger("siavash.cli")
+    log.info("engine_mode", mode=mode, configured_mode=configured, paths=cfg.base.paths.model_dump())
+    if mode != configured:
+        log.warning("engine_mode_flag_overrides_env", mode=mode, configured_mode=configured)
     if mode in ("backtest", "replay"):
         typer.echo(
             f"use `make backtest` / `siavash replay` for {mode} (see scripts/run_backtest.py)", err=True
@@ -250,17 +280,28 @@ def flatten(
 @app.command()
 def report(
     mode: str = typer.Option("live", "--mode"),
-    logs: str = typer.Option("logs", "--logs"),
-    out: str = typer.Option("reports/live", "--out"),
-    live_data: str = typer.Option("data/live", "--live-data", help="candles for the AI counterfactual"),
-    history: str = typer.Option("data/processed", "--history"),
+    logs: str | None = typer.Option(None, "--logs", help="default: paths.logs"),
+    out: str | None = typer.Option(None, "--out", help="default: <paths.reports>/live"),
+    live_data: str | None = typer.Option(
+        None, "--live-data", help="candles for the AI counterfactual (default: <paths.data>/live)"
+    ),
+    history: str | None = typer.Option(None, "--history", help="default: <paths.data>/processed"),
+    config: str = typer.Option("config", "--config"),
 ) -> None:
-    """Judge-metrics report (REPORT.md, metrics.json, charts) from a logs directory."""
+    """Judge-metrics report (REPORT.md, metrics.json, charts) from a logs directory.
+
+    Paths default to ``base.yaml > paths`` (env ``PATHS_ROOT`` → the persistent disk on Liara).
+    """
     from siavash.backtest.market_data import processed_frames
     from siavash.reporting.consistency import load_live_frames, merge_frames
     from siavash.reporting.judge_report import build_judge_report
 
-    cfg = load_config("config")
+    cfg = load_config(config)
+    p = cfg.base.paths
+    logs = logs or p.logs
+    out = out or str(Path(p.reports) / "live")
+    live_data = live_data or str(Path(p.data) / "live")
+    history = history or str(Path(p.data) / "processed")
     frames = merge_frames(
         processed_frames(history) if Path(history).exists() else {},
         load_live_frames(live_data) if Path(live_data).exists() else {},

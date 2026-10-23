@@ -23,6 +23,8 @@ from siavash.risk.endgame import (
     EndgameLiquidator,
     assert_endgame_configured,
     endgame_phase,
+    phase_at,
+    phase_starts,
 )
 from tests.fakes.broker import FakeBroker
 from tests.fakes.clock import FakeClock
@@ -34,6 +36,9 @@ BASE_CFG = load_config(Path(__file__).resolve().parents[3] / "config", env_file=
 CFG = BASE_CFG.model_copy(
     update={"risk": BASE_CFG.risk.model_copy(update={"endgame": EndgameConfig(competition_end_utc=END)})}
 )
+UNSET_CFG = BASE_CFG.model_copy(
+    update={"risk": BASE_CFG.risk.model_copy(update={"endgame": EndgameConfig()})}
+)
 REG = MarketRegistry.from_markets(ep.parse_markets(load("markets")))
 PRICES = {"BTC/TMN": D("7350000000"), "ETH/TMN": D("260100000"), "USDT/TMN": D("102500")}
 
@@ -44,14 +49,28 @@ def test_phases() -> None:
     assert endgame_phase(END - timedelta(hours=2, minutes=59), CFG) == "UNWIND"
     assert endgame_phase(END - timedelta(minutes=59), CFG) == "FORCE"
     assert endgame_phase(END + timedelta(seconds=1), CFG) == "DONE"
-    assert endgame_phase(END, BASE_CFG) == "NONE"  # not configured
+    assert endgame_phase(END, UNSET_CFG) == "NONE"  # not configured
+
+
+def test_phase_starts() -> None:
+    s = phase_starts(CFG.risk.endgame)
+    assert s == {
+        "NO_NEW": END - timedelta(hours=6),
+        "UNWIND": END - timedelta(hours=3),
+        "FORCE": END - timedelta(hours=1),
+        "DONE": END,
+    }
+    assert all(phase_at(t, CFG.risk.endgame) == name for name, t in s.items())
+    assert phase_starts(UNSET_CFG.risk.endgame) == {}
 
 
 def test_live_requires_end_time() -> None:
-    live = BASE_CFG.model_copy(update={"base": BASE_CFG.base.model_copy(update={"mode": "live"})})
+    live = UNSET_CFG.model_copy(update={"base": UNSET_CFG.base.model_copy(update={"mode": "live"})})
     with pytest.raises(EndgameConfigError):
         assert_endgame_configured(live)
-    assert_endgame_configured(BASE_CFG)  # paper: fine
+    assert_endgame_configured(UNSET_CFG)  # paper: fine
+    # the repo config (official end time) passes in live mode
+    assert_endgame_configured(BASE_CFG.model_copy(update={"base": live.base}))
 
 
 class FillAtLimit(FakeBroker):

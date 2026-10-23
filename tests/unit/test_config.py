@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import shutil
+from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
@@ -56,7 +57,8 @@ def test_load_repo_config() -> None:
     assert cfg.llm.reviewer.enabled is True
     assert "S3_IMPLIED_DEV" in cfg.strategy.strategies.enabled
     assert cfg.base.loop.main_loop_s == 60
-    assert cfg.risk.endgame.competition_end_utc is None
+    # official end: 2026-10-26 23:00 Asia/Tehran
+    assert cfg.risk.endgame.competition_end_utc == datetime(2026, 10, 26, 19, 30, tzinfo=UTC)
 
 
 def test_env_overrides_yaml(cfg_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

@@ -3,9 +3,9 @@
 {% block title %}نمای کلی · سیاوش{% endblock %}
 {% block head %}<script src="{{ chart_js }}" defer></script>{% endblock %}
 {% block body %}
-{% set e, st, act, rg = o.equity, o.status, o.activity, o.regime %}
+{% set e, st, act, rg, eg = o.equity, o.status, o.activity, o.regime, o.endgame %}
 {% if st.store_error %}<p class="warn">⚠ {{ st.store_error }}</p>{% endif %}
-{% for x in [e, st, act, rg] if x and x.unavailable %}{{ m.box(x) }}{% endfor %}
+{% for x in [e, st, act, rg, eg] if x and x.unavailable %}{{ m.box(x) }}{% endfor %}
 <div class="kpis">
   {% if not e.unavailable %}
   <div class="card kpi"><div class="l">ارزش حساب (TMN)</div><div class="v">{{ e.equity_tmn | fmt }}</div>
@@ -28,6 +28,11 @@
   {% if not e.unavailable or not st.unavailable %}
   <div class="card kpi"><div class="l">در معرض (TMN)</div><div class="v">{{ e.exposure_tmn | fmt if not e.unavailable else '—' }}</div>
     <div class="s">{{ st.open_positions if not st.unavailable else '—' }} پوزیشن باز</div></div>
+  {% endif %}
+  {% if not eg.unavailable %}
+  <div class="card kpi"><div class="l">فاز endgame</div>
+    <div class="v {{ 'pos' if eg.phase == 'NONE' else 'neg' }}">{{ eg.phase }}</div>
+    <div class="s">{% if eg.configured %}پایان {{ eg.end_tehran }} تهران · {{ eg.hours_left | fmt(1) }} ساعت مانده{% else %}competition_end_utc تنظیم نشده{% endif %}</div></div>
   {% endif %}
   {% if not act.unavailable %}
   <div class="card kpi"><div class="l">معاملات امروز (تهران)</div><div class="v">{{ act.entries_today }}</div>

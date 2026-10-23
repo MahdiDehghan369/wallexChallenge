@@ -27,6 +27,11 @@ from siavash.logging import get_logger
 log = get_logger(__name__)
 
 
+async def fetch_fees(http: WallexHttp) -> dict[str, tuple[Decimal, Decimal]]:
+    """``{symbol: (maker_pct, taker_pct)}`` for this account (``GET /v1/account/fee``, read-only)."""
+    return ep.parse_fees(await http.get(ep.Paths.FEE, private=True))
+
+
 class GuardLike(Protocol):
     def assert_tradable(self, symbol: str, side: Side | None = None) -> None: ...
 
@@ -141,7 +146,7 @@ class WallexAccount:
 
     async def get_fees(self) -> dict[str, tuple[Decimal, Decimal]]:
         """``{symbol: (maker_pct, taker_pct)}`` for this account (read-only)."""
-        return ep.parse_fees(await self.http.get(ep.Paths.FEE, private=True))
+        return await fetch_fees(self.http)
 
     async def place_order(self, req: OrderRequest) -> Order:
         """Validate, then POST once (no automatic retry)."""

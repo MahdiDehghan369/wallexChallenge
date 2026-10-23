@@ -1,7 +1,7 @@
 # تنظیمات عمومی — ضمیمه I WALLEX_AGENT_PLAN.md
 mode: paper                       # با env MODE بازنویسی می‌شود
 timezone: Asia/Tehran             # فقط برای مرز «روز معاملاتی»
-paths: {logs: logs, state: state, data: data, models: models, reports: reports}
+paths: {logs: logs, state: state, data: data, models: models, reports: reports, submission: submission}   # env PATHS_ROOT prefixes these (Liara: /app/persist)
 loop:
   price_guard_s: 10
   main_loop_s: 60

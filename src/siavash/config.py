@@ -37,6 +37,7 @@ class PathsConfig(_C):
     data: str = "data"
     models: str = "models"
     reports: str = "reports"
+    submission: str = "submission"
 
 
 class LoopConfig(_C):
@@ -419,6 +420,8 @@ class EnvSettings(BaseSettings):
     https_proxy: str | None = None
     alert_webhook_url: SecretStr | None = None
     version_tag: str | None = None
+    # persistent disk (Liara: /app/persist): relative base.yaml paths are resolved under it
+    paths_root: str | None = None
     # read-only dashboard: disabled while DASHBOARD_PASSWORD is unset; PORT / DASHBOARD_HOST override
     # base.yaml > dashboard (DASHBOARD_HOST=0.0.0.0 only on Liara)
     dashboard_user: str | None = None
@@ -485,6 +488,11 @@ def load_config(
 
     if env.mode is not None:
         base_raw["mode"] = env.mode
+    if env.paths_root is not None:
+        paths = PathsConfig.model_validate(base_raw.get("paths") or {}).model_dump()
+        base_raw["paths"] = {
+            k: v if Path(v).is_absolute() else str(Path(env.paths_root) / v) for k, v in paths.items()
+        }
     for key, val in (
         ("base_url", env.llm_base_url),
         ("model", env.llm_model),
