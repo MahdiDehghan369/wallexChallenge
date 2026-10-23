@@ -146,6 +146,8 @@ and an entry under "Versions".
 
 ## Versions
 
+- **live-v1.6** (2026-10-23) — sha `9ec5eb0`, config `sha256:0c2d3d9331b796575d7109c48e4a87ed4996effcab4fb0c16f1af75fbb47fae5`, model `none`: dashboard login removed (public read-only dashboard at the Liara app URL; starts whenever PORT is set). No engine / strategy / risk change.
+
 - **live-v1.5** (2026-10-23) — sha `b3c64fe`, config `sha256:0c2d3d9331b796575d7109c48e4a87ed4996effcab4fb0c16f1af75fbb47fae5`, model `none`: dashboard redesign (trading-terminal UI, in-place refresh, `make dashboard-demo`); config adds display-only `dashboard.timeline` / `dashboard.health`. No engine / strategy / risk change.
 
 - **live-v1.4** (2026-10-23) — sha `9dc241d`, config `sha256:e4ad215c4c3d43035dbf924afd1d9daeba656998616c01f691a0bc24c3fd1449`, model `none`: Liara app siavash-starcoach-wallex (port 8080, disk siavash-data at /app/persist). Tolerant /v1/account/fee parsing (bad entries skipped, logged as fee_entries_skipped), `siavash fees --diagnose`, smoke-test fee problems as WARN, curl in the image.
